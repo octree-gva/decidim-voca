@@ -1,0 +1,22 @@
+#! /bin/bash
+#
+# This script will sync the version of the different packaged software
+# to the same main version, governed by the ./package.json version attribute. 
+#
+# This allow us to have a versionned client api, ruby gem, and api documentation 
+# aligned with the same version, making things simpler.
+#
+PACKAGE_VERSION=$(jq -r '.version' package.json); 
+
+# Update version.rb
+file=lib/decidim/voca/version.rb
+if [ -f "$file" ]; then
+    sed -i "/# DO NOT UPDATE MANUALLY/s/\".*\"/\"$PACKAGE_VERSION\"/" $file; 
+fi
+# Update all package.json 
+for file in $(find website -name "node_modules" -prune -o -name "package.json" -print); do 
+    jq --arg version "$PACKAGE_VERSION" '.version = $version' "$file" > tmp.json
+    mv tmp.json "$file"; 
+done;
+
+echo $PACKAGE_VERSION

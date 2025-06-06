@@ -1,0 +1,25 @@
+.byebug_history
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/vendor
+/spec/dummy
+/bin/rails
+.DS_Store
+.migrations
+# rspec failure tracking
+.rspec-failures
+
+# default test application
+spec/decidim_dummy_app
+
+# default development application
+development_app
+
+.circleci
+node_modules

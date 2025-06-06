@@ -1,0 +1,38 @@
+services:
+  voca:
+    command: bash -c "sleep infinity"
+    image: octree/decidim-dev:0.29
+    entrypoint: ""
+    volumes:
+      - .:/home/decidim/module
+      - bundle:/home/decidim/app/vendor
+      - node_modules:/home/decidim/app/node_modules
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgresql://decidim:pleaseChangeMe@voca-pg:5432/decidim
+      - DATABASE_HOST=voca-pg
+      - DATABASE_USERNAME=decidim
+      - DATABASE_PASSWORD=pleaseChangeMe
+      - DEV_MODULE=decidim-voca
+      - RAILS_ENV=development
+      - DISABLED_DOCKER_COMPOSE=true # To run tests in docker
+    depends_on:
+      - voca-pg
+    ports:
+      - 3000:3000
+    links:
+      - voca-pg
+
+  voca-pg:
+    image: postgres:15
+    volumes:
+      - voca-pg-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DATABASE=decidim
+      - POSTGRES_USER=decidim
+      - POSTGRES_PASSWORD=pleaseChangeMe
+
+volumes:
+  node_modules: {}
+  bundle: {}
+  voca-pg-data: {}
