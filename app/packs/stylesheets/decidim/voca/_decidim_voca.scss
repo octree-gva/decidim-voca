@@ -1,1 +1,32 @@
 /* Front end styles overrides */
+
+footer .main-footer {
+  background-color: var(--primary);
+  color: var(--white);
+  &__down {
+    border-color: var(--primary);
+  }
+  & .text-white {
+    & h1,
+    & h2,
+    & h3,
+    & h4,
+    & h5,
+    & h6,
+    & p,
+    & a,
+    & span,
+    & i,
+    & b,
+    & strong,
+    & em,
+    & u,
+    & s,
+    & blockquote,
+    & ol > li::marker {
+      color: var(--white) !important;
+    }
+    & a { text-decoration: underline;}
+    & a:hover { opacity: 0.8; }
+  }
+}
