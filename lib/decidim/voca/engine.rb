@@ -10,7 +10,16 @@ module Decidim
     # This is the engine that runs on the public interface of voca.
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
+      # Enforce profile verification
+      config.to_prepare do
+        # Decidim::AccountForm will use these regexps:
+        Decidim::UserBaseEntity::REGEXP_NAME = /\A(?!.*[<>?%&\^*#@()\[\]=+:;"{}\\|])/m
+        Decidim::User::REGEXP_NICKNAME = /\A[\w-]+\z/m
+        # If it has gone through forms, and still want to save, we sanitize on save:
+        Decidim::UserBaseEntity.include(Decidim::Voca::Overrides::UserProfileVerificationOverride)
+      end
 
+      # Setup upload variants
       config.to_prepare do
         upload_variants = {
           thumbnail: { resize_to_fit: [nil, 237] },
@@ -44,6 +53,8 @@ module Decidim
           config.active_storage.variant_processor = :vips
         end
       end
+
+
     end
   end
 end
