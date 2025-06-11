@@ -42,6 +42,9 @@ module Decidim
         # Proposals
         Decidim::Proposals::ProposalGCell.include(Decidim::Voca::Overrides::ProposalGCellOverride)
         Decidim::AttachmentUploader.set_variants { upload_variants }
+
+        # Avoid to load .rake files on test environment
+        NextGenImages::Railtie.include(Decidim::Voca::Overrides::NextGenImagesRailtieOverride)
       end
 
       initializer "decidim_voca.webpacker.assets_path" do

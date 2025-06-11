@@ -10,13 +10,19 @@ module Decidim
           before_validation :voca_sanitize_name
           before_validation :voca_sanitize_nickname
 
+          private 
+          def voca_sanitize_string(string)
+            ActionController::Base.helpers.strip_tags(string).gsub(/[<>?%&\^*#@()\[\]=+:;"{}\\|\n\r]/m, "")
+          end
+
           def voca_sanitize_name
-            self.name = name.gsub(/[^#{Decidim::UserBaseEntity::REGEXP_NAME}]/, "")
+            self.name = voca_sanitize_string(name) unless name.empty?
           end
 
           def voca_sanitize_nickname
-            self.nickname = nickname.gsub(/[^#{Decidim::User::REGEXP_NICKNAME}]/, "")
+            self.nickname = voca_sanitize_string(nickname) unless nickname.empty?
           end
+
         end
       end
     end
