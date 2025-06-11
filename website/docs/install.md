@@ -16,12 +16,17 @@ description: How to install the module
 
 # Install Decidim Voca
 
-**Add the gem to your Gemfile**<br />
+**Add the gem to your Gemfile**  
 ```ruby
 gem "decidim-voca", "~> 0.0.1"
 ```
 
-**Install the module**<br />
-```ruby
+**Install the module**  
+```bash
 bundle install
+```
+
+**Compile assets**  
+```bash
+bin/rails assets:precompile
 ```
