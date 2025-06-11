@@ -53,8 +53,6 @@ module Decidim
           config.active_storage.variant_processor = :vips
         end
       end
-
-
     end
   end
 end
