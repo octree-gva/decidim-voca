@@ -9,8 +9,7 @@
 # - GEM_HOST_API_KEY: protected & masked. // 
 stages:
   - lint
-  # - test # No tests for now
-  # - translate # No translations for now
+  - test 
   - publish
 variables:
   POSTGRES_DB: decidim_test
@@ -51,16 +50,6 @@ ruby::rubocop:
     - bundle
     - bundle exec rubocop .
 ##
-# Lint crowdin.yml configuration file
-crowdin::lint:  
-  extends: .development_rules
-  image: node:20
-  stage: lint
-  script:
-    - npm install -g @crowdin/cli
-    - crowdin config lint -i $CROWDIN_PROJECT_ID --no-progress || exit 1
-    - crowdin status -T $CROWDIN_PERSONAL_TOKEN -i $CROWDIN_PROJECT_ID --no-progress || exit 1
-##
 # Publish the gem un ruby gem.
 ruby::rubygem:
   image: ruby:3.2.2
@@ -74,44 +63,7 @@ ruby::rubygem:
     - gem push decidim*.gem -k ci_rubygems_api_key --config-file .credentials
   only:
     - tags
-##
-# Upload new translation keys to crowdin
-crowdin::upload:
-  stage: translate
-  image: node:18.20
-  script:
-    - npm install -g @crowdin/cli
-    - crowdin upload -T $CROWDIN_PERSONAL_TOKEN -i $CROWDIN_PROJECT_ID --no-progress
-    - crowdin status -T $CROWDIN_PERSONAL_TOKEN -i $CROWDIN_PROJECT_ID --no-progress
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $GITLAB_USER_ID == $TRANSLATIONBOT_ID'
-      when: always
 
-##
-# Create a Merge request in the project with updated 
-# crowndin translations.
-crowdin::merge_request:
-  stage: translate
-  image: node:18.20
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" && $GITLAB_USER_ID != $TRANSLATIONBOT_ID'
-      when: always
-  before_script:
-    - apt-get update && apt-get install -y git
-  script:
-    - git config --global user.email "mr-translations"
-    - git config --global user.name "$TRANSLATIONBOT_ID"
-    - npm install -g @crowdin/cli
-    - crowdin download -T $CROWDIN_PERSONAL_TOKEN -i $CROWDIN_PROJECT_ID --no-progress
-    - crowdin status -T $CROWDIN_PERSONAL_TOKEN -i $CROWDIN_PROJECT_ID --no-progress
-    - export BRANCH_NAME="i18n/$(date +%Y%m%d%H%M%S)"
-    - export ORIGIN="crowndin_$(date +%Y%m%d%H%M%S)"
-    - echo "add $ORIGIN=https://$TRANSLATIONBOT_ID:$TRANSLATIONBOT_ACCESS_TOKEN@git.octree.ch/$CI_PROJECT_PATH.git"
-    - git remote add $ORIGIN https://$TRANSLATIONBOT_ID:$TRANSLATIONBOT_ACCESS_TOKEN@git.octree.ch/$CI_PROJECT_PATH.git
-    - git checkout -b $BRANCH_NAME
-    - git add config/locales
-    - git commit -m "Crowdin Updates"
-    - git push $ORIGIN HEAD:$BRANCH_NAME -o merge_request.create -o merge_request.target=main
 ##
 # Execute rspec and expose a spec report
 ruby::rspec:
