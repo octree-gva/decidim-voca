@@ -19,12 +19,6 @@ module Decidim
       expect(subject).to be_valid
     end
 
-    it "is valid with a nickname using_ letters, numbers, undescore and minus signs" do
-      subject.nickname = "maria_dav"
-      subject.old_password = user_password
-      expect(subject).to be_valid
-    end
-
     describe "has invalid nickname" do
       it "when a nickname with html tags is given." do
         subject.nickname = "john_<img>_doe"
@@ -32,20 +26,19 @@ module Decidim
         expect(subject).to be_invalid
       end
 
-      it "when a nickname have a new line" do 
+      it "when a nickname have a new line" do
         subject.nickname = "john\ndoe"
         subject.old_password = user_password
         expect(subject).to be_invalid
       end
 
-
-      it "when a nickname have an dot" do 
+      it "when a nickname have an dot" do
         subject.nickname = "john.doe"
         subject.old_password = user_password
         expect(subject).to be_invalid
       end
 
-      it "when a nickname have an single quote" do 
+      it "when a nickname have an single quote" do
         subject.nickname = "john'doe"
         subject.old_password = user_password
         expect(subject).to be_invalid

@@ -8,7 +8,7 @@ module Decidim
     let(:user) { create(:user) }
 
     context "when validating user's name" do
-      describe "sanitize" do 
+      describe "sanitize" do
         let(:user) { build(:user) }
 
         it "remove new lines" do
@@ -44,7 +44,7 @@ module Decidim
     end
 
     context "when validating user's nickname" do
-      describe "sanitize" do 
+      describe "sanitize" do
         let(:user) { build(:user) }
 
         it "remove new lines" do
