@@ -10,9 +10,11 @@ module Decidim
           before_validation :voca_sanitize_name
           before_validation :voca_sanitize_nickname
 
-          private 
+          private
+
           def voca_sanitize_string(string)
-            ActionController::Base.helpers.strip_tags(string).gsub(/[<>?%&\^*#@()\[\]=+:;"{}\\|\n\r]/m, "")
+            strip_regex = /[<>?%&\^*#@()\[\]=+:;"{}\\|\n\r]/m
+            ActionController::Base.helpers.strip_tags(string).gsub(strip_regex, "")
           end
 
           def voca_sanitize_name
@@ -20,9 +22,8 @@ module Decidim
           end
 
           def voca_sanitize_nickname
-            self.nickname = voca_sanitize_string(nickname) unless nickname.empty?
+            self.nickname = voca_sanitize_string(nickname).downcase unless nickname.empty?
           end
-
         end
       end
     end
