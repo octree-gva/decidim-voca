@@ -1,0 +1,45 @@
+workspace {
+  model {
+    user = person "User" "A user"
+
+    search = softwareSystem "Product Search" "Search capabilities offered over GraphQL" "Existing System"
+
+    priceRunner = softwareSystem "PriceRunner" "Compare prices from multiple suppliers" "External"
+
+    system = softwareSystem "Price Tracker" "A system to track prices on products." {
+      web = container "Web App" "A web app to track prices" "React"
+      app = container "Mobile App" "An Android app to track prices" "React Native"
+      db = container "Database" "User profile data" "CouchDB" "Database"
+      bff = container "App Backend" "Backend for the app" "Node JS"
+      topic = container "ptr.public.event.price-changed" "Topic for price changed events" "Cloud Pub/Sub" "Topic"
+    }
+
+    user -> app "Uses"
+    user -> web "Uses"
+    app -> bff "Uses" "HTTP, gRPC"
+    web -> bff "Uses" "HTTP, gRPC"
+    bff -> db "Read/Write" "TCP"
+    bff -> search "Search" "HTTP, GraphQL"
+    bff -> priceRunner "Search" "HTTP"
+    bff -> topic "Publishes events" "Pub/Sub"
+  }
+
+  views {
+
+    theme https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-voca/-/snippets/38/raw/main/theme.json
+    themes https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-voca/-/snippets/38/raw/main/theme.json
+
+    branding {
+      font Inter https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap
+    }
+    
+    systemContext system {
+      include *
+    }
+
+    container system {
+      include *
+    }
+
+  }
+}
