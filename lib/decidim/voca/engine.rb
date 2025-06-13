@@ -11,6 +11,10 @@ module Decidim
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
 
+      routes do
+        get "/_/csrf/refresh", to: "http_cache/refresh#show"
+      end
+
       # Enforce profile verification
       config.to_prepare do
         # Decidim::AccountForm will use these regexps:
@@ -50,9 +54,23 @@ module Decidim
       end
 
       initializer "decidim_voca.image_processing" do
-        Rake.application.instance_variable_get(:@tasks).delete("assets:webp")
         Rails.application.configure do
           config.active_storage.variant_processor = :vips
+        end
+      end
+
+      initializer "decidim_voca.http_cache" do
+        # Insert the middleware only if cache is enabled
+        Rails.application.configure do
+          if config.cache_store != :null_store
+            config.middleware.insert_after ::Warden::Manager, Decidim::Voca::HttpCache::Middleware
+          end
+        end
+      end
+
+      initializer "decidim_voca.routes" do
+        Decidim::Core::Engine.routes do
+          mount Decidim::Voca::Engine, at: "/", as: "decidim_voca"
         end
       end
     end

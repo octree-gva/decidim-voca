@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "voca/engine"
+require_relative "voca/http_cache/middleware"
 require_relative "voca/overrides/next_gen_images/decidim_viewmodel"
 require_relative "voca/overrides/next_gen_images/override_for_has_one_attached"
 require_relative "voca/overrides/next_gen_images/override_cell_resource_image_url"

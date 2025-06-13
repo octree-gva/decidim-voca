@@ -1,0 +1,1 @@
+require("./http_cache/refresh_csrf_token")

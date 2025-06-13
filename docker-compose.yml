@@ -16,12 +16,12 @@ services:
       - DEV_MODULE=decidim-voca
       - RAILS_ENV=development
       - DISABLED_DOCKER_COMPOSE=true # To run tests in docker
+      - MEMCACHE_SERVERS=voca-cache:11211
     depends_on:
       - voca-pg
+      - voca-cache
     ports:
       - 3000:3000
-    links:
-      - voca-pg
 
   voca-pg:
     image: postgres:15
@@ -31,6 +31,11 @@ services:
       - POSTGRES_DATABASE=decidim
       - POSTGRES_USER=decidim
       - POSTGRES_PASSWORD=pleaseChangeMe
+
+  voca-cache:
+    image: memcached:1.6
+    ports:
+      - 11211:11211
 
 volumes:
   node_modules: {}

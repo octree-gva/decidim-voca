@@ -17,12 +17,12 @@ workspace {
         
         user -> proxy "request a page" ""
         proxy -> app "pass the request" ""
-        app -> db "enqueue invalidation cache task" ""
+        app -> db "enqueue invalidation for url" ""
         app -> app "compute HTML"
         app -> cacheSystem "read/write cache" ""
         app -> user "serve a cached page"
         
-        worker -> db "pull cache task" ""
+        worker -> db "fetch urls to regenerates" ""
         worker -> cacheSystem "write cache" ""
       }
     }
@@ -83,7 +83,6 @@ workspace {
         include *
 
         autoLayout
-        description "An example live deployment scenario for the Internet Banking System."
     }
 
     dynamic decidimVoca "cache-middleware" {
@@ -91,7 +90,7 @@ workspace {
       proxy -> app 
       app -> cacheSystem "find cache for request.path"
       app -> app "if not found, generate a new cache"
-      app -> db "enqueue invalidation, delay: 5min"
+      app -> db "enqueue url to renew, delay: 5min"
       autoLayout tb
     }
     dynamic decidimVoca "cache-containers" {
