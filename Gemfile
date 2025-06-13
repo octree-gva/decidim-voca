@@ -12,7 +12,7 @@ DECIDIM_VERSION = "~> 0.29.4"
 
 gem "decidim", DECIDIM_VERSION
 gem "decidim-voca", path: base_path
-
+gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
 gem "bootsnap", "~> 1.4"
 gem "puma", ">= 6.3.1"
 gem "uglifier", "~> 4.1"

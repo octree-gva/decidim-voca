@@ -10,6 +10,7 @@ module Decidim
     # This is the engine that runs on the public interface of voca.
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
+      
       # Enforce profile verification
       config.to_prepare do
         # Decidim::AccountForm will use these regexps:
@@ -42,9 +43,6 @@ module Decidim
         # Proposals
         Decidim::Proposals::ProposalGCell.include(Decidim::Voca::Overrides::ProposalGCellOverride)
         Decidim::AttachmentUploader.set_variants { upload_variants }
-
-        # Avoid to load .rake files on test environment
-        NextGenImages::Railtie.include(Decidim::Voca::Overrides::NextGenImagesRailtieOverride)
       end
 
       initializer "decidim_voca.webpacker.assets_path" do
@@ -52,6 +50,7 @@ module Decidim
       end
 
       initializer "decidim_voca.image_processing" do
+        Rake.application.instance_variable_get(:@tasks).delete('assets:webp')
         Rails.application.configure do
           config.active_storage.variant_processor = :vips
         end

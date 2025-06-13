@@ -1,3 +1,12 @@
+GIT
+  remote: https://github.com/froger/next_gen_images
+  revision: 2ad2250898f5e84a005e524a2a85f711926aa5fd
+  branch: chore/rails-7.0
+  specs:
+    next_gen_images (1.1.1)
+      rails (>= 3.1)
+      webp-ffi (~> 0.3.1)
+
 PATH
   remote: .
   specs:
@@ -504,9 +513,6 @@ GEM
       timeout
     net-smtp (0.3.4)
       net-protocol
-    next_gen_images (1.1.1)
-      rails (>= 3.1)
-      webp-ffi (~> 0.3.1)
     nio4r (2.7.4)
     nokogiri (1.18.8-x86_64-linux-gnu)
       racc (~> 1.4)
@@ -827,6 +833,7 @@ DEPENDENCIES
   deface (>= 1.8.1)
   letter_opener_web (~> 2.0)
   listen (~> 3.1)
+  next_gen_images!
   parallel_tests (~> 4.2)
   puma (>= 6.3.1)
   rspec-rails (~> 6.0)
