@@ -1,7 +1,7 @@
 {
   "name": "decidim-rest_full",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "packageManager": "yarn@1.22.22",
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.15.3",
@@ -16,7 +16,7 @@
   "scripts": {
     "docs:start": "cd website && yarn start -p 3232",
     "docs:build": "cd website && yarn build",
-    "format": "docker compose run -u root -w /home/decidim/module --rm rest_full bundle exec rubocop -A .",
+    "format": "docker compose run -u root -w /home/decidim/module --rm voca bundle exec rubocop -A .",
     "postcommit": "yarn format && yarn docs:build",
     "postversion": "bin/postversion && yarn postcommit"
   }

@@ -15,4 +15,3 @@ Deface::Override.new(
   insert_before: "erb[loud]:contains('decidim_overrides')",
   text: "<%= append_stylesheet_pack_tag 'decidim_voca' %>"
 )
-

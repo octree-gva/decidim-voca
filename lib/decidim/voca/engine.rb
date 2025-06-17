@@ -28,6 +28,7 @@ module Decidim
           thumbnail_webp: { resize_to_fit: [nil, 237], convert: :webp, format: :webp, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 } },
           big_webp: { resize_to_limit: [nil, 1000], convert: :webp, format: :webp, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 } }
         }
+        ActionView::Base.include(NextGenImages::ViewHelpers)
         # Includes overrides
         ActionView::Helpers::AssetTagHelper.include(Decidim::Voca::Overrides::ImageTagOverrides)
         Decidim::ViewModel.include Decidim::Voca::Overrides::DecidimViewModel
