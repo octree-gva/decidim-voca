@@ -2,7 +2,7 @@
 
 footer .main-footer {
   background-color: var(--primary);
-  color: var(--white);
+  color: var(--white) !important;
   &__down {
     border-color: var(--primary);
   }
