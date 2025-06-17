@@ -18,7 +18,7 @@ Fixes and adjustments for the Decidim instances distributed by voca.
 The documentation and the API specification are in the [documentation website](https://octree-gva.github.io/decidim-voca/)
 
 ### Features
-- 
+- `anonymize users`: Run`rails decidim:voca:anonymize` to anonymize all your database and avoid sending email or leaking nicknames/passwords.
 
 ## Contribute
 
