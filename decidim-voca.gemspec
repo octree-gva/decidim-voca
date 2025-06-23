@@ -20,11 +20,11 @@ Gem::Specification.new do |s|
 
   s.require_paths = ["lib"]
   s.add_dependency "decidim-admin", Decidim::Voca.decidim_version
+  s.add_dependency "decidim-decidim_awesome", "~> 0.12.0"
   s.add_dependency "deface", "~> 1.9"
   s.add_dependency "faker", "~> 3.5.1"
   s.add_dependency "image_processing", "~> 1.2"
   s.add_dependency "next_gen_images", "~> 1.1.1"
-
   s.add_dependency "vips", "~> 8.15.1"
   s.metadata["rubygems_mfa_required"] = "true"
 end
