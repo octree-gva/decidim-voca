@@ -11,11 +11,8 @@ module Decidim
           alias_method :decidim_voca_cache_hash, :cache_hash
 
           define_method :resource_image_path do
-            # Filter the first image attachment
-            return nil if model.attachments.empty?
-
-            # Get first Decidim::Attachment
-            image = model.photo
+            image = model.attachments.find(&:image?)
+            return nil unless image
             uploader = image.attached_uploader(:file)
             uploader.variants.map do |variant, _variant_options|
               uploader.variant_url(variant)
