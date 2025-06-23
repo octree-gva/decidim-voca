@@ -1,0 +1,56 @@
+
+.formBuilder__budgetField {
+  border: 0px solid transparent;
+  border-radius: 0.25rem;
+
+  /* admin fields */
+  &-container {
+    @apply clear-both mt-2 gap-2 flex-col flex;
+  }
+  &-form-editor &-editor {
+    @apply flex items-center gap-2;
+  }
+  &-form-editor &-addLine {
+    @apply flex-none;
+  }
+  &-form-editor &-price{
+    width: 165px;
+  }
+  &-form-editor &-price,
+  &-form-editor &-label {
+    margin: 0 !important;
+  }
+  &-form-editor &-priceGroup.input-group {
+    display: flex !important;
+    @apply flex-nowrap items-center gap-2;
+  }
+  &-form-editor &-removeLine {
+    @apply my-0 mx-2 py-1 px-4 font-bold;
+  }
+  /* result rendering */
+  &-rendered {
+    @apply prose prose-lg;
+  }
+  &-rendered &-table {
+    @apply mt-0;
+  }
+  &-rendered &-cell {
+    &--label {
+      width: auto;
+    }
+    &--price {
+      min-width: 90px;
+      @apply text-right font-semibold
+    }
+    &--total {
+      @apply text-right font-semibold text-xl;
+    }
+  }
+  /** Support <0.28 versions */
+  &-rendered .hide {
+    @apply hidden;
+  }
+}
+.decidim_awesome-custom_fields .proposal_custom_field label .tooltip-element {
+  text-wrap: nowrap;
+}

@@ -4,7 +4,7 @@ require "decidim/dev/common_rake"
 
 def install_module(path)
   Dir.chdir(path) do
-    # system("bundle exec rails decidim_voca:install:migrations")
+    system("bundle exec rails decidim_voca:install:migrations")
   end
 end
 

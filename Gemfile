@@ -12,12 +12,12 @@ DECIDIM_VERSION = "~> 0.29.4"
 
 gem "bootsnap", "~> 1.4"
 gem "decidim", DECIDIM_VERSION
+gem "decidim-decidim_awesome", "~> 0.12.0"
 gem "decidim-voca", path: base_path
+gem "deface", ">= 1.8.1"
 gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
 gem "puma", ">= 6.3.1"
 gem "uglifier", "~> 4.1"
-
-gem "deface", ">= 1.8.1"
 
 group :development, :test do
   gem "brakeman", "~> 6.1"

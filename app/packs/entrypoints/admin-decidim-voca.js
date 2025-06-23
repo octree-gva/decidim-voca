@@ -1,0 +1,1 @@
+require("src/decidim/voca/admin/voca")

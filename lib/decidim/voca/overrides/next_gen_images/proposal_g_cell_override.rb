@@ -13,6 +13,7 @@ module Decidim
           define_method :resource_image_path do
             image = model.attachments.find(&:image?)
             return nil unless image
+
             uploader = image.attached_uploader(:file)
             uploader.variants.map do |variant, _variant_options|
               uploader.variant_url(variant)
