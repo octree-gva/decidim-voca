@@ -44,6 +44,9 @@ module Decidim
         # Proposals
         Decidim::Proposals::ProposalGCell.include(Decidim::Voca::Overrides::ProposalGCellOverride)
         Decidim::AttachmentUploader.set_variants { upload_variants }
+
+        # Meetings
+        Decidim::Meetings::Admin::MeetingsController.include(Decidim::Voca::Overrides::MeetingsControllerOverrides)
       end
 
       initializer "decidim_voca.webpacker.assets_path" do
