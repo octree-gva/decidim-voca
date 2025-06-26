@@ -12,12 +12,13 @@ module Decidim
           # Alias the original mail method
           alias_method :original_meeting, :meeting
 
-          private 
+          private
+
           def meeting
             return nil if !params[:id] || params[:id].to_i <= 0
+
             original_meeting
           end
-
         end
       end
     end
