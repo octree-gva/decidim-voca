@@ -10,7 +10,7 @@ GIT
 PATH
   remote: .
   specs:
-    decidim-voca (0.0.2)
+    decidim-voca (0.0.3)
       decidim-admin (>= 0.29, < 0.30)
       decidim-decidim_awesome (~> 0.12.0)
       deface (~> 1.9)
