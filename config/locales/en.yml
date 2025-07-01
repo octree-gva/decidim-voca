@@ -1,0 +1,7 @@
+en:
+  decidim:
+    proposals:
+      models:
+        proposal:
+          fields:
+            votes_on_going: Votes (On going)
