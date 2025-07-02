@@ -49,6 +49,15 @@ module Decidim
         Decidim::Meetings::Admin::MeetingsController.include(Decidim::Voca::Overrides::MeetingsControllerOverrides)
       end
 
+      # Decidim Awesome Proposal Override
+      initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
+        config.to_prepare do
+          Decidim::Proposals::ProposalSerializer.include(
+            Decidim::Voca::Overrides::ProposalSerializerOverrides
+          )
+        end
+      end
+
       initializer "decidim_voca.webpacker.assets_path" do
         Decidim.register_assets_path File.expand_path("#{Decidim::Voca::Engine.root}/app/packs")
       end
