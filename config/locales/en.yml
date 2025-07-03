@@ -4,4 +4,4 @@ en:
       models:
         proposal:
           fields:
-            votes_on_going: Votes (On going)
+            votes_on_going: Votes (ongoing)

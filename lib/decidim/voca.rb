@@ -8,6 +8,7 @@ require_relative "voca/overrides/next_gen_images/image_tag_overrides"
 require_relative "voca/overrides/next_gen_images/proposal_g_cell_override"
 require_relative "voca/overrides/mod_secure/user_profile_verification_override"
 require_relative "voca/overrides/meetings_controller_overrides"
+require_relative "voca/overrides/proposal_serializer_overrides"
 
 module Decidim
   module Voca
