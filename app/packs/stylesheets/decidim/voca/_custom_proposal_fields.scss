@@ -31,6 +31,10 @@
     height: 20px;
     color: var(--primary);
   }
+  &-label {
+    display: block;
+    line-height: 1.6;
+  }
 }
 .formBuilder__budgetField {
   border: 0px solid transparent;
