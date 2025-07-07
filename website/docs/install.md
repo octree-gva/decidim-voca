@@ -26,6 +26,8 @@ gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch:
 ```bash
 bundle install
 bundle exec rails voca:webpacker:install
+bundle rails decidim_voca:install:migrations 
+bundle exec rails db:migrate
 ```
 
 **Compile assets**  

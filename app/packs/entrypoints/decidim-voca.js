@@ -1,1 +1,1 @@
-require("src/decidim/voca/voca")
+require("src/decidim/voca/voca");

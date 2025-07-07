@@ -24,7 +24,11 @@ footer .main-footer {
     & ol > li::marker {
       color: var(--white) !important;
     }
-    & a { text-decoration: underline;}
-    & a:hover { opacity: 0.8; }
+    & a {
+      text-decoration: underline;
+    }
+    & a:hover {
+      opacity: 0.8;
+    }
   }
 }

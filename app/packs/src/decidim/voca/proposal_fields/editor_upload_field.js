@@ -1,4 +1,4 @@
-export default function editorUploadField () {
+export default function editorUploadField() {
   if (!window.fbControls) window.fbControls = new Array();
   window.fbControls.push(function (controlClass) {
     /**
@@ -6,7 +6,6 @@ export default function editorUploadField () {
      */
     class controlAttachFile extends controlClass {
       static get definition() {
-
         return {
           icon: "🏞️",
           i18n: {
@@ -33,7 +32,7 @@ export default function editorUploadField () {
           id: inputId,
           type: "file",
         });
-        if (!currentValue){ 
+        if (!currentValue) {
           this.input = fileControl;
         } else {
           const removeButton = this.markup(
@@ -47,15 +46,15 @@ export default function editorUploadField () {
               class: "formBuilder__attachFile-button",
               title: this.i18n("removeIconTitle"),
               alt: "remove",
-            }
+            },
           );
           const hiddenInput = this.markup("input", currentValue, {
             id: inputId,
             type: "hidden",
             value: currentValue,
-            name: this.config.name
+            name: this.config.name,
           });
-          const filename = currentValue.split("/").pop()
+          const filename = currentValue.split("/").pop();
           const link = this.markup("a", filename, {
             href: currentValue,
             target: "_blank",
@@ -64,7 +63,7 @@ export default function editorUploadField () {
           const input = (this.input = this.markup(
             "div",
             [link, hiddenInput, removeButton],
-            { class: "formBuilder__attachFile" }
+            { class: "formBuilder__attachFile" },
           ));
           $(removeButton).on("click", function (evt) {
             evt.preventDefault();
@@ -83,4 +82,4 @@ export default function editorUploadField () {
     controlClass.register("attachFile", controlAttachFile);
     return controlAttachFile;
   });
-};
+}

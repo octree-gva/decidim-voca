@@ -1,4 +1,4 @@
-.decidim_awesome-custom_fields dd[name=attachFile] a {
+.decidim_awesome-custom_fields dd[name="attachFile"] a {
   max-width: 540px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -8,9 +8,8 @@
   color: var(--secondary);
   text-align: right;
   direction: rtl;
-
 }
-  
+
 .formBuilder__attachFile {
   &-preview {
     max-width: 50%;
@@ -47,7 +46,7 @@
   &-form-editor &-addLine {
     @apply flex-none;
   }
-  &-form-editor &-price{
+  &-form-editor &-price {
     width: 165px;
   }
   &-form-editor &-price,
@@ -74,7 +73,7 @@
     }
     &--price {
       min-width: 90px;
-      @apply text-right font-semibold
+      @apply text-right font-semibold;
     }
     &--total {
       @apply text-right font-semibold text-xl;

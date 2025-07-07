@@ -11,7 +11,7 @@ module Decidim
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
 
-      routes do 
+      routes do
         Decidim::Core::Engine.routes.draw do
           post :editor_files, to: "voca/editor_files#create"
         end

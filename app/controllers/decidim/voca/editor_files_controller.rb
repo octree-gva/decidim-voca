@@ -10,13 +10,13 @@ module Decidim
       # overwrite original rescue_from to ensure we print messages from ajax methods (update)
       rescue_from Decidim::ActionForbidden, with: :ajax_user_has_no_permission
 
-      def create  
+      def create
         @form = form(EditorFileForm).from_params(form_values)
         CreateEditorFile.call(@form) do
           on(:ok) do |file|
             url = file.attached_uploader(:file).url(host: current_organization.host)
             url = "#{request.base_url}#{url}" unless url&.start_with?("http")
-            render json: { url: url, message: I18n.t("editor_files.create.success", scope: "decidim.voca") }
+            render json: { url:, message: I18n.t("editor_files.create.success", scope: "decidim.voca") }
           end
 
           on(:invalid) do |_message|
