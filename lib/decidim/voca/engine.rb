@@ -11,6 +11,12 @@ module Decidim
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
 
+      routes do 
+        Decidim::Core::Engine.routes.draw do
+          post :editor_files, to: "voca/editor_files#create"
+        end
+      end
+
       # Enforce profile verification
       config.to_prepare do
         # Decidim::AccountForm will use these regexps:

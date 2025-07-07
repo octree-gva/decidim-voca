@@ -4,7 +4,7 @@ import throttle from "lodash.throttle";
  * Register administration field.
  * Used in administration and in front end, on proposal creation and edition.
  */
-export default function editorFieldBudget() {
+export default function editorBudgetField() {
   if (!window.fbControls) window.fbControls = new Array();
 
   window.fbControls.push(function (controlClass) {

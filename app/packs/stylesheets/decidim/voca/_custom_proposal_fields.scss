@@ -1,4 +1,38 @@
+.decidim_awesome-custom_fields dd[name=attachFile] a {
+  max-width: 540px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  display: inline-block;
+  text-decoration: underline;
+  color: var(--secondary);
+  text-align: right;
+  direction: rtl;
 
+}
+  
+.formBuilder__attachFile {
+  &-preview {
+    max-width: 50%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+    text-decoration: underline;
+    color: var(--secondary);
+  }
+  &-button {
+    display: inline-block;
+    cursor: pointer;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  &-icon {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+  }
+}
 .formBuilder__budgetField {
   border: 0px solid transparent;
   border-radius: 0.25rem;
@@ -51,6 +85,7 @@
     @apply hidden;
   }
 }
+
 .decidim_awesome-custom_fields .proposal_custom_field label .tooltip-element {
   text-wrap: nowrap;
 }
