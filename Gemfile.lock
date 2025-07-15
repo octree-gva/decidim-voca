@@ -17,7 +17,7 @@ PATH
       faker (~> 3.5.1)
       image_processing (~> 1.2)
       next_gen_images (~> 1.1.1)
-      vips (~> 8.15.1)
+      ruby-vips (~> 2.2.4)
 
 GEM
   remote: https://rubygems.org/
@@ -786,8 +786,6 @@ GEM
       activemodel (>= 3.2)
       mail (~> 2.5)
     version_gem (1.1.8)
-    vips (8.15.1)
-      ffi (~> 1.12)
     w3c_rspec_validators (0.3.0)
       rails
       rspec
