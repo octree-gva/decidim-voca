@@ -11,6 +11,8 @@ module Decidim
           alias_method :decidim_voca_cache_hash, :cache_hash
 
           define_method :resource_image_path do
+            return decidim_voca_resource_image_path unless Decidim::Voca.next_gen_images?
+
             image = model.attachments.find(&:image?)
             return nil unless image
 
