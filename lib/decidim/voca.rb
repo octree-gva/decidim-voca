@@ -12,5 +12,14 @@ require_relative "voca/overrides/proposal_serializer_overrides"
 
 module Decidim
   module Voca
+    include ActiveSupport::Configurable
+
+    config_accessor :enable_next_gen_images do
+      true
+    end
+
+    def self.next_gen_images?
+      config.enable_next_gen_images
+    end
   end
 end
