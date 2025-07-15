@@ -31,8 +31,8 @@ namespace :voca do
         package_json = JSON.parse(File.read(decidim_voca.join("package.json")))
 
         {
-          prod: package_json["dependencies"].map { |package, version| "#{package}@#{version}" },
-          dev: package_json["devDependencies"].map { |package, version| "#{package}@#{version}" }
+          prod: package_json["dependencies"].map { |package, version| "#{package}@#{version}" }
+          # dev: package_json["devDependencies"].map { |package, version| "#{package}@#{version}" }
         }.freeze
       end
     end
