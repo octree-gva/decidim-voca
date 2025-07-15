@@ -27,7 +27,7 @@ const whenDecidimAwesomeInitialized = (retryCount = 0) => {
         "decidim-voca: DecidimAwesome is not initialized, retrying....",
       );
       setTimeout(() => {
-        whenDecidimAwesomeInitialized(retryCount + 1).then(resolve);
+        whenDecidimAwesomeInitialized(retryCount + 1).then(resolve).catch(reject);
       }, 64);
     }
   });
