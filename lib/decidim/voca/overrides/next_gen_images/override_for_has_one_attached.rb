@@ -13,8 +13,7 @@ module Decidim
               webp_options = {
                 convert: :webp,
                 format: :webp,
-                saver: { subsample_mode: "on", strip: true, interlace: true, quality: 80 },
-                quality: 80
+                saver: { subsample_mode: "on", strip: true, interlace: true, quality: 100 },
               }
               unless variants.has_key? :webp
                 variants.filter { |variant_name| variant_name != :default }.each do |variant_name, variant_options|
