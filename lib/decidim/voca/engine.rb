@@ -14,6 +14,7 @@ module Decidim
       routes do
         Decidim::Core::Engine.routes.draw do
           post :editor_files, to: "voca/editor_files#create"
+          post :locate, to: "voca/geolocation#locate"
         end
       end
 
@@ -24,6 +25,12 @@ module Decidim
         Decidim::User::REGEXP_NICKNAME = /\A[\w-]+\z/m
         # If it has gone through forms, and still want to save, we sanitize on save:
         Decidim::UserBaseEntity.include(Decidim::Voca::Overrides::UserProfileVerificationOverride)
+      end
+
+      # Fixes for geolocated proposals at creation
+      config.to_prepare do
+        Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
       # Setup upload variants
@@ -64,10 +71,50 @@ module Decidim
         end
       end
 
+      initializer "decidim.voca.map_configuration", after: :load_config_initializers do
+        Decidim.configure do |decidim_config|
+          Rails.logger.warn("Decidim.config.maps will be overridden by voca maps configuration") unless decidim_config.maps
+
+          # Setup CSP for geocoding, static maps (pngs), dynamic maps (tiles) and autocomplete.
+          decidim_config.content_security_policies_extra = {} unless decidim_config.content_security_policies_extra
+          decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
+          decidim_config.content_security_policies_extra["img-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "img-src"
+
+          decidim_config.content_security_policies_extra["connect-src"].push("*.hereapi.com", "*.openstreetmap.org", "photon.komoot.io", "*.basemaps.cartocdn.com",
+                                                                             "*.maps.ls.hereapi.com")
+          decidim_config.content_security_policies_extra["img-src"].push("*.hereapi.com", "*.openstreetmap.org", "photon.komoot.io", "*.basemaps.cartocdn.com",
+                                                                         "*.maps.ls.hereapi.com")
+
+          decidim_config.maps = {
+            provider: :osm,
+            api_key: ENV.fetch("MAPS_API_KEY", ""),
+            dynamic: {
+              tile_layer: {
+                url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+                api_key: false,
+                attribution: %(
+                          <a href="https://www.openstreetmap.org/copyright" target="_blank">&copy; OpenStreetMap</a> contributors
+                        ).strip
+              }
+            },
+
+            static: { url: "https://image.maps.ls.hereapi.com/mia/1.6/mapview" },
+            autocomplete: {
+              address_format: [%w(street houseNumber), "city", "country"],
+              url: "https://photon.komoot.io/api/"
+            },
+            geocoding: { host: "nominatim.openstreetmap.org", use_https: true }
+          }
+        end
+      end
+
       initializer "decidim_voca.webpacker.assets_path" do
         Decidim.register_assets_path File.expand_path("#{Decidim::Voca::Engine.root}/app/packs")
       end
 
+      initializer "decidim_voca.icons" do 
+        Decidim.icons.register(name: "camera", icon: "camera-line", category: "system", description: "", engine: :core)
+      end
       initializer "decidim_voca.image_processing" do
         Rails.application.configure do
           config.active_storage.variant_processor = :vips

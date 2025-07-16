@@ -1,0 +1,16 @@
+/** Hide when the browser is not mobile */
+// @media (min-width: 768px) {
+//   .use_camera {
+//     display: none;
+//   }
+// }
+
+
+
+.use_camera {
+  margin-top: -1.5rem;
+  &:hover {
+    background-color: var(--secondary);
+    color: white;
+  }
+}
