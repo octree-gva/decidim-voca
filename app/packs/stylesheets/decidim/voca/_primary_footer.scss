@@ -1,4 +1,15 @@
+footer .mini-footer .voca__footer-link  {
+  text-align: center;
+  display: inline-block;
+  svg {
+    max-height: 36px;
+  }
+  span[data-external-link] {
+    display: none;
+  }
+}
 footer .main-footer {
+
   background-color: var(--primary);
   color: var(--white) !important;
   &__down {

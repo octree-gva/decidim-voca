@@ -5,3 +5,5 @@ en:
         proposal:
           fields:
             votes_on_going: Votes (ongoing)
+    voca:
+      footer_text: A democratic space for your community
