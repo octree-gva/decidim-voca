@@ -6,4 +6,7 @@ en:
           fields:
             votes_on_going: Votes (ongoing)
     voca:
+      proposals:
+        find_my_location: "Use my location"
+        take_photo: "Take photo"
       footer_text: A democratic space for your community

@@ -1,0 +1,65 @@
+/** Change aspect ratio for the map, to let it touchable on small devices */
+.proposal__container [data-decidim-map] {
+  aspect-ratio: 1/0.5;
+}
+
+@media (max-width: 768px) {
+  .proposal__container [data-decidim-map] {
+    aspect-ratio: 1/1;
+  }
+}
+
+.proposal__container#address_map {
+  margin-top: -2.5rem;
+
+  .help-text {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 16px;
+  }
+}
+
+.input-group.input-group--geocoding {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 1rem;
+  align-items: stretch;
+  position: relative;
+
+  .autoComplete_wrapper {
+    flex: 1;
+    margin-top: 0;
+  }
+
+  .input-group-field {
+    display: inline-block;
+    margin-top: 0 !important;
+    flex: 1;
+    padding-right: 9rem !important;
+  }
+
+  .input-group-button {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    display: flex;
+    max-width: 8.75rem;
+
+    & > .button {
+      border-left: 0 !important;
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
+      &[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+  }
+}

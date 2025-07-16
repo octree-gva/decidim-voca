@@ -9,13 +9,23 @@ services:
       - node_modules:/home/decidim/app/node_modules
     environment:
       - PORT=3000
+      - MAPS_PROVIDER=osm
+      - MAPS_STATIC_PROVIDER=osm
+      - MAPS_STATIC_URL=https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png
+      - MAPS_STATIC_API_KEY=my_insecure_api_key
+      - MAPS_DYNAMIC_PROVIDER=osm
+      - MAPS_DYNAMIC_URL=https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}@2x.png
+      - MAPS_DYNAMIC_API_KEY=my_insecure_api_key
+      - MAPS_GEOCODING_HOST=nominatim.openstreetmap.org
+      - MAPS_ATTRIBUTION=<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap</a> contributors
       - DATABASE_URL=postgresql://decidim:pleaseChangeMe@voca-pg:5432/decidim
       - DATABASE_HOST=voca-pg
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
-      - DEV_MODULE=decidim-voca
+      - DISABLE_SPRING=1
+      - DEV_MODULE=decidim-voca0c026dc27ecf
       - RAILS_ENV=development
-      - DISABLED_DOCKER_COMPOSE=true # To run tests in docker
+      - DISABLED_DOCKER_COMPOSE=true # To run tests in dockeril vole de building en build
     depends_on:
       - voca-pg
     ports:

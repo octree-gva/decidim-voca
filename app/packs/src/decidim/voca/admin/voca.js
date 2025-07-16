@@ -1,5 +1,5 @@
-import editorBudgetField from "../proposal_fields/editor_budget_field";
-import editorUploadField from "../proposal_fields/editor_upload_field";
+import editorBudgetField from "../proposal_custom_fields/editor_budget_field";
+import editorUploadField from "../proposal_custom_fields/editor_upload_field";
 
 document.addEventListener("DOMContentLoaded", () => {
   editorBudgetField();
