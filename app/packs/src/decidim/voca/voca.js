@@ -21,11 +21,8 @@ const whenDecidimAwesomeInitialized = (retryCount = 0) => {
       resolve();
     } else {
       if (retryCount > 10) {
-        return reject("decidim-voca: DecidimAwesome is not initialized");
+        return reject("decidim-voca: seem DecidimAwesome is not used in this page, skipping override");
       }
-      console.warn(
-        "decidim-voca: DecidimAwesome is not initialized, retrying....",
-      );
       setTimeout(() => {
         whenDecidimAwesomeInitialized(retryCount + 1).then(resolve).catch(reject);
       }, 64);

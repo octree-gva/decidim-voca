@@ -3,8 +3,10 @@ import editorUploadField from "../proposal_fields/editor_upload_field";
 
 document.addEventListener("DOMContentLoaded", () => {
   editorBudgetField();
-  // If current page ends with proposal_private_custom_fields, load upload field module
-  if (window.location.pathname.endsWith("proposal_private_custom_fields")) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const forceAwesomeAttach = urlParams.has('force_awesome_attach_file');
+
+  if (forceAwesomeAttach || window.location.pathname.endsWith("proposal_private_custom_fields")) {
     editorUploadField();
   }
 });
