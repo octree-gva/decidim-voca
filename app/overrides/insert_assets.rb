@@ -15,3 +15,10 @@ Deface::Override.new(
   insert_before: "erb[loud]:contains('decidim_overrides')",
   text: "<%= append_stylesheet_pack_tag 'decidim_voca' %><%= prepend_javascript_pack_tag 'decidim_voca_js' %>"
 )
+
+Deface::Override.new(
+  virtual_path: "layouts/decidim/_head",
+  name: "voca_css_fixes_pack",
+  insert_after: "erb[loud]:contains('decidim_overrides')",
+  text: "<%= append_stylesheet_pack_tag 'decidim_voca_fixes' %>"
+)

@@ -22,7 +22,7 @@ namespace :voca do
       decidim_voca_dependencies.each do |type, packages|
         puts "install NPM packages. You can also do this manually with this command:"
         puts "npm i --save-#{type} #{packages.join(" ")}"
-        system! "npm i --save-#{type} #{packages.join(" ")}"
+        voca_system! "npm i --save-#{type} #{packages.join(" ")}"
       end
     end
 
@@ -53,7 +53,7 @@ namespace :voca do
       FileUtils.cp(decidim_voca_path.join(origin_path), rails_app_path.join(destination_path))
     end
 
-    def system!(command)
+    def voca_system!(command)
       system("cd #{rails_app_path} && #{command}") || abort("\n== Command #{command} failed ==")
     end
 
