@@ -1,106 +1,55 @@
 Voca CLI
 
-CLI for technical and secure management of Decidim instances.
-Focused on automation, traceability, encryption, and clean DX.
+# Configure account access. Most production server will have one account, and 
+# developpers can setup many acount
+voca config
 
-Last updated: 2024-07-19
-📦 Authentication
-
-voca login --s3-key <key> --s3-secret <secret> --platform <slug>
-
-Authenticates to the S3 bucket and sets the current platform in ~/.voca/config.yml.
-📸 Snapshots
-
-voca snapshot create [--suffix <text>]
-
-Creates a full snapshot (DB + uploads + env) and uploads it to the bucket.
-
+# TODO Create a snapshot for all files required in decidim (db/storage)
+# storage: if S3 active storage, download all of them in a storage folder and setup a ActiveStorageBlobs mapping (which id in restored file needs to be updated to which local fiçe)
+# db: create a migration mapping, to know the hash of migration file that has been selected. (will reset migration information on restore)
+# meta: save voca version, decidim version and needed deps (bundler, node, ruby) to check compat before restore
+voca snapshot create 
+voca snapshot list
 voca snapshot restore <file> --force [--anon] [--host <url>]
 
-Restores a snapshot. ⚠️ Destructive.
---anon: anonymizes sensitive data
---host: rewrites platform domain
---force: mandatory flag
-
-voca snapshot list
-
-Lists all snapshots in the bucket (JSONL, newest first).
-No filters or limits.
-🚧 Maintenance
-
-voca maintenance on --duration <time>
-
-Creates public/maintenance.html with a message based on duration (e.g. 30m, 2h).
-Saves a log at: logs/maintenance-<timestamp>.json
-
+# TODO Setup maintenance page for the organization and setup a temporary access
+# (change nginx config)
+# Templates for maintenance.html will depends on duration, and takes: 
+#   - organization color
+#   - organization logo
+voca maintenance on --duration <time> --org orgid --host temp_access_host
 voca maintenance off
 
-Disables maintenance mode and updates the log with ended_at.
-🔐 Interventions
-
-voca console
-
-Opens a Rails console and logs the session in .voca format.
-Before launching, prompts for:
-
-    Organization (with interactive selection)
-
-    Operator identity
-
+# TODOSee interventions (created with rails console)
 voca intervention
-
-Opens an editor to manually log an intervention.
-
+# TODO --download: download intervention txt, and share it (see voca share)
 voca intervention list [--download]
-
-Lists available interventions from the bucket.
-If --download, saves them to public/ and generates a magic link.
-
 voca intervention get --id <id> [--download]
 
-Displays the content of an intervention.
-If --download, saves it to public/.
 
+# TODO Create a public file on public/share/<file>-<uuid>
+# tar if the share is a folder
+voca share file|dir
+
+# TODO Remove share folder
 voca clean
 
-Removes all downloaded files from the public/ folder.
-📤 Report
+# TODO Test integrations and send report by email using smtp org
+voca report --org <org_id> [--email <email>] 
 
-voca report --org <org_id> [--email <email>]
-
-Generates a technical diagnostic report (DB, S3, configs, logs, versions).
-If --email is provided, sends it via SMTP configured in the platform.
-If not, displays the email body in the terminal.
-🚀 Deploy
-
+# TODO Deploy a new infrastructure on jelastic, and put a copy on it
 voca deploy --snapshot <name>
 
-Uses the Jelastic API to provision new infrastructure and restore from a snapshot.
-🔑 Security
-
-All sensitive files uploaded to the bucket are encrypted using the platform's secret_key_base.
-
+# TODO Loop over all encrypted column and decrypt/re-encrypt data
+# TODO Loop over shared bucket .enc files and rotate as well 
 voca rotate-secret
 
-Re-encrypts all files using a new secret_key_base.
-📄 .voca format
-
-A flat, auditable file format with lines like:
-
-x <timestamp> <input>
-x -> <timestamp> <output> +console
-x -> <timestamp> <sql> +sql
-
-Example:
-
-x 2025-07-18T14:30:01Z Decidim::User.find_by nickname: "pedro"
-x -> 2025-07-18T14:30:02Z => <Decidim::User id=12> +console
-x -> 2025-07-18T14:30:05Z UPDATE decidim_users SET ... +sql
-
-🧼 Best Practices
-
-    Never edit .voca logs after a recorded session
-
-    Use voca intervention for manual actions
-
-    Always use voca console for Rails access
+# TODO restart the server with `rails restart`
+# TODO --hard mode will:
+#   - put in maintenance all org of the server with a 5min message
+#   - recompile assets
+#   - recompile deface
+#   - clear cache completly
+#   - exec a rails restart
+#   - put maintenance off
+voca restart --hard

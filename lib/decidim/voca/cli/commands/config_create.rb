@@ -31,10 +31,11 @@ module Decidim
             @options[:account] ||= prompt.ask("New account name", required: true, filter: /[a-zA-Z0-9]+/)
             accounts.create(@options[:account], {})
             accounts.save
+            message = "Account created. Use 'voca config set -n #{@options[:account]}' to set the account credentials"
             if format == "table"
-              prompt.say("Account created", color: :green)
+              prompt.say(message, color: :green)
             else
-              prompt.say({ success: "Account created" }.to_json)
+              prompt.say({ success: message }.to_json)
             end
           end
         end
