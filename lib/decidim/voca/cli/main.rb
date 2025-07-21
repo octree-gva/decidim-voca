@@ -3,15 +3,26 @@
 module Decidim
   module Voca
     module CLI
-      class Main
-        def initialize
-          @main_parser = OptionParser.new do |opts|
-            opts.banner = <<~USAGE
+      class Main 
+        def usage
+          <<~USAGE
               Voca Client (v.#{::Decidim::Voca.version})
               Usage: voca [command] [options]
               Commands:
-                - 
+                - help
+                - config help
+                - config create
+                - config list
+                - config get [key]
+                - config set [key] [value]
+                - config delete [key] 
+                - config use [name]
             USAGE
+        end
+
+        def initialize
+          @main_parser = OptionParser.new do |opts|
+            opts.banner = usage
 
             opts.on("-h", "--help", "Show this help message") do
               puts opts # rubocop:disable Rails/Output
@@ -21,20 +32,22 @@ module Decidim
         end
 
         def run(args)
+          prompt = TTY::Prompt.new
           if ENV.fetch("DISABLE_VOCA_BIN", "false") == "true"
-            Rails.logger.debug "voca is disabled. See DISABLE_VOCA_BIN environment variable"
+            prompt.say("voca is disabled. See DISABLE_VOCA_BIN environment variable", color: :red)
             exit 0 # rubocop:disable Rails/Exit
           end
           command = args.first
 
           case command
-          when "console"
-            Commands::Console.new.run(args[1..])
+          when "config"
+            Commands::Config.new.run(args[1..])
           when "help", nil
-            puts @main_parser # rubocop:disable Rails/Output
+            prompt.say(usage)
           else
-            puts @main_parser # rubocop:disable Rails/Output
-            puts "Unknown command: #{command}" # rubocop:disable Rails/Output
+            @main_parser.parse(args)
+            prompt.say(@main_parser)
+            prompt.say("Unknown command: #{command}", color: :red)
             exit 0 # rubocop:disable Rails/Exit
           end
         end
@@ -42,4 +55,3 @@ module Decidim
     end
   end
 end
-

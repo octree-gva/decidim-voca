@@ -7,7 +7,7 @@ module Decidim
         class Base
           def initialize
             @options = {
-              format: "json",
+              format: ci? ? "json" : "table"
             }
           end
 
@@ -15,12 +15,35 @@ module Decidim
             @options[:format]
           end
 
+          def ci?
+            ["1", "true"].include?(ENV.fetch("CI", "false"))
+          end
+
+          def interactive!
+            puts_error("This command is not available in CI") if ci?
+          end
+
           protected
+
+          def accounts
+            Decidim::Voca::CLI::Accounts.instance
+          end
+
+          def accounts_names
+            accounts.all.map { |account| account["name"] }
+          end
+
+          def prompt
+            @prompt ||= TTY::Prompt.new
+          end
 
           def default_options(opts)
             opts.on("-h", "--help", "Show command help") do
-              puts opts # rubocop:disable Rails/Output
+              prompt.say(opts)
               exit 0 # rubocop:disable Rails/Exit
+            end
+            opts.on("-f", "--format FORMAT", "Output format (json, table)") do |format|
+              @options[:format] = format
             end
           end
 
@@ -30,10 +53,9 @@ module Decidim
 
           def puts_error(text)
             if format == "json"
-              puts({ error: text }.to_json) # rubocop:disable Rails/Output
+              prompt.say({ error: text }.to_json)
             else
-              puts "" # rubocop:disable Rails/Output
-              puts red(text) # rubocop:disable Rails/Output
+              prompt.say(red(text), color: :red)
             end
             exit 0 # rubocop:disable Rails/Exit
           end
