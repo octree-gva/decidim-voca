@@ -118,7 +118,7 @@ module Decidim
         Decidim.register_assets_path File.expand_path("#{Decidim::Voca::Engine.root}/app/packs")
       end
 
-      initializer "decidim_voca.icons" do 
+      initializer "decidim_voca.icons" do
         Decidim.icons.register(name: "camera", icon: "camera-line", category: "system", description: "", engine: :core)
       end
       initializer "decidim_voca.image_processing" do

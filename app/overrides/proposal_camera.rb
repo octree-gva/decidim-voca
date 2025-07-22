@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Deface::Override.new(
   virtual_path: "decidim/proposals/proposals/_edit_form_fields",
   name: "feat_proposal_camera_button",
@@ -12,4 +14,3 @@ Deface::Override.new(
     </label>
   ERB
 )
-
