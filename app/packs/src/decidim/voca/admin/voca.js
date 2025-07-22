@@ -3,6 +3,8 @@ import editorUploadField from "../proposal_custom_fields/editor_upload_field";
 
 document.addEventListener("DOMContentLoaded", () => {
   editorBudgetField();
+  // If current page ends with proposal_private_custom_fields, load upload field module
+  editorUploadField();
   const urlParams = new URLSearchParams(window.location.search);
   const forceAwesomeAttach = urlParams.has('force_awesome_attach_file');
 

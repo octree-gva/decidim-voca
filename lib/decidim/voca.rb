@@ -10,6 +10,7 @@ require_relative "voca/overrides/mod_secure/user_profile_verification_override"
 require_relative "voca/overrides/geolocated_proposals/create_proposal_overrides"
 require_relative "voca/overrides/geolocated_proposals/map_autocomplete_builder_overrides"
 require_relative "voca/overrides/meetings_controller_overrides"
+require_relative "voca/overrides/etherpad_overrides"
 require_relative "voca/overrides/proposal_serializer_overrides"
 
 module Decidim

@@ -60,6 +60,9 @@ module Decidim
 
         # Meetings
         Decidim::Meetings::Admin::MeetingsController.include(Decidim::Voca::Overrides::MeetingsControllerOverrides)
+
+        # Etherpad
+        Decidim::Etherpad::Pad.include(Decidim::Voca::Overrides::EtherpadOverrides)
       end
 
       # Decidim Awesome Proposal Override
