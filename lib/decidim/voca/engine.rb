@@ -63,6 +63,9 @@ module Decidim
 
         # Etherpad
         Decidim::Etherpad::Pad.include(Decidim::Voca::Overrides::EtherpadOverrides)
+
+        # User Group Form
+        Decidim::UserGroupForm.include(Decidim::Voca::Overrides::UserGroupFormOverrides)
       end
 
       # Decidim Awesome Proposal Override

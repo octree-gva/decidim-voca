@@ -12,6 +12,7 @@ require_relative "voca/overrides/geolocated_proposals/map_autocomplete_builder_o
 require_relative "voca/overrides/meetings_controller_overrides"
 require_relative "voca/overrides/etherpad_overrides"
 require_relative "voca/overrides/proposal_serializer_overrides"
+require_relative "voca/overrides/user_group_form_overrides"
 
 module Decidim
   module Voca
