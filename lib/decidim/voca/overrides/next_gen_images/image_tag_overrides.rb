@@ -15,8 +15,9 @@ module Decidim
             if source.is_a?(Array)
               source_sanitized = source.filter { |item| item }
               return "" if source_sanitized.empty?
+
               picture_tag(source_sanitized, image: options)
-  
+
             else
               decidim_voca_image_tag(source, options)
             end
