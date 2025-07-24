@@ -1,5 +1,5 @@
 /**
- * Invalidate size on: 
+ * Invalidate size on:
  * - geocoder-suggest-coordinates.decidim: Suggestion autocomplete
  * - decidim.voca.refresh_map : Trigger by the "Use my location" button
  */
@@ -7,7 +7,7 @@ $(() => {
   $("[data-decidim-map]").one("configure.decidim", (_ev, leafletMap) => {
     $("[data-decidim-geocoding]").on(
       "geocoder-suggest-coordinates.decidim",
-      () => leafletMap.invalidateSize(),
+      () => leafletMap.invalidateSize()
     );
 
     $("#address_map").on("decidim.voca.refresh_map", (ev, mapConfig) => {

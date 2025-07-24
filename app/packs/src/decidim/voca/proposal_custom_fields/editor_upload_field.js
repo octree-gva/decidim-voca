@@ -46,7 +46,7 @@ export default function editorUploadField() {
               class: "formBuilder__attachFile-button",
               title: this.i18n("removeIconTitle"),
               alt: "remove",
-            },
+            }
           );
           const hiddenInput = this.markup("input", currentValue, {
             id: inputId,
@@ -63,7 +63,7 @@ export default function editorUploadField() {
           const input = (this.input = this.markup(
             "div",
             [link, hiddenInput, removeButton],
-            { class: "formBuilder__attachFile" },
+            { class: "formBuilder__attachFile" }
           ));
           $(removeButton).on("click", function (evt) {
             evt.preventDefault();

@@ -37,3 +37,13 @@ Deface::Override.new(virtual_path: "layouts/decidim/footer/_mini",
                        </div>
                      SVG
                     )
+Deface::Override.new(
+  virtual_path: "layouts/decidim/footer/_main_intro",
+  name: "add_voca_classes_on_description",
+  surround: "p:has(erb[loud]:contains('organization_description_label'))",
+  text: <<~HTML
+    <div class="decidim_voca__footer-org-description">
+      <%= render_original %>
+    </div>
+  HTML
+)

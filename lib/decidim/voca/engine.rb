@@ -66,6 +66,9 @@ module Decidim
 
         # User Group Form
         Decidim::UserGroupForm.include(Decidim::Voca::Overrides::UserGroupFormOverrides)
+
+        # Footer topic "Help" hardcoded string
+        Decidim::FooterTopicsCell.include(Decidim::Voca::Overrides::Footer::FooterTopicCellOverrides)
       end
 
       # Decidim Awesome Proposal Override
@@ -116,6 +119,10 @@ module Decidim
 
       initializer "decidim_voca.webpacker.assets_path" do
         Decidim.register_assets_path File.expand_path("#{Decidim::Voca::Engine.root}/app/packs")
+      end
+
+      initializer "decidim_voca.cells" do
+        Cell::ViewModel.view_paths << File.expand_path("#{Decidim::Voca::Engine.root}/app/cells")
       end
 
       initializer "decidim_voca.icons" do

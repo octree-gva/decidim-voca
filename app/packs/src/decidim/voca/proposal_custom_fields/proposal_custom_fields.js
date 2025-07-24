@@ -24,7 +24,7 @@ const whenDecidimAwesomeInitialized = (retryCount = 0) => {
         return reject("decidim-voca: DecidimAwesome is not initialized");
       }
       console.warn(
-        "decidim-voca: DecidimAwesome is not initialized, retrying....",
+        "decidim-voca: DecidimAwesome is not initialized, retrying...."
       );
       setTimeout(() => {
         whenDecidimAwesomeInitialized(retryCount + 1).then(resolve);
@@ -46,16 +46,16 @@ document.addEventListener("DOMContentLoaded", () => {
       // We monkey patch the custom fields renderer to add our own custom fields
       window.DecidimAwesome.CustomFieldsRenderer =
         new CustomFieldRendererOverride(
-          window.DecidimAwesome.CustomFieldsRenderer,
+          window.DecidimAwesome.CustomFieldsRenderer
         );
       window.DecidimAwesome.PrivateCustomFieldsRenderer =
         new CustomFieldRendererOverride(
-          window.DecidimAwesome.PrivateCustomFieldsRenderer,
+          window.DecidimAwesome.PrivateCustomFieldsRenderer
         );
 
       const $public = $(".proposal_custom_field:first");
       const $private = $(
-        ".proposal_custom_field.proposal_custom_field--private_body:first",
+        ".proposal_custom_field.proposal_custom_field--private_body:first"
       );
       let $form = null;
       if ($public.length) {
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if ($private.length && !$form) {
         $form =
           window.DecidimAwesome.PrivateCustomFieldsRenderer.$element.closest(
-            "form",
+            "form"
           );
       }
 
@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     .catch(() => {
       console.warn(
-        "decidim-voca: DecidimAwesome is not initialized, skipping override",
+        "decidim-voca: DecidimAwesome is not initialized, skipping override"
       );
     });
 });
