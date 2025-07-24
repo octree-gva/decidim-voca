@@ -59,7 +59,7 @@ export default function editorBudgetField() {
         const rawValue = userData ? userData[0] : value;
         try {
           return (this.__currentValue = JSON.parse(
-            $(rawValue).find("pre").first().html(),
+            $(rawValue).find("pre").first().html()
           ));
         } catch (e) {
           return (this.__currentValue = {});
@@ -125,7 +125,7 @@ export default function editorBudgetField() {
                 ...data.lines,
                 { label: "", price: 0, id: `${+new Date()}` },
               ],
-            }),
+            })
           );
           $(`#${name}-container .formBuilder__budgetField-label`)
             .last()
@@ -157,7 +157,7 @@ export default function editorBudgetField() {
             const newValue = evt.target.value;
             line.label = newValue;
             $(`input#${name}`).val(JSON.stringify(data, null, 2));
-          }, 250),
+          }, 250)
         );
         this._addHandler(inputField);
         return inputField;
@@ -188,7 +188,7 @@ export default function editorBudgetField() {
             const newValue = evt.target.value;
             line.price = parseInt(newValue, 10);
             $(`input#${name}`).val(JSON.stringify(data, null, 2));
-          }, 250),
+          }, 250)
         );
         this._addHandler(priceField);
         // Return an input group with price field and currency label
@@ -200,7 +200,7 @@ export default function editorBudgetField() {
               class: "input-group-label",
             }),
           ],
-          { class: "input-group formBuilder__budgetField-priceGroup" },
+          { class: "input-group formBuilder__budgetField-priceGroup" }
         );
       }
 
@@ -227,7 +227,7 @@ export default function editorBudgetField() {
               this._reRender({
                 ...data,
                 lines: data.lines.filter(({ id }) => id !== line.id),
-              }),
+              })
             );
           });
           this._addHandler(removeLine);
@@ -261,7 +261,7 @@ export default function editorBudgetField() {
         data.lines = this.ensureMinimumLines(data, required);
         this._clearHandlers();
         const markupLines = data.lines.map((line, index) =>
-          this._renderLine(line, index, data),
+          this._renderLine(line, index, data)
         );
         return this.markup(
           "div",
@@ -269,7 +269,7 @@ export default function editorBudgetField() {
           {
             class:
               "formBuilder__budgetField-container clearfix formBuilder__budgetField-form-editor",
-          },
+          }
         );
       }
 
@@ -313,7 +313,7 @@ export default function editorBudgetField() {
           [this._renderFieldset(), this._renderHiddenInput()],
           {
             class: "formBuilder__budgetField formBuilder--stale",
-          },
+          }
         ));
       }
 

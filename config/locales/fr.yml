@@ -1,0 +1,17 @@
+fr: 
+  layouts:
+    decidim:
+      footer:
+        decidim_title: "Votre plateforme"
+        help_title: "Aide"
+  decidim:
+    proposals:
+      models:
+        proposal:
+          fields:
+            votes_on_going: Votes (en cours)
+    voca:
+      proposals:
+        find_my_location: "Ma position"
+        take_photo: "Prendre une photo"
+      footer_text: Un espace démocratique pour vos communautés

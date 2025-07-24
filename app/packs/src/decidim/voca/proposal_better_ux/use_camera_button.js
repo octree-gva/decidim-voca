@@ -1,9 +1,12 @@
 import getProposalForm from "./utils/get_proposal_form";
-import initUploadField, { registeredModals,updateActiveUploads } from "src/decidim/direct_uploads/upload_field";
+import initUploadField, {
+  registeredModals,
+  updateActiveUploads,
+} from "src/decidim/direct_uploads/upload_field";
 document.addEventListener("DOMContentLoaded", () => {
   initUploadField();
   const $form = getProposalForm();
-  if (!$form){ 
+  if (!$form) {
     return;
   }
 
@@ -14,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const $attachmentButton = $form.find("button[data-upload]").first();
   const modal = registeredModals[$attachmentButton[0].id];
-  if(!modal){
+  if (!modal) {
     console.warn("No modal found for attachment button");
     return;
   }
@@ -24,11 +27,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   observer.observe(modal.emptyItems, {
     attributes: true,
-    attributeFilter: ['class']
+    attributeFilter: ["class"],
   });
 
-  $useCameraField.on("change", function(){
+  $useCameraField.on("change", function () {
     modal.uploadFiles(this.files);
   });
 });
-

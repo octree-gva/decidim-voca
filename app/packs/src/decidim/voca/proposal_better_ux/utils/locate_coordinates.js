@@ -14,7 +14,7 @@ const locateCoordinates = async (coords) => {
       (data) => {
         resolve(data);
       },
-      "json",
+      "json"
     );
   });
   return result?.address || null;

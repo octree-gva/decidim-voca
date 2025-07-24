@@ -6,9 +6,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // If current page ends with proposal_private_custom_fields, load upload field module
   editorUploadField();
   const urlParams = new URLSearchParams(window.location.search);
-  const forceAwesomeAttach = urlParams.has('force_awesome_attach_file');
+  const forceAwesomeAttach = urlParams.has("force_awesome_attach_file");
 
-  if (forceAwesomeAttach || window.location.pathname.endsWith("proposal_private_custom_fields")) {
+  if (
+    forceAwesomeAttach ||
+    window.location.pathname.endsWith("proposal_private_custom_fields")
+  ) {
     editorUploadField();
   }
 

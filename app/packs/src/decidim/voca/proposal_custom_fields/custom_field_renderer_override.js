@@ -51,7 +51,7 @@ export default class CustomFieldRendererOverride {
             field.value = url;
           }
         }
-      }),
+      })
     );
 
     // Call original renderer
@@ -123,7 +123,7 @@ export default class CustomFieldRendererOverride {
     }
     const $form = this.renderer.$element.closest("form");
     const $body = $form.find(
-      `input[name="${this.renderer.$element.data("name")}"]`,
+      `input[name="${this.renderer.$element.data("name")}"]`
     );
     if ($body.length && this.renderer.instance) {
       this.renderer.spec = this.renderer.instance.userData;
@@ -138,7 +138,7 @@ export default class CustomFieldRendererOverride {
       "$form",
       $form,
       "this",
-      this,
+      this
     );
     return this;
   }

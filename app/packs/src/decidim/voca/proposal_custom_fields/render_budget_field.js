@@ -37,14 +37,14 @@ export default function renderBudget(value, config) {
     $line.addClass("formBuilder__budgetField-line");
     const $label = $("<td />").prop("id", line.id);
     $label.addClass(
-      "formBuilder__budgetField-cell formBuilder__budgetField-cell--label",
+      "formBuilder__budgetField-cell formBuilder__budgetField-cell--label"
     );
     $label.text(line.label);
     $line.append($label);
 
     const $price = $("<td />");
     $price.addClass(
-      "formBuilder__budgetField-cell formBuilder__budgetField-cell--price",
+      "formBuilder__budgetField-cell formBuilder__budgetField-cell--price"
     );
     $price.append($("<span />").text(line.price));
     $price.append($("<span />").text(` ${config.currency}`));
@@ -58,15 +58,15 @@ export default function renderBudget(value, config) {
       $("<td/>")
         .prop("colspan", 2)
         .addClass(
-          "formBuilder__budgetField-cell formBuilder__budgetField-cell--total",
+          "formBuilder__budgetField-cell formBuilder__budgetField-cell--total"
         )
         .append(
           $("<span />")
             .text(config.totalLabel + ` ${total}`)
-            .prop("alt", "total"),
+            .prop("alt", "total")
         )
-        .append($("<span />").text(` ${config.currency}`)),
-    ),
+        .append($("<span />").text(` ${config.currency}`))
+    )
   );
   // Compose the table and container
   $table.append($tbody);
