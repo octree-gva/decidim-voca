@@ -14,6 +14,7 @@ require_relative "voca/overrides/etherpad_overrides"
 require_relative "voca/overrides/proposal_serializer_overrides"
 require_relative "voca/overrides/user_group_form_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
+require_relative "voca/overrides/footer/footer_menu_presenter"
 
 module Decidim
   module Voca
