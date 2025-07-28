@@ -14,12 +14,13 @@ module Decidim
         included do
           alias_method :voca_create_proposal_original, :create_proposal
           def create_proposal
-            proposal = voca_create_proposal_original
+            proposal_or_awesome_proposal = voca_create_proposal_original
+            proposal = proposal_or_awesome_proposal.proposal unless proposal_or_awesome_proposal.is_a?(Decidim::Proposals::Proposal)
             proposal.address = form.address if form.address.present?
             proposal.latitude = form.latitude if form.latitude.present?
             proposal.longitude = form.longitude if form.longitude.present?
             proposal.save!
-            proposal
+            proposal_or_awesome_proposal.reload
           end
         end
       end
