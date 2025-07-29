@@ -1,0 +1,64 @@
+module Decidim
+  module Voca
+    class DeeplContext < ActiveSupport::CurrentAttributes
+      attribute :organization
+      attribute :participatory_space
+      attribute :current_component
+      attribute :current_user
+      attribute :current_locale
+      include ::Decidim::TranslatableAttributes
+      include ActionView::Helpers::SanitizeHelper
+      include ActionView::Helpers::TagHelper
+
+      ##
+      # @return String Context for Deepl API
+      def deepl_context
+        (
+          ["Context: the text is written from a participatory platform, organized in participatory spaces, components and users."] +
+            organization_context + 
+            participatory_space_context + 
+            current_component_context + 
+            current_user_context    
+        ).select(&:present?).join("\n")
+      end
+
+      private 
+
+      def organization_context
+        return [] unless organization
+        
+        [
+          "- Platform Name: #{translated_attribute(organization.name) || "undefined"}", 
+          "- Platform Description: #{strip_tags(sanitize(translated_attribute(organization.description)) || "undefined")}"
+        ]
+      end
+
+      def participatory_space_context
+        return [] unless participatory_space
+
+        [
+          "- Participatory Space Name: #{translated_attribute(participatory_space.name) || "undefined"}",
+          "- Participatory Space Description: #{strip_tags(sanitize(translated_attribute(participatory_space.description)) || "undefined")}"
+        ]
+      end
+
+      def current_component_context
+        return [] unless current_component
+
+        [
+          "- Component Name: #{translated_attribute(current_component.name) || "undefined"}"
+        ]
+      end
+
+      def current_user_context
+        return [] unless current_user
+        return [] unless current_user.admin? || current_user.roles.any?
+
+        [
+          "- Author Name: #{current_user.name || "undefined"}",
+          "- Author Bio: #{current_user.about || "undefined"}"
+        ]
+      end
+    end
+  end
+end

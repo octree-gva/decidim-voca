@@ -10,6 +10,7 @@ module Decidim
     # This is the engine that runs on the public interface of voca.
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
+      config.autoload_paths << root.join("app", "middlewares")
 
       routes do
         Decidim::Core::Engine.routes.draw do
@@ -78,6 +79,27 @@ module Decidim
           Decidim::Proposals::ProposalSerializer.include(
             Decidim::Voca::Overrides::ProposalSerializerOverrides
           )
+        end
+      end
+
+      initializer "decidim.voca.deepl", after: :load_config_initializers do
+        if Decidim::Voca.deepl_enabled?
+          config.to_prepare do
+            ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
+          end
+          Rails.logger.warn("Deepl is enabled, preparing machine translation. Overriding configurations")
+          # Inject middlewares to capture Deepl Contexts
+          Rails.application.config.middleware.insert_after ::Warden::Manager, ::Decidim::Voca::DeeplMiddleware
+          # Insert Deepl Context in ActiveJob::Base
+          ActiveJob::Base.include(Decidim::Voca::DeeplActiveJobContext)
+          Decidim.configure do |decidim_config|
+            # Even enabled, this won't enable organizations to use machine translations
+            # You need to update programitacally the Organization: 
+            # Decidim::Organization.last.update(enable_machine_translations: true, machine_translation_display_priority: "translation")
+            decidim_config.enable_machine_translations = true
+            decidim_config.machine_translation_service = "Decidim::Voca::DeeplMachineTranslator"
+            decidim_config.machine_translation_delay = 0.seconds
+          end
         end
       end
 

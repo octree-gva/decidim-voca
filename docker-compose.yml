@@ -26,6 +26,7 @@ services:
       - DEV_MODULE=decidim-voca0c026dc27ecf
       - RAILS_ENV=development
       - DISABLED_DOCKER_COMPOSE=true # To run tests in dockeril vole de building en build
+      - DECIDIM_DEEPL_API_KEY=my_deepl_api_key
     depends_on:
       - voca-pg
     ports:

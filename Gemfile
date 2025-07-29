@@ -18,6 +18,7 @@ gem "deface", ">= 1.8.1"
 gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
 gem "puma", ">= 6.3.1"
 gem "uglifier", "~> 4.1"
+gem 'deepl-rb'
 
 group :development, :test do
   gem "brakeman", "~> 6.1"

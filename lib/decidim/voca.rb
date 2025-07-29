@@ -15,6 +15,11 @@ require_relative "voca/overrides/proposal_serializer_overrides"
 require_relative "voca/overrides/user_group_form_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
+require_relative "voca/deepl/translation_bar_overrides"
+require_relative "voca/deepl/deepl_context"
+require_relative "voca/deepl/deepl_middleware"
+require_relative "voca/deepl/deepl_machine_translator"
+require_relative "voca/deepl/deepl_active_job_context"
 
 module Decidim
   module Voca
@@ -27,5 +32,10 @@ module Decidim
     def self.next_gen_images?
       config.enable_next_gen_images
     end
+
+    def self.deepl_enabled?
+      ENV.fetch("DECIDIM_DEEPL_API_KEY", "").present?
+    end
+
   end
 end
