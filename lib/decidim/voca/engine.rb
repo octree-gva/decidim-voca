@@ -85,19 +85,22 @@ module Decidim
       initializer "decidim.voca.deepl", after: :load_config_initializers do
         if Decidim::Voca.deepl_enabled?
           Rails.application.config.middleware.insert_after ::Warden::Manager, ::Decidim::Voca::DeeplMiddleware
+
           Decidim.configure do |decidim_config|
-            # Even enabled, this won't enable organizations to use machine translations
-            # You need to update programitacally the Organization: 
-            # Decidim::Organization.last.update(enable_machine_translations: true, machine_translation_display_priority: "translation")
-            decidim_config.enable_machine_translations = true
-            decidim_config.machine_translation_service = "Decidim::Voca::DeeplMachineTranslator"
-            decidim_config.machine_translation_delay = 0.seconds
+            if decidim_config.machine_translation_service.blank?
+              # Even enabled, this won't enable organizations to use machine translations
+              # You need to update programitacally the Organization: 
+              # Decidim::Organization.last.update(enable_machine_translations: true, machine_translation_display_priority: "translation")
+              decidim_config.enable_machine_translations = true
+              decidim_config.machine_translation_service = "Decidim::Voca::DeeplMachineTranslator"
+              decidim_config.machine_translation_delay = 0.seconds
+            end
           end
           # Inject middlewares to capture Deepl Contexts
           # Insert Deepl Context in ActiveJob::Base
           ActiveJob::Base.include(Decidim::Voca::DeeplActiveJobContext)
           if Decidim::Voca.minimalistic_deepl?
-            Rails.logger.warn("Deepl is enabled, preparing machine translation. Overriding configurations")
+            Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation")
             config.to_prepare do
               ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
               ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)

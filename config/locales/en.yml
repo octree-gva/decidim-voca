@@ -18,8 +18,7 @@ en:
       admin: 
         machine_translation_alert:
           title: |
-            Redirecting to  "%{default_locale}" language
+            Switch language
           description_html: |
-            <p>The language "%{current_locale}" is fully translated by machine.</p>
-            <p>Redirecting in <span class="voca__machine_translation_alert__countdown">5</span> seconds.</p>
-            <p>If you don't want to wait, you can <a href="%{redirect_url}">click here to redirect manually</a>.</p>
+            <p>The language "%{current_locale}" is fully translated by machine, you need to switch to "%{default_locale}".</p>
+          button: Switch language

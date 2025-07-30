@@ -9,6 +9,7 @@ module Decidim
           ##
           # Rewrite of the translated method to avoid passing value to fields
           # translated by machine translation. 
+          # 
           def translated(type, name, options = {})
             return translated_one_locale(type, name, locales.first, options.merge(label: (options[:label] || label_for(name)))) if locales.count == 1
       
@@ -31,7 +32,7 @@ module Decidim
                 # If locale is not the default locale, value should be empty
                 # to let machine translation do its job
                 if locale.to_s != default_locale.to_s
-                  options_for_field[:value] = ""
+                  options_for_field[:value] = "".html_safe
                 end
                 tab_content_id = "#{tabs_id}-#{name}-panel-#{index}"
                 string + content_tag(:div, class: tab_element_class_for("panel", index), id: tab_content_id, "aria-hidden": tab_attr_aria_hidden_for(index)) do

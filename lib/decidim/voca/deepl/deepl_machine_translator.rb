@@ -15,8 +15,8 @@ module Decidim
         @text = text
         @target_locale = target_locale
         @source_locale = source_locale
-        
       end
+
     
       def translate
         return if text.blank?
@@ -32,6 +32,12 @@ module Decidim
           target_locale,
           translation
         )
+      end
+
+      private
+
+      def dummy_translate?
+        ["1", "true", "enabled"].include?(ENV.fetch("VOCA_DUMMY_TRANSLATE", "false"))
       end
     
       def segmented_translate
@@ -50,23 +56,49 @@ module Decidim
       end
     
       def deepl_translate(text, html: false)
+        if dummy_translate?
+          context = deepl_context
+          str= "DUMMY TRANSLATION [date=#{Time.current.strftime("%d/%m/%Y %H:%M:%S")},mode=#{html ? "html" : "text"},text_to_translate=\"#{text}\",context=\"#{context}\"]"
+          str = "<p><strong>#{str}</strong></p>" if html
+          return str.html_safe
+        end
         
         # DeepL has a limit of 131_072 bytes per input
         # https://developers.deepl.com/docs/resources/usage-limits
         return text if text.blank?
         return text if text.bytesize > 130_000
-        deepl_kwargs = {formality: "prefer_more"}
+        deepl_kwargs = {}
+        begin
+          deepl_kwargs[:formality] = "prefer_more" if target_language? && target_language.supports_formality?
+        rescue => e
+          Rails.logger.error("Formality no supported by #{target_locale}: #{e.message}")
+        end
         deepl_kwargs[:tag_handling] = 'html' if html
         result = DeepL.translate(
           text,
-          @source_locale, 
-          @target_locale, 
+          source_locale, 
+          target_locale, 
           context: deepl_context,
           **deepl_kwargs
         )
         result.text
+      rescue => e
+        Rails.logger.error("Error translating text: #{e.message}")
+        Rails.logger.error("Text: #{text}")
+        Rails.logger.error("Source locale: #{source_locale}")
+        Rails.logger.error("Target locale: #{target_locale}")
+        Rails.logger.error("Context: #{deepl_context}")
+        Rails.logger.error("Error: #{e.message}")
+        Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
+        return ""
       end
 
+      def target_language
+        @target_language ||= DeepL.languages.find {|locale| locale.code == target_locale.to_s.upcase}
+      end
+      def target_language?
+        target_language.present?
+      end
       def deepl_context
         base = Decidim::Voca::DeeplContext.deepl_context
         "This is a text for a #{resource.class.name.demodulize.titleize} #{name_context}, field #{field_name}. #{base}"
