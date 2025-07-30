@@ -84,14 +84,7 @@ module Decidim
 
       initializer "decidim.voca.deepl", after: :load_config_initializers do
         if Decidim::Voca.deepl_enabled?
-          config.to_prepare do
-            ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
-          end
-          Rails.logger.warn("Deepl is enabled, preparing machine translation. Overriding configurations")
-          # Inject middlewares to capture Deepl Contexts
           Rails.application.config.middleware.insert_after ::Warden::Manager, ::Decidim::Voca::DeeplMiddleware
-          # Insert Deepl Context in ActiveJob::Base
-          ActiveJob::Base.include(Decidim::Voca::DeeplActiveJobContext)
           Decidim.configure do |decidim_config|
             # Even enabled, this won't enable organizations to use machine translations
             # You need to update programitacally the Organization: 
@@ -99,6 +92,15 @@ module Decidim
             decidim_config.enable_machine_translations = true
             decidim_config.machine_translation_service = "Decidim::Voca::DeeplMachineTranslator"
             decidim_config.machine_translation_delay = 0.seconds
+          end
+          # Inject middlewares to capture Deepl Contexts
+          # Insert Deepl Context in ActiveJob::Base
+          ActiveJob::Base.include(Decidim::Voca::DeeplActiveJobContext)
+          if Decidim::Voca.minimalistic_deepl?
+            Rails.logger.warn("Deepl is enabled, preparing machine translation. Overriding configurations")
+            config.to_prepare do
+              ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
+            end
           end
         end
       end

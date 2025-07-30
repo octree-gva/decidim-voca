@@ -29,8 +29,16 @@ module Decidim
       true
     end
 
+    config_accessor :enable_minimalistic_deepl do
+      true
+    end
+
     def self.next_gen_images?
       config.enable_next_gen_images
+    end
+
+    def self.minimalistic_deepl?
+      self.deepl_enabled? && config.enable_minimalistic_deepl
     end
 
     def self.deepl_enabled?

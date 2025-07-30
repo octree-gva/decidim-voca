@@ -6,7 +6,7 @@ Deface::Override.new(
   name: "admin_voca_machine_translation_flag",
   set_attributes: ".main",
   attributes: {
-    "data-machine-translation-flag" => "<%= current_organization.enable_machine_translations? %>"
+    "data-machine-translation-flag" => "<%= Decidim::Voca.minimalistic_deepl? && current_organization.enable_machine_translations? %>"
   }
 )
 
@@ -16,7 +16,7 @@ Deface::Override.new(
   name: "admin_voca_force_only_default_locale",
   insert_before: ".main",
   text: <<~ERB
-    <% if current_organization.enable_machine_translations? && current_organization.default_locale.to_s != I18n.locale.to_s %>
+    <% if Decidim::Voca.minimalistic_deepl? && current_organization.enable_machine_translations? && current_organization.default_locale.to_s != I18n.locale.to_s %>
        <% 
         params_with_default_locale = request.query_parameters.merge(locale: current_organization.default_locale)
         redirect_url = "\#{request.path}?\#{params_with_default_locale.to_query}"
