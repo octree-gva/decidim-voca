@@ -21,6 +21,33 @@ description: How to install the module
 gem "decidim-voca", "~> 0.0.1"
 gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
 ```
+**Install dependances for webp**  
+on debian: 
+```
+apt-get update -yq
+apt-get install -yq --no-install-recommends \
+    libxrender1 \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libwebp-dev \
+    libvips \
+    libvips-tools
+```
+on ubuntu: 
+```
+apt-get update -yq
+apt-get install -yq --no-install-recommends \
+    libfftw3-dev \
+    libxrender1 \
+    libjpeg-dev \
+    libpng-dev \
+    libjpeg-turbo8-dev \
+    libwebp-dev \
+    libvips \
+    libvips-dev \
+    libvips-tools
+```
 
 **Install the module**  
 ```bash
