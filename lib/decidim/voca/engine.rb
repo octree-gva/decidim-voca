@@ -100,6 +100,7 @@ module Decidim
             Rails.logger.warn("Deepl is enabled, preparing machine translation. Overriding configurations")
             config.to_prepare do
               ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
+              ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
             end
           end
         end

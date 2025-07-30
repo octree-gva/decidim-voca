@@ -20,6 +20,7 @@ require_relative "voca/deepl/deepl_context"
 require_relative "voca/deepl/deepl_middleware"
 require_relative "voca/deepl/deepl_machine_translator"
 require_relative "voca/deepl/deepl_active_job_context"
+require_relative "voca/deepl/deepl_form_builder_overrides"
 
 module Decidim
   module Voca
