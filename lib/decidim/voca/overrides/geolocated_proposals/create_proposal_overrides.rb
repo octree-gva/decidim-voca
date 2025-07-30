@@ -21,6 +21,7 @@ module Decidim
             else
               proposal_or_awesome_proposal.proposal
             end
+            return unless proposal
             proposal.address = form.address if form.address.present?
             proposal.latitude = form.latitude if form.latitude.present?
             proposal.longitude = form.longitude if form.longitude.present?
