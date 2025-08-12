@@ -16,11 +16,12 @@ module Decidim
           def create_proposal
             proposal_or_awesome_proposal = voca_create_proposal_original
             return unless proposal_or_awesome_proposal
+
             proposal = if proposal_or_awesome_proposal.is_a?(Decidim::Proposals::Proposal)
-              proposal_or_awesome_proposal
-            else
-              proposal_or_awesome_proposal.proposal
-            end
+                         proposal_or_awesome_proposal
+                       else
+                         proposal_or_awesome_proposal.proposal
+                       end
             proposal.address = form.address if form.address.present?
             proposal.latitude = form.latitude if form.latitude.present?
             proposal.longitude = form.longitude if form.longitude.present?
