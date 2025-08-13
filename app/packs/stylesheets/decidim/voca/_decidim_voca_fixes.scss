@@ -10,3 +10,16 @@
     }
   }
 }
+
+.budget-summary__progressbar--meter {
+  background-color: green;
+}
+
+.budget-summary__progressbar .budget-progress {
+  background-color: lightgray !important;
+}
+
+.budget-summary__progressbar-marks {
+  display: flex;
+  justify-content: space-between;
+}
