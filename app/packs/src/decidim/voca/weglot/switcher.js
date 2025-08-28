@@ -15,7 +15,17 @@ export default async function switcher() {
   const button = searchContainer.querySelector(
     ".main-footer__language-trigger"
   );
-  button.textContent = currentLanguageName;
+  button.addEventListener("click", function (event) {
+    event.preventDefault();
+    const dropdown = searchContainer.querySelector(
+      ".voca-js--weglot-locale-switcher-dropdown"
+    );
+    dropdown.setAttribute("aria-hidden", !dropdown.getAttribute("aria-hidden"));
+  });
+  const buttonContent = searchContainer.querySelector(
+    ".voca-js--weglot-current-language"
+  );
+  buttonContent.textContent = currentLanguageName;
 
   const availableLanguages = WeglotInstance.options.languages
     .filter(({ enabled }) => enabled)
@@ -29,7 +39,7 @@ export default async function switcher() {
   availableLanguages.forEach((lang) => {
     const listItem = document.createElement("li");
     listItem.classList.add("text-black", "text-md");
-    listItem.dataset.set("value", lang);
+    listItem.dataset.value = lang;
 
     const textItem = document.createElement("span");
     textItem.classList.add("p-2", "w-full", "block");
@@ -46,7 +56,7 @@ export default async function switcher() {
       const item = event.target;
       console.log("Voca Weglot clicked on", item.dataset.value);
       WeglotInstance.switchTo(item.dataset.value);
-      button.textContent = WeglotInstance.getLanguageName(item.dataset.value);
+      buttonContent.textContent = WeglotInstance.getLanguageName(item.dataset.value);
     });
     selectList.appendChild(listItem);
   });
