@@ -117,6 +117,20 @@ module Decidim
         end
       end
 
+      initializer "decidim.voca.weglot", after: :load_config_initializers do
+        # configure additional CSP for weglot
+        if ::Decidim::Voca.weglot_enabled?
+          Decidim.configure do |decidim_config|
+            decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
+            decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
+
+            decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
+            decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
+            decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
+          end
+        end
+      end
+
       initializer "decidim.voca.map_configuration", after: :load_config_initializers do
         Decidim.configure do |decidim_config|
           Rails.logger.warn("Decidim.config.maps will be overridden by voca maps configuration") unless decidim_config.maps

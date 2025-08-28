@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Decidim
   module Voca
     class Configuration
@@ -14,9 +16,6 @@ module Decidim
       config_accessor :weglot_api_key do
         ENV.fetch("WEGLOT_API_KEY", "")
       end
-  
-      
-
     end
   end
 end

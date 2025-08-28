@@ -5,7 +5,7 @@ export default async function switcher() {
   if (!searchContainer || searchContainer.length === 0) {
     return;
   }
-
+  const Weglot = window.Weglot
   if (!Weglot) {
     return;
   }
@@ -35,6 +35,7 @@ export default async function switcher() {
     if (lang !== currentLang) {
       listItem.classList.add("hover:bg-secondary hover:text-white transition");
     }
+
     listItem.addEventListener("click", function (event) {
       event.preventDefault();
 

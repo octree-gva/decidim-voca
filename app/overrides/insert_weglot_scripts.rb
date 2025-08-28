@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Deface::Override.new(
   virtual_path: "layouts/decidim/_js_configuration",
   name: "insert_weglot_scripts",
@@ -5,7 +7,7 @@ Deface::Override.new(
   partial: "decidim/voca/weglot/js_configuration"
 )
 
-# Add a locale switcher for weglot 
+# Add a locale switcher for weglot
 Deface::Override.new(
   virtual_path: "layouts/decidim/footer/_main_language_chooser",
   name: "insert_weglot_locale_switcher",
