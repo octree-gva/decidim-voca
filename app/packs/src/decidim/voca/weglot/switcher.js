@@ -5,23 +5,27 @@ export default async function switcher() {
   if (!searchContainer || searchContainer.length === 0) {
     return;
   }
-  const Weglot = window.Weglot
-  if (!Weglot) {
+  const WeglotInstance = window.Weglot
+  if (!WeglotInstance) {
     return;
   }
 
-  //Create array of options to be added
-  const availableLanguages = Weglot.options.languages
-    .map(function ({ language_to }) {
-      return language_to;
-    })
-    .concat(Weglot.options.language_from);
+  const currentLang = WeglotInstance.getCurrentLang();
+  const currentLanguageName = WeglotInstance.getLanguageName(currentLang);
+  const button = searchContainer.querySelector(
+    "main-footer__language-trigger"
+  );
+  button.textContent = currentLanguageName;
+
+  const availableLanguages = WeglotInstance.options.languages
+    .filter(({ enabled }) => enabled)
+    .map(({ language_to }) => language_to)
+    .concat(WeglotInstance.options.language_from)
+    .filter((lang) => lang !== currentLang);
 
   const selectList = searchContainer.querySelector(
     ".voca-js--weglot-locale-switcher-dropdown .main-footer__language"
   );
-
-  const currentLang = Weglot.getCurrentLang();
   availableLanguages.forEach((lang) => {
     const listItem = document.createElement("li");
     listItem.classList.add("text-black text-md");
@@ -29,7 +33,7 @@ export default async function switcher() {
 
     const textItem = document.createElement("span");
     textItem.classList.add("p-2 w-full block");
-    textItem.textContent = Weglot.getLanguageName(lang);
+    textItem.textContent = WeglotInstance.getLanguageName(lang);
     listItem.append(textItem);
 
     if (lang !== currentLang) {
@@ -41,12 +45,13 @@ export default async function switcher() {
 
       const item = event.target;
       console.log("Voca Weglot clicked on", item.dataset.value);
-      Weglot.switchTo(item.dataset.value);
+      WeglotInstance.switchTo(item.dataset.value);
+      button.textContent = WeglotInstance.getLanguageName(item.dataset.value);
     });
     selectList.appendChild(listItem);
   });
 
-  Weglot.on("languageChanged", function (lang) {
+  WeglotInstance.on("languageChanged", function (lang) {
     console.log("Voca Weglot language changed to", lang);
   });
 }
