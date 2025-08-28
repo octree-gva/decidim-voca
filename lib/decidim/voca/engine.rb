@@ -123,6 +123,7 @@ module Decidim
           Decidim.configure do |decidim_config|
             decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
             decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
+            decidim_config.content_security_policies_extra["connect-src"].push("cdn-api-weglot.com")
 
             decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
             decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
