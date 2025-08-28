@@ -5,7 +5,7 @@ function config() {
 }
 
 export default async function startWeglot() {
-  const { enabled, api_key, default_language } = config();
+  const { enabled, api_key, default_language, enable_cache } = config();
   if (!enabled || !api_key) {
     console.log("Voca Weglot: skipping");
     return;
@@ -20,10 +20,11 @@ export default async function startWeglot() {
   window.Weglot.initialize({
     api_key,
     translate_search: true,
+    cache: enable_cache,
     search_forms: "#form-search_topbar",
     search_parameter: "term",
     hide_switcher: true,
     auto_switch: true,
-    auto_switch_fallback: default_language,
+    auto_switch_fallback: default_language
   });
 }

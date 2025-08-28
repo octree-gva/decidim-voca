@@ -35,5 +35,9 @@ module Decidim
     def self.weglot?
       configuration.enable_weglot
     end
+
+    def self.weglot_cache?
+      configuration.enable_weglot_cache
+    end
   end
 end
