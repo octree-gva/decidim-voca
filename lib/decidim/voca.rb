@@ -15,18 +15,25 @@ require_relative "voca/overrides/proposal_serializer_overrides"
 require_relative "voca/overrides/user_group_form_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
+require_relative "voca/configuration"
 require "good_job/engine"
 
 module Decidim
   module Voca
-    include ActiveSupport::Configurable
+    def self.configuration
+      @configuration ||= Configuration.new
+    end
 
-    config_accessor :enable_next_gen_images do
-      true
+    def self.configure
+      yield configuration
     end
 
     def self.next_gen_images?
-      config.enable_next_gen_images
+      configuration.enable_next_gen_images
+    end
+
+    def self.weglot?
+      configuration.enable_weglot
     end
   end
 end

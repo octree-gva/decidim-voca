@@ -1,0 +1,9 @@
+<% switcher_id ||= "1" %>
+<div class="main-footer__language-container voca-js--weglot-locale-switcher" data-weglot-active="<%= ::Decidim::Voca.weglot? %>">
+    <button id="trigger-dropdown-language-chooser-<%= switcher_id %>" data-controller="dropdown" data-target="dropdown-menu-language-chooser-<%= switcher_id %>" class="main-footer__language-trigger">
+    </button>
+    <div id="dropdown-menu-language-chooser-<%= switcher_id %>" class="voca-js--weglot-locale-switcher-dropdown" aria-hidden="true">
+        <ul class="main-footer__language" role="menu">
+        </ul>
+    </div>
+</div>

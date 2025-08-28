@@ -1,0 +1,15 @@
+
+<%
+  weglot_js_config = {
+    enabled: Decidim::Voca.weglot?,
+    api_key: Decidim::Voca.configuration.weglot_api_key,
+    default_language: current_organization.default_locale
+  }
+%>
+<%
+  nonce = SecureRandom.base64(16)
+%>
+<script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>
+<script type="text/javascript">
+  window.VocaWeglotConfig = <%= weglot_js_config.to_json.html_safe %>;
+</script>
