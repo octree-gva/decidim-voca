@@ -39,7 +39,7 @@ export default async function switcher() {
   availableLanguages.forEach((lang) => {
     const listItem = document.createElement("li");
     listItem.classList.add("text-black", "text-md");
-    listItem.dataset.value = lang;
+    listItem.setAttribute("data-language", lang);
 
     const textItem = document.createElement("span");
     textItem.classList.add("p-2", "w-full", "block");
@@ -54,9 +54,14 @@ export default async function switcher() {
       event.preventDefault();
 
       const item = event.target;
-      console.log("Voca Weglot clicked on", item.dataset.value);
-      WeglotInstance.switchTo(item.dataset.value);
-      buttonContent.textContent = WeglotInstance.getLanguageName(item.dataset.value);
+      const value = item.getAttribute("data-language");
+      if(!availableLanguages.includes(value)) {
+        console.error("Voca Weglot clicked on", value, "but it is not available. See", availableLanguages);
+        return;
+      }
+      console.log("Voca Weglot clicked on", value);
+      WeglotInstance.switchTo(value);
+      buttonContent.textContent = WeglotInstance.getLanguageName(value);
     });
     selectList.appendChild(listItem);
   });
