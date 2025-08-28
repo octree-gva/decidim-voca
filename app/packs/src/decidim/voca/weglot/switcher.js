@@ -5,7 +5,7 @@ export default async function switcher() {
   if (!searchContainer || searchContainer.length === 0) {
     return;
   }
-  const WeglotInstance = window.Weglot
+  const WeglotInstance = window.Weglot;
   if (!WeglotInstance) {
     return;
   }
@@ -47,7 +47,11 @@ export default async function switcher() {
     listItem.append(textItem);
 
     if (lang !== currentLang) {
-      listItem.classList.add("hover:bg-secondary", "hover:text-white", "transition");
+      listItem.classList.add(
+        "hover:bg-secondary",
+        "hover:text-white",
+        "transition"
+      );
     }
 
     listItem.addEventListener("click", function (event) {
