@@ -128,6 +128,9 @@ module Decidim
             decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
             decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
             decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
+
+            decidim_config.content_security_policies_extra["img-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "img-src"
+            decidim_config.content_security_policies_extra["img-src"].push("cdn.weglot.com")
           end
         end
       end
