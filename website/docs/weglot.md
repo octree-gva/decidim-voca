@@ -15,12 +15,16 @@ To setup your weglot configuration, you will need to follow these steps:
 
 1. Create a weglot account
 2. Create a project
-  1. Setup your DNS to let your main domain point to weglot
-  2. Add a TXT DNS entry as weglot ask you
-  3. "Check DNS" and wait around 10min
-  4. Copy the `api_key` given from the initialization script Weglot gives you
-  5. Add the api_key in `WEGLOT_API_KEY` in environment variables
-  6. Restart your server
+  * Setup your DNS to let your main domain point to weglot
+  * Add a TXT DNS entry as weglot ask you
+  * "Check DNS" and wait around 10min
+  * Copy the `api_key` given from the initialization script Weglot gives you
+  * Add the api_key in `WEGLOT_API_KEY` in environment variables
+  * Restart your server
+
+If you lost your api key during the project creation, you can find it in your project dashboard:  
+![How to get your API KEY](/img/weglot_get_your_api_key.png)
+
 
 :::info
 Weglot integration is not compatible with Decidim multi-tenant for now, as 
