@@ -4,7 +4,7 @@
     enabled: Decidim::Voca.weglot?,
     api_key: Decidim::Voca.configuration.weglot_api_key,
     default_language: current_organization.default_locale,
-    enable_cache: Decidim::Voca.configuration.weglot_cache?
+    enable_cache: Decidim::Voca.weglot_cache?
   }
 %>
 <%
