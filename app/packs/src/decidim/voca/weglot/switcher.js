@@ -53,15 +53,9 @@ export default async function switcher() {
     listItem.addEventListener("click", function (event) {
       event.preventDefault();
 
-      const item = event.target;
-      const value = item.getAttribute("data-language");
-      if(!availableLanguages.includes(value)) {
-        console.error("Voca Weglot clicked on", value, "but it is not available. See", availableLanguages);
-        return;
-      }
-      console.log("Voca Weglot clicked on", value);
-      WeglotInstance.switchTo(value);
-      buttonContent.textContent = WeglotInstance.getLanguageName(value);
+      console.log("Voca Weglot clicked on", lang);
+      WeglotInstance.switchTo(lang);
+      buttonContent.textContent = WeglotInstance.getLanguageName(lang);
     });
     selectList.appendChild(listItem);
   });
