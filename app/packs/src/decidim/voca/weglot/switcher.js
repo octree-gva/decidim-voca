@@ -13,7 +13,7 @@ export default async function switcher() {
   const currentLang = WeglotInstance.getCurrentLang();
   const currentLanguageName = WeglotInstance.getLanguageName(currentLang);
   const button = searchContainer.querySelector(
-    "main-footer__language-trigger"
+    ".main-footer__language-trigger"
   );
   button.textContent = currentLanguageName;
 
@@ -28,16 +28,16 @@ export default async function switcher() {
   );
   availableLanguages.forEach((lang) => {
     const listItem = document.createElement("li");
-    listItem.classList.add("text-black text-md");
+    listItem.classList.add("text-black", "text-md");
     listItem.dataset.set("value", lang);
 
     const textItem = document.createElement("span");
-    textItem.classList.add("p-2 w-full block");
+    textItem.classList.add("p-2", "w-full", "block");
     textItem.textContent = WeglotInstance.getLanguageName(lang);
     listItem.append(textItem);
 
     if (lang !== currentLang) {
-      listItem.classList.add("hover:bg-secondary hover:text-white transition");
+      listItem.classList.add("hover:bg-secondary", "hover:text-white", "transition");
     }
 
     listItem.addEventListener("click", function (event) {

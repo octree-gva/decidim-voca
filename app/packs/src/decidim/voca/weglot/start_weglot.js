@@ -19,12 +19,11 @@ export default async function startWeglot() {
 
   window.Weglot.initialize({
     api_key,
-    switchers: [],
     translate_search: true,
     search_forms: "#form-search_topbar",
     search_parameter: "term",
+    hide_switcher: true,
     auto_switch: true,
     auto_switch_fallback: default_language,
-    hide_switcher: true,
   });
 }
