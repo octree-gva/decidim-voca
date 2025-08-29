@@ -55,8 +55,9 @@ export default async function switcher() {
       const selectList = searchContainer.querySelector(
         ".vocajs_weglot__locale_dropdown > ul"
       );
-      const dataItemClasses = searchContainer.getAttribute("data-weglot-item-class");
-      const dataTextItemClasses = searchContainer.getAttribute("data-weglot-textitem-class");
+      const dataItemClasses = selectList.getAttribute("data-weglot-item-class");
+      const dataTextItemClasses = selectList.getAttribute("data-weglot-textitem-class");
+      console.log("DATA ITEM CLASSES", dataItemClasses, dataTextItemClasses);
       const itemClasses = dataItemClasses ? dataItemClasses.split(" ") : [];
       const textItemClasses = dataTextItemClasses ? dataTextItemClasses.split(" ") : [];
       availableLanguages.forEach((lang) => {
@@ -67,6 +68,7 @@ export default async function switcher() {
 
         const textItem = document.createElement("span");
         textItem.classList.add(...textItemClasses);
+        
         textItem.textContent = WeglotInstance.getLanguageName(lang);
         listItem.append(textItem);
 
