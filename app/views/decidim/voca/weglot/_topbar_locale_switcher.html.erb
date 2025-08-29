@@ -2,14 +2,11 @@
 <div class="main-main-bar__links-desktop__item vocajs_weglot__locale_switcher" data-weglot-active="<%= ::Decidim::Voca.weglot? %>">
     <button id="trigger-dropdown-language-chooser-<%= switcher_id %>" data-controller="dropdown" data-target="dropdown-menu-language-chooser-<%= switcher_id %>" class="main-bar__links-desktop__item-trigger">
       <%= icon "global-line" %>
-      <span class="vocajs_weglot__locale_current">TEST</span>
+      <span class="vocajs_weglot__locale_current"></span>
       <%= icon "arrow-down-s-line" %>
     </button>
     <div id="dropdown-menu-language-chooser-<%= switcher_id %>" class="vocajs_weglot__locale_dropdown" aria-hidden="true">
-        <ul class="main-bar__links-desktop__item-languages" role="menu">
-           <li class="text-black text-md p-2 w-full block hover:bg-secondary hover:text-white transition">TEST</li>
-           <li class="text-black text-md p-2 w-full block hover:bg-secondary hover:text-white transition">TEST</li>
-           <li class="text-black text-md p-2 w-full block hover:bg-secondary hover:text-white transition">TEST</li>
+        <ul class="main-bar__links-desktop__item-languages" role="menu" data-weglot-item-class="" data-weglot-textitem-class="">
         </ul>
     </div>
 </div>
