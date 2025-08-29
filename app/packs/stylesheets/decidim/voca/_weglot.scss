@@ -5,3 +5,57 @@
 .weglot-container.wg-default {
   display: none !important;
 }
+
+.main-bar__links-desktop__item-trigger {
+  display: flex !important;
+}
+
+#trigger-dropdown-language-chooser-topbar {
+  flex-direction: column;
+  gap: 0;
+  padding: 0.25rem 0.5rem;
+  .vocajs_weglot__locale_current {
+    font-size: 14px;
+    line-height: 18px;
+    font-weight: normal;
+  
+  }
+
+}
+
+.vocajs_weglot__locale_switcher {
+  position: relative;
+  [id*="dropdown-menu"] {
+    position: absolute;
+    width: auto !important;
+
+  }
+  #dropdown-menu-language-chooser-topbar ul {
+    position: relative;
+    background: white;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  #dropdown-menu-language-chooser-topbar li {
+    padding: 0.5rem 1rem;
+    font-size: 14px;
+    line-height: 18px;
+    color: var(--secondary);
+    &:hover {
+      color: white;
+    }
+  }
+
+  #dropdown-menu-language-chooser-topbar li:last-child {
+    border-bottom-right-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+  }
+  #dropdown-menu-language-chooser-topbar li:first-child {
+    border-top-right-radius: 0.5rem;
+    border-top-left-radius: 0.5rem;
+  }
+}
