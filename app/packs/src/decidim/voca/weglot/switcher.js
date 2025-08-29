@@ -55,10 +55,13 @@ export default async function switcher() {
       const selectList = searchContainer.querySelector(
         ".vocajs_weglot__locale_dropdown > ul"
       );
-      const itemClasses = searchContainer.getAttribute("data-weglot-item-class").split(" ");
-      const textItemClasses = searchContainer.getAttribute("data-weglot-textitem-class").split(" ");
+      const dataItemClasses = searchContainer.getAttribute("data-weglot-item-class");
+      const dataTextItemClasses = searchContainer.getAttribute("data-weglot-textitem-class");
+      const itemClasses = dataItemClasses ? dataItemClasses.split(" ") : [];
+      const textItemClasses = dataTextItemClasses ? dataTextItemClasses.split(" ") : [];
       availableLanguages.forEach((lang) => {
         const listItem = document.createElement("li");
+        
         listItem.classList.add(...itemClasses);
         listItem.setAttribute("data-language", lang);
 
