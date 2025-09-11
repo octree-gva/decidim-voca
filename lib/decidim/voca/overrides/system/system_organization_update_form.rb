@@ -16,7 +16,6 @@ module Decidim
               base_query = persisted? ? Decidim::Organization.where.not(id:).all : Decidim::Organization.all
 
               organization_names = []
-
               base_query.pluck(:name).each do |value|
                 organization_names += value.except("machine_translations").values
                 organization_names += value.fetch("machine_translations", {}).values
