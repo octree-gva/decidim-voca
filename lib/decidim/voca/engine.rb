@@ -75,6 +75,9 @@ module Decidim
         # Footer topic "Help" hardcoded string
         Decidim::FooterTopicsCell.include(Decidim::Voca::Overrides::Footer::FooterTopicCellOverrides)
         Decidim::FooterMenuPresenter.include(Decidim::Voca::Overrides::Footer::FooterMenuPresenter)
+
+        # System Organization Update Form
+        Decidim::System::UpdateOrganizationForm.include(Decidim::Voca::Overrides::System::SystemOrganizationUpdateForm)
       end
 
       # Decidim Awesome Proposal Override

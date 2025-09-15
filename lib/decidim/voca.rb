@@ -15,7 +15,7 @@ require_relative "voca/overrides/proposal_serializer_overrides"
 require_relative "voca/overrides/user_group_form_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
-require_relative "voca/configuration"
+require_relative "voca/overrides/system/system_organization_update_form"
 require "good_job/engine"
 
 module Decidim

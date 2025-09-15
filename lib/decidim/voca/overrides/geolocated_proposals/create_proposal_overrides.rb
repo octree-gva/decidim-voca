@@ -12,9 +12,14 @@ module Decidim
         extend ActiveSupport::Concern
 
         included do
-          alias_method :voca_create_proposal_original, :create_proposal
+          if Decidim::Proposals::CreateProposal.include?(Decidim::DecidimAwesome::Proposals::CreateProposalOverride)
+            alias_method :voca_original_create_proposal, :decidim_original_create_proposal
+          else
+            alias_method :voca_original_create_proposal, :create_proposal
+          end
+
           def create_proposal
-            proposal_or_awesome_proposal = voca_create_proposal_original
+            proposal_or_awesome_proposal = voca_original_create_proposal
             return unless proposal_or_awesome_proposal
 
             proposal = if proposal_or_awesome_proposal.is_a?(Decidim::Proposals::Proposal)
