@@ -20,14 +20,24 @@ require "good_job/engine"
 
 module Decidim
   module Voca
-    include ActiveSupport::Configurable
+    def self.configuration
+      @configuration ||= Configuration.new
+    end
 
-    config_accessor :enable_next_gen_images do
-      true
+    def self.configure
+      yield configuration
     end
 
     def self.next_gen_images?
-      config.enable_next_gen_images
+      configuration.enable_next_gen_images
+    end
+
+    def self.weglot?
+      configuration.enable_weglot
+    end
+
+    def self.weglot_cache?
+      configuration.enable_weglot_cache
     end
   end
 end
