@@ -17,6 +17,7 @@ require_relative "voca/overrides/user_group_form_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
 require_relative "voca/overrides/system/system_organization_update_form"
+require_relative "voca/overrides/extra_data_cell_overrides"
 require "good_job/engine"
 
 module Decidim
