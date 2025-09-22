@@ -78,6 +78,9 @@ module Decidim
 
         # System Organization Update Form
         Decidim::System::UpdateOrganizationForm.include(Decidim::Voca::Overrides::System::SystemOrganizationUpdateForm)
+
+        # Overrides Extra Data Cell
+        Decidim::ParticipatoryProcesses::ContentBlocks::ExtraDataCell.include(Decidim::Voca::Overrides::ExtraDataCellOverrides)
       end
 
       # Decidim Awesome Proposal Override
