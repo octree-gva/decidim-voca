@@ -10,8 +10,6 @@ module Decidim
           alias_method :decidim_original_extra_data_items, :extra_data_items
 
           def extra_data_items
-            decidim_original_extra_data_items
-
             [dates_item, step_item, group_item].compact
           end
         end
