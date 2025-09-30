@@ -15,3 +15,7 @@ fr:
         find_my_location: "Ma position"
         take_photo: "Prendre une photo"
       footer_text: Un espace démocratique pour vos communautés
+  devise:
+    mailer:
+      confirmation_instructions:
+        instruction_html: "Vous pouvez confirmer votre compte email par le lien ci-dessous:"
