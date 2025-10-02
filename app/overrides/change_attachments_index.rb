@@ -5,6 +5,6 @@ Deface::Override.new(
   name: "fix_attachment_file_type_index",
   replace: "erb[loud]:contains('attachment.file_type')",
   text: <<~ERB
-    <%= attachment.file.blob.filename.to_s.split(".").last %>
+    <%= attachment.file.blob.filename.extension_without_delimiter %>
   ERB
 )
