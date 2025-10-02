@@ -3,6 +3,11 @@
 module Decidim
   module Voca
     module Overrides
+      # This module overrides the default behavior by using `translated_attribute`
+      # instead of `decidim_escape_translated`. 
+      # It allows admins to create categories with special characters 
+      # (e.g., "&") without escaping them.
+      # original: https://github.com/decidim/decidim/blob/v0.29.4/decidim-core/app/helpers/decidim/check_boxes_tree_helper.rb
       module CheckBoxesTreeHelperOverrides
         extend ActiveSupport::Concern
 
