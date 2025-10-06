@@ -81,6 +81,9 @@ module Decidim
 
         # Overrides Extra Data Cell
         Decidim::ParticipatoryProcesses::ContentBlocks::ExtraDataCell.include(Decidim::Voca::Overrides::ExtraDataCellOverrides)
+
+        # Overrides AttachmentForm
+        Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
       end
 
       # Decidim Awesome Proposal Override
