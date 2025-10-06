@@ -82,6 +82,9 @@ module Decidim
         # Overrides Extra Data Cell
         Decidim::ParticipatoryProcesses::ContentBlocks::ExtraDataCell.include(Decidim::Voca::Overrides::ExtraDataCellOverrides)
 
+        # Overrides CheckBoxesTreeHelper
+        Decidim::CheckBoxesTreeHelper.include(Decidim::Voca::Overrides::CheckBoxesTreeHelperOverrides)
+        
         # Overrides AttachmentForm
         Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
       end
