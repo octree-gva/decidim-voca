@@ -84,6 +84,9 @@ module Decidim
 
         # Overrides CheckBoxesTreeHelper
         Decidim::CheckBoxesTreeHelper.include(Decidim::Voca::Overrides::CheckBoxesTreeHelperOverrides)
+        
+        # Overrides AttachmentForm
+        Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
       end
 
       # Decidim Awesome Proposal Override
