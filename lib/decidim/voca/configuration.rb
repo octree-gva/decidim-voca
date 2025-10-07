@@ -5,6 +5,10 @@ module Decidim
     class Configuration
       include ActiveSupport::Configurable
 
+      config_accessor :enable_minimalistic_deepl do
+        true
+      end
+
       config_accessor :enable_weglot do
         ENV.fetch("WEGLOT_API_KEY", "").present?
       end

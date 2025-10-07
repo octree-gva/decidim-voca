@@ -38,10 +38,6 @@ module Decidim
       yield configuration
     end
 
-    config_accessor :enable_minimalistic_deepl do
-      true
-    end
-
     def self.next_gen_images?
       configuration.enable_next_gen_images
     end
@@ -55,7 +51,7 @@ module Decidim
     end
 
     def self.minimalistic_deepl?
-      deepl_enabled? && config.enable_minimalistic_deepl
+      deepl_enabled? && configuration.enable_minimalistic_deepl
     end
 
     def self.deepl_enabled?
