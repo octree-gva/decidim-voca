@@ -24,6 +24,7 @@ module Decidim
           private
 
           def tabs_content_tag(type, name, options = {})
+            tabs_id = sanitized_tabs_id(name, options)
             hashtaggable = options.delete(:hashtaggable)
             default_locale = Decidim::Voca::DeeplContext.organization.default_locale || Decidim.default_locale
             content_tag(:div, class: "tabs-content", data: { tabs_content: tabs_id }) do
@@ -46,8 +47,12 @@ module Decidim
             end
           end
 
+          def sanitized_tabs_id(name, options = {})
+            sanitize_tabs_selector(options[:tabs_id] || "#{object_name}-#{name}-tabs")
+          end
+
           def label_tabs_tag(name, options = {})
-            tabs_id = sanitize_tabs_selector(options[:tabs_id] || "#{object_name}-#{name}-tabs")
+            tabs_id = sanitized_tabs_id(name, options)
 
             content_tag(:div, class: "label--tabs") do
               field_label = label_i18n(name, options[:label] || label_for(name), required: options[:required])
