@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
-require 'deepl'
-require 'active_support'
+require "deepl"
+require "active_support"
 
 module Decidim
   module Voca
     class DeeplMachineTranslator
       attr_reader :text, :source_locale, :target_locale, :resource, :field_name
+
       include Decidim::TranslatableAttributes
-      
+
       def initialize(resource, field_name, text, target_locale, source_locale)
         @resource = resource
         @field_name = field_name
@@ -17,15 +18,14 @@ module Decidim
         @source_locale = source_locale
       end
 
-    
       def translate
         return if text.blank?
-    
+
         # remove base64 encoded images if they exist
-        text.gsub!(%r{<img src=\"data:image/png;base64,.*>}, '')
-    
+        text.gsub!(%r{<img src="data:image/png;base64,.*>}, "")
+
         translation = segmented_translate
-    
+
         Decidim::MachineTranslationSaveJob.perform_later(
           resource,
           field_name,
@@ -37,12 +37,12 @@ module Decidim
       private
 
       def dummy_translate?
-        ["1", "true", "enabled"].include?(ENV.fetch("VOCA_DUMMY_TRANSLATE", "false"))
+        %w(1 true enabled).include?(ENV.fetch("VOCA_DUMMY_TRANSLATE", "false"))
       end
-    
+
       def segmented_translate
         # Use nokogiri parser, that will create
-        # a ensure valid HTML construct, 
+        # a ensure valid HTML construct,
         html = Nokogiri::HTML.fragment(text)
 
         html.children.each do |node|
@@ -54,35 +54,44 @@ module Decidim
         end
         html.to_s
       end
-    
-      def deepl_translate(text, html: false)
-        if dummy_translate?
-          context = deepl_context
-          str= "DUMMY TRANSLATION [date=#{Time.current.strftime("%d/%m/%Y %H:%M:%S")},mode=#{html ? "html" : "text"},text_to_translate=\"#{text}\",context=\"#{context}\"]"
-          str = "<p><strong>#{str}</strong></p>" if html
-          return str.html_safe
-        end
-        
-        # DeepL has a limit of 131_072 bytes per input
-        # https://developers.deepl.com/docs/resources/usage-limits
-        return text if text.blank?
-        return text if text.bytesize > 130_000
+
+      def deepl_kwargs
         deepl_kwargs = {}
         begin
           deepl_kwargs[:formality] = "prefer_more" if target_language? && target_language.supports_formality?
-        rescue => e
+        rescue StandardError => e
           Rails.logger.error("Formality no supported by #{target_locale}: #{e.message}")
         end
-        deepl_kwargs[:tag_handling] = 'html' if html
+        deepl_kwargs[:tag_handling] = "html" if html
+
+        deepl_kwargs
+      end
+
+      def translatable?(text)
+        # DeepL has a limit of 131_072 bytes per input
+        # https://developers.deepl.com/docs/resources/usage-limits
+        text.present? && text.bytesize < 131_000
+      end
+
+      def deepl_translate(text, html: false)
+        if dummy_translate?
+          context = deepl_context
+          str = "DUMMY TRANSLATION [date=#{Time.current.strftime("%d/%m/%Y %H:%M:%S")},mode=#{html ? "html" : "text"},text_to_translate=\"#{text}\",context=\"#{context}\"]"
+          str = "<p><strong>#{str}</strong></p>" if html
+          return str.html_safe
+        end
+
+        return text unless translatable?(text)
+
         result = DeepL.translate(
           text,
-          source_locale, 
-          target_locale, 
+          source_locale,
+          target_locale,
           context: deepl_context,
           **deepl_kwargs
         )
         result.text
-      rescue => e
+      rescue StandardError => e
         Rails.logger.error("Error translating text: #{e.message}")
         Rails.logger.error("Text: #{text}")
         Rails.logger.error("Source locale: #{source_locale}")
@@ -90,15 +99,17 @@ module Decidim
         Rails.logger.error("Context: #{deepl_context}")
         Rails.logger.error("Error: #{e.message}")
         Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
-        return ""
+        ""
       end
 
       def target_language
-        @target_language ||= DeepL.languages.find {|locale| locale.code == target_locale.to_s.upcase}
+        @target_language ||= DeepL.languages.find { |locale| locale.code == target_locale.to_s.upcase }
       end
+
       def target_language?
         target_language.present?
       end
+
       def deepl_context
         base = Decidim::Voca::DeeplContext.deepl_context
         "This is a text for a #{resource.class.name.demodulize.titleize} #{name_context}, field #{field_name}. #{base}"
@@ -108,9 +119,9 @@ module Decidim
         return "" if field_name == "title"
         return ", named #{translated_attribute(resource.title)}" if resource.respond_to?(:title)
         return ", named #{translated_attribute(resource.name)}" if resource.respond_to?(:name)
+
         ""
       end
-    end    
+    end
   end
 end
-

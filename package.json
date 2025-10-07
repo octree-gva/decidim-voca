@@ -1,7 +1,7 @@
 {
   "name": "decidim-voca",
   "private": true,
-  "version": "0.0.4",
+  "version": "0.0.10",
   "packageManager": "yarn@1.22.22",
   "devDependencies": {
     "@decidim/dev": "^0.29.4",

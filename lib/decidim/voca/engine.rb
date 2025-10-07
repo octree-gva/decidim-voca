@@ -16,6 +16,11 @@ module Decidim
         Decidim::Core::Engine.routes.draw do
           post :editor_files, to: "voca/editor_files#create"
           post :locate, to: "voca/geolocation#locate"
+          if Rails.application.config.active_job.queue_adapter == :good_job
+            authenticate :admin, ->(admin) { !admin.locked_at? } do
+              mount GoodJob::Engine => "/system/active_jobs"
+            end
+          end
         end
       end
 
@@ -71,6 +76,18 @@ module Decidim
         # Footer topic "Help" hardcoded string
         Decidim::FooterTopicsCell.include(Decidim::Voca::Overrides::Footer::FooterTopicCellOverrides)
         Decidim::FooterMenuPresenter.include(Decidim::Voca::Overrides::Footer::FooterMenuPresenter)
+
+        # System Organization Update Form
+        Decidim::System::UpdateOrganizationForm.include(Decidim::Voca::Overrides::System::SystemOrganizationUpdateForm)
+
+        # Overrides Extra Data Cell
+        Decidim::ParticipatoryProcesses::ContentBlocks::ExtraDataCell.include(Decidim::Voca::Overrides::ExtraDataCellOverrides)
+
+        # Overrides CheckBoxesTreeHelper
+        Decidim::CheckBoxesTreeHelper.include(Decidim::Voca::Overrides::CheckBoxesTreeHelperOverrides)
+
+        # Overrides AttachmentForm
+        Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
       end
 
       # Decidim Awesome Proposal Override
@@ -89,22 +106,73 @@ module Decidim
           Decidim.configure do |decidim_config|
             if decidim_config.machine_translation_service.blank?
               # Even enabled, this won't enable organizations to use machine translations
-              # You need to update programitacally the Organization: 
+              # You need to update programitacally the Organization:
               # Decidim::Organization.last.update(enable_machine_translations: true, machine_translation_display_priority: "translation")
               decidim_config.enable_machine_translations = true
               decidim_config.machine_translation_service = "Decidim::Voca::DeeplMachineTranslator"
               decidim_config.machine_translation_delay = 0.seconds
             end
           end
+
           # Inject middlewares to capture Deepl Contexts
           # Insert Deepl Context in ActiveJob::Base
-          ActiveJob::Base.include(Decidim::Voca::DeeplActiveJobContext)
+          ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
           if Decidim::Voca.minimalistic_deepl?
             Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation")
             config.to_prepare do
               ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
               ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
             end
+          end
+        end
+      end
+
+      initializer "decidim.voca.good_job", after: :load_config_initializers do
+        # Execution mode is configurable, to adapt on demand:
+        # - async_server: when your installation is small and want to run all in same server (but a new thread)
+        # - external: when you run your own process with ``
+        execution_mode = ENV.fetch("VOCA_ACTIVE_JOB_EXECUTION_MODE", "async_server").to_sym
+        good_job_max_threads = ENV.fetch("VOCA_GOOD_JOB_MAX_THREADS", 5).to_i
+        good_job_poll_interval = ENV.fetch("VOCA_GOOD_JOB_POLL_INTERVAL", 30).to_i
+        good_job_shutdown_timeout = ENV.fetch("VOCA_GOOD_JOB_SHUTDOWN_TIMEOUT", 120).to_i
+        good_job_queues = ENV.fetch("VOCA_GOOD_JOB_QUEUES", "*")
+        supported_execution_modes = [:async_server, :external]
+        unless supported_execution_modes.include?(execution_mode)
+          raise "Unsupported execution mode: #{execution_mode}. Supported modes are: #{supported_execution_modes.join(", ")}"
+        end
+
+        Rails.application.configure do
+          if config.active_job.queue_adapter == :good_job
+            Rails.logger.warn("Overriding good_job configuration for Decidim")
+            config.good_job.preserve_job_records = true
+            config.good_job.retry_on_unhandled_error = true # To behave like sidekiq
+            config.good_job.on_thread_error = ->(exception) { Rails.error.report(exception) }
+            config.good_job.execution_mode = execution_mode
+            config.good_job.queues = good_job_queues
+            config.good_job.max_threads = good_job_max_threads
+            config.good_job.poll_interval = good_job_poll_interval # seconds
+            config.good_job.shutdown_timeout = good_job_shutdown_timeout # seconds
+            config.good_job.enable_cron = false
+            config.good_job.dashboard_default_locale = :en
+            ActionMailer::MailDeliveryJob.retry_on StandardError, attempts: 5
+          end
+        end
+      end
+
+      initializer "decidim.voca.weglot", after: :load_config_initializers do
+        # configure additional CSP for weglot
+        if ::Decidim::Voca.weglot?
+          Decidim.configure do |decidim_config|
+            decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
+            decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
+            decidim_config.content_security_policies_extra["connect-src"].push("cdn-api-weglot.com")
+
+            decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
+            decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
+            decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
+
+            decidim_config.content_security_policies_extra["style-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "style-src"
+            decidim_config.content_security_policies_extra["style-src"].push("cdn.weglot.com")
           end
         end
       end

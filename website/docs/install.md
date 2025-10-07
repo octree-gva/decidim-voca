@@ -20,8 +20,10 @@ description: How to install the module
 ```ruby
 gem "decidim-voca", "~> 0.0.1"
 gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
-gem "deface", "1.9.0"
+gem "deface", "1.9.0", git: "https://github.com/froger/deface", branch: "fix/js-overrides"
+gem "good_job", "~> 4.5.1"
 ```
+
 **Install dependances for webp**  
 on debian: 
 ```
@@ -54,17 +56,17 @@ apt-get install -yq --no-install-recommends \
 ```bash
 bundle install
 bundle exec rails voca:webpacker:install
-bundle rails decidim_voca:install:migrations 
+bundle exec rails decidim_voca:install:migrations 
 bundle exec rails db:migrate
 ```
 
 **Compile assets**  
 ```bash
-bin/rails assets:precompile
+bundle exec rails assets:precompile
 ```
 
 **(prod only) Compile overrides**  
 ```bash
-bin/rails bundle exec rails deface:precompile
+bundle exec rails bundle exec rails deface:precompile
 ``` 
 And set `Rails.application.config.deface.enabled=false` in your `production.rb`

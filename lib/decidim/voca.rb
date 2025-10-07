@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "voca/engine"
+require_relative "voca/configuration"
 require_relative "voca/overrides/next_gen_images/decidim_viewmodel"
 require_relative "voca/overrides/next_gen_images/override_for_has_one_attached"
 require_relative "voca/overrides/next_gen_images/override_cell_resource_image_url"
@@ -21,13 +22,20 @@ require_relative "voca/deepl/deepl_middleware"
 require_relative "voca/deepl/deepl_machine_translator"
 require_relative "voca/deepl/deepl_active_job_context"
 require_relative "voca/deepl/deepl_form_builder_overrides"
+require_relative "voca/overrides/system/system_organization_update_form"
+require_relative "voca/overrides/extra_data_cell_overrides"
+require_relative "voca/overrides/check_boxes_tree_helper_overrides"
+require_relative "voca/overrides/attachment_form_overrides"
+require "good_job/engine"
 
 module Decidim
   module Voca
-    include ActiveSupport::Configurable
+    def self.configuration
+      @configuration ||= Configuration.new
+    end
 
-    config_accessor :enable_next_gen_images do
-      true
+    def self.configure
+      yield configuration
     end
 
     config_accessor :enable_minimalistic_deepl do
@@ -35,16 +43,23 @@ module Decidim
     end
 
     def self.next_gen_images?
-      config.enable_next_gen_images
+      configuration.enable_next_gen_images
+    end
+
+    def self.weglot?
+      configuration.enable_weglot
+    end
+
+    def self.weglot_cache?
+      configuration.enable_weglot_cache
     end
 
     def self.minimalistic_deepl?
-      self.deepl_enabled? && config.enable_minimalistic_deepl
+      deepl_enabled? && config.enable_minimalistic_deepl
     end
 
     def self.deepl_enabled?
       ENV.fetch("DECIDIM_DEEPL_API_KEY", "").present?
     end
-
   end
 end

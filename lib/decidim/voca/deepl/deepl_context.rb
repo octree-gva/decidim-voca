@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Decidim
   module Voca
     class DeeplContext < ActiveSupport::CurrentAttributes
@@ -15,20 +17,20 @@ module Decidim
       def deepl_context
         (
           ["Context: the text is written from a participatory platform, organized in participatory spaces, components and users."] +
-            organization_context + 
-            participatory_space_context + 
-            current_component_context + 
-            current_user_context    
-        ).select(&:present?).join("\n")
+            organization_context +
+            participatory_space_context +
+            current_component_context +
+            current_user_context
+        ).compact_blank.join("\n")
       end
 
-      private 
+      private
 
       def organization_context
         return [] unless organization
-        
+
         [
-          "- Platform Name: #{translated_attribute(organization.name) || "undefined"}", 
+          "- Platform Name: #{translated_attribute(organization.name) || "undefined"}",
           "- Platform Description: #{strip_tags(sanitize(translated_attribute(organization.description)) || "undefined")}"
         ]
       end

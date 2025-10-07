@@ -8,6 +8,7 @@ services:
       - bundle:/home/decidim/app/vendor
       - node_modules:/home/decidim/app/node_modules
     environment:
+      - DECIDIM_VERSION=0.29.4
       - PORT=3000
       - MAPS_PROVIDER=osm
       - MAPS_STATIC_PROVIDER=osm
@@ -18,12 +19,12 @@ services:
       - MAPS_DYNAMIC_API_KEY=my_insecure_api_key
       - MAPS_GEOCODING_HOST=nominatim.openstreetmap.org
       - MAPS_ATTRIBUTION=<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap</a> contributors
-      - DATABASE_URL=postgresql://decidim:pleaseChangeMe@voca-pg:5432/decidim
+      - DATABASE_URL=postgis://decidim:pleaseChangeMe@voca-pg:5432/decidim
       - DATABASE_HOST=voca-pg
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
       - DISABLE_SPRING=1
-      - DEV_MODULE=decidim-voca0c026dc27ecf
+      - DEV_MODULE=decidim-voca
       - RAILS_ENV=development
       - DISABLED_DOCKER_COMPOSE=true # To run tests in dockeril vole de building en build
       - DECIDIM_DEEPL_API_KEY=my_deepl_api_key
@@ -35,13 +36,20 @@ services:
       - voca-pg
 
   voca-pg:
-    image: postgres:15
+    image: postgis/postgis:16-3.5-alpine
+    restart: always
     volumes:
       - voca-pg-data:/var/lib/postgresql/data
+      - .docker/dump:/tmp/dump
     environment:
-      - POSTGRES_DATABASE=decidim
-      - POSTGRES_USER=decidim
       - POSTGRES_PASSWORD=pleaseChangeMe
+      - POSTGRES_USER=decidim
+      - POSTGRES_DB=decidim
+    ports:
+      - 5432:5432
+    healthcheck:
+      test: pg_isready -U decidim -h 127.0.0.1
+      interval: 5s
 
 volumes:
   node_modules: {}

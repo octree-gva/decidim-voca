@@ -22,3 +22,8 @@ en:
           description_html: |
             <p>The language "%{current_locale}" is fully translated by machine, you need to switch to "%{default_locale}".</p>
           button: Switch language
+  devise:
+    mailer:
+      confirmation_instructions:
+        instruction_html: "You can confirm your email account through the link below:"
+
