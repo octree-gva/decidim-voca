@@ -43,7 +43,8 @@ module Decidim
     end
 
     def self.weglot?
-      configuration.enable_weglot
+      # Prefer deepl over weglot
+      configuration.enable_weglot && !deepl_enabled?
     end
 
     def self.weglot_cache?
