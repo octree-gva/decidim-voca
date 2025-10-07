@@ -42,7 +42,7 @@ module Decidim
       end
 
       def organization_context
-        return [] unless located_organization
+        return [] unless organization
 
         [
           "- Platform Name: #{translated_attribute(located_organization.name) || "undefined"}",
@@ -51,7 +51,7 @@ module Decidim
       end
 
       def participatory_space_context
-        return [] unless located_participatory_space
+        return [] unless participatory_space
 
         [
           "- Participatory Space Name: #{translated_attribute(located_participatory_space.name) || "undefined"}",
@@ -60,7 +60,7 @@ module Decidim
       end
 
       def current_component_context
-        return [] unless located_current_component
+        return [] unless current_component
 
         [
           "- Component Name: #{translated_attribute(located_current_component.name) || "undefined"}"
@@ -68,7 +68,7 @@ module Decidim
       end
 
       def current_user_context
-        return [] unless located_current_user
+        return [] unless current_user
         return [] unless located_current_user.admin? || located_current_user.roles.any?
 
         [
