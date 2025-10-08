@@ -55,7 +55,7 @@ module Decidim
         html.to_s
       end
 
-      def deepl_kwargs
+      def deepl_kwargs(html:)
         deepl_kwargs = {}
         begin
           deepl_kwargs[:formality] = "prefer_more" if target_language? && target_language.supports_formality?
@@ -88,7 +88,7 @@ module Decidim
           source_locale,
           target_locale,
           context: deepl_context,
-          **deepl_kwargs
+          **deepl_kwargs(html: html)
         )
         result.text
       rescue StandardError => e
