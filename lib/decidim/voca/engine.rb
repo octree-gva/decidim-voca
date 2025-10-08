@@ -90,6 +90,7 @@ module Decidim
         Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
 
         # Set retry on Decidim::ApplicationJob
+        good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
       end
 
