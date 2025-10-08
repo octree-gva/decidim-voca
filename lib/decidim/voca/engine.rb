@@ -155,9 +155,9 @@ module Decidim
             config.good_job.shutdown_timeout = good_job_shutdown_timeout # seconds
             config.good_job.enable_cron = false
             config.good_job.dashboard_default_locale = :en
-            # Retry on unhandled error 
+            # Retry on unhandled error
             ActionMailer::MailDeliveryJob.retry_on StandardError, attempts: good_job_retry
-            ::ApplicationJob.retry_on StandardError, attempts: good_job_retry
+            ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
           end
         end
       end
