@@ -10,7 +10,9 @@ module Decidim
         alias_method :voca_deserialize_without_deepl, :deserialize
 
         def serialize
-          voca_serialize_without_deepl.merge("deepl_context" => Decidim::Voca::DeeplContext.attributes)
+          voca_serialize_without_deepl.merge(
+            "deepl_context" => Decidim::Voca::DeeplContext.attributes
+          )
         end
 
         def deserialize(job_data)

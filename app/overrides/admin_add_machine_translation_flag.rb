@@ -19,7 +19,7 @@ Deface::Override.new(
   insert_before: ".main",
   text: <<~ERB
     <% if Decidim::Voca.minimalistic_deepl? && current_organization.enable_machine_translations? && current_organization.default_locale.to_s != I18n.locale.to_s %>
-       <%#{" "}
+       <%
         locale = current_organization.default_locale
       %>
       <div class="voca__machine_translation_alert">

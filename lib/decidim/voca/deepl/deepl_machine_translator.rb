@@ -88,7 +88,7 @@ module Decidim
           source_locale,
           target_locale,
           context: deepl_context,
-          **deepl_kwargs(html: html)
+          **deepl_kwargs(html:)
         )
         result.text
       rescue StandardError => e

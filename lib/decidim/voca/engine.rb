@@ -10,7 +10,6 @@ module Decidim
     # This is the engine that runs on the public interface of voca.
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
-      config.autoload_paths << root.join("app", "middlewares")
 
       routes do
         Decidim::Core::Engine.routes.draw do
@@ -102,11 +101,16 @@ module Decidim
           )
         end
       end
-
       initializer "decidim.voca.deepl", after: :load_config_initializers do
         if Decidim::Voca.deepl_enabled?
-          Rails.application.config.middleware.insert_after ::Warden::Manager, ::Decidim::Voca::DeeplMiddleware
+          require "deepl"
+          DeepL.configure do |config|
+            config.auth_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", "")
+            config.host = ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com")
+            config.version = ENV.fetch("DECIDIM_DEEPL_VERSION", "v2")
+          end
 
+          Rails.application.config.middleware.use ::Decidim::Voca::DeeplMiddleware
           Decidim.configure do |decidim_config|
             if decidim_config.machine_translation_service.blank?
               # Even enabled, this won't enable organizations to use machine translations
@@ -118,9 +122,8 @@ module Decidim
             end
           end
 
-          # Inject middlewares to capture Deepl Contexts
           # Insert Deepl Context in ActiveJob::Base
-          ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
+          # ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
           if Decidim::Voca.minimalistic_deepl?
             Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation")
             config.to_prepare do
