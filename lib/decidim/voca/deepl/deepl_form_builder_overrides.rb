@@ -14,7 +14,7 @@ module Decidim
           #
           def translated(type, name, options = {})
             return translated_one_locale(type, name, locales.first, options.merge(label: (options[:label] || label_for(name)))) if locales.count == 1
-
+            
             safe_join [
               label_tabs_tag(name, options),
               tabs_content_tag(type, name, options)
@@ -39,6 +39,7 @@ module Decidim
                 # to let machine translation do its job
                 options_for_field[:value] = "".html_safe if locale.to_s != default_locale.to_s
                 tab_content_id = "#{tabs_id}-#{name}-panel-#{index}"
+                options_for_field[:"data-machine-tranlated"] = locale.to_s != default_locale.to_s
                 string + content_tag(:div, class: tab_element_class_for("panel", index), id: tab_content_id, "aria-hidden": tab_attr_aria_hidden_for(index)) do
                   if hashtaggable
                     hashtaggable_text_field(type, name, locale, options_for_field.merge(label: false))
@@ -59,7 +60,7 @@ module Decidim
           def label_tabs_tag(name, options = {})
             tabs_id = sanitized_tabs_id(name, options)
 
-            content_tag(:div, class: "label--tabs") do
+            content_tag(:div, class: "label--tabs", :"data-machine-translated" => true) do
               field_label = label_i18n(name, options[:label] || label_for(name), required: options[:required])
 
               language_selector = "".html_safe

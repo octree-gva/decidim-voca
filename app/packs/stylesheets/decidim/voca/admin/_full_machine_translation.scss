@@ -1,8 +1,9 @@
-.main[data-machine-translation-flag=true]  {
-  .tabs.tabs--lang, .language-choose {
+[data-machine-translated=true]  {
+  .tabs.tabs--lang, .language-choose{
     display: none !important;
   }
 }
+
 .voca__machine_translation_alert {
   position: fixed;
   top: 0;
