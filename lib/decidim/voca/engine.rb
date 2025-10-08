@@ -88,6 +88,9 @@ module Decidim
 
         # Overrides AttachmentForm
         Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
+
+        # Set retry on Decidim::ApplicationJob
+        ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
       end
 
       # Decidim Awesome Proposal Override
@@ -157,7 +160,6 @@ module Decidim
             config.good_job.dashboard_default_locale = :en
             # Retry on unhandled error
             ActionMailer::MailDeliveryJob.retry_on StandardError, attempts: good_job_retry
-            ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
           end
         end
       end
