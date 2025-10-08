@@ -56,7 +56,7 @@ module Decidim
     end
 
     def self.deepl_enabled?
-      ENV.fetch("DECIDIM_DEEPL_API_KEY", "").present?
+      ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
     end
   end
 end

@@ -22,10 +22,12 @@ module Decidim
           end
 
           private
+
           def organization_context
             # deserialize the global id to get the organization
             @organization_context ||= GlobalID::Locator.locate(Decidim::Voca::DeeplContext.organization)
           end
+
           def tabs_content_tag(type, name, options = {})
             tabs_id = sanitized_tabs_id(name, options)
             hashtaggable = options.delete(:hashtaggable)

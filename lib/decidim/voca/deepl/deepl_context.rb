@@ -25,6 +25,7 @@ module Decidim
       end
 
       private
+
       def located_organization
         @located_organization ||= GlobalID::Locator.locate(organization)
       end
