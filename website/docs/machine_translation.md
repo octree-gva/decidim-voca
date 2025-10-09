@@ -90,3 +90,4 @@ You can then check:
 
 - Decidim Awesome custom proposals use `jquery.formbuilder`, that do not support multilinguage labels. Thus, it won't be translated. 
 - When a user writes content on a machine-translated locale, it gets translated in default locale but do not show a notice to users (looks like content was written in default locale)
+- Component title are not translated (yet). Resolution is in progress.
