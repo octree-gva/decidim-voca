@@ -44,9 +44,21 @@ Last step, you need to [get a Deepl API token](https://www.deepl.com/en/your-acc
 
 Once you have done this, restart the server.
 
-## Screenshots
-**Admin side with machine translated language**
-![]()
+## Environment Variables 
+
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `DECIDIM_DEEPL_API_KEY` | DeepL API key | `` |
+| `DECIDIM_DEEPL_HOST` | DeepL hosts, for on-premise install | `https://api.deepl.com` |
+| `DECIDIM_DEEPL_VERSION` | DeepL API version | `v2` |
+| `VOCA_DUMMY_TRANSLATE` | For testing purpose, avoids calling DeepL and renders debug text | `false` (not explicitly stated) |
+
+## Translate missing .yml with machine translations
+You can use the gem `i18n-rasks" in your rails application to translate any missing I18n values. 
+To do so: 
+- add [`config/i18n-tasks.yml` (link to the file)](/i18n-tasks.yml)
+- run `bundle binstub i18n-tasks`
+- run `bin/i18n-tasks translate-missing --from=en -l=ru --backend=deepl` (for more option do a `bin/i18n-tasks translate-missing --help` )
 
 
 ### Use the Machine Translation without a minimalist approach
@@ -72,3 +84,9 @@ You can then check:
 - If updates does update the date of the translation
 - The mode is correct (text/html)
 - The context is right
+
+
+## Known pitfall
+
+- Decidim Awesome custom proposals use `jquery.formbuilder`, that do not support multilinguage labels. Thus, it won't be translated. 
+- When a user writes content on a machine-translated locale, it gets translated in default locale but do not show a notice to users (looks like content was written in default locale)
