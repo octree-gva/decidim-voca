@@ -18,7 +18,7 @@ module Decidim
           ["Context: the text is written from a participatory platform, organized in participatory spaces, components and users."] +
             organization_context +
             participatory_space_context +
-            current_component_context 
+            current_component_context
         ).compact_blank.join("\n")
       end
 
@@ -35,7 +35,6 @@ module Decidim
       def located_current_component
         @located_current_component ||= GlobalID::Locator.locate(current_component)
       end
-
 
       def organization_context
         return [] unless organization
@@ -62,7 +61,6 @@ module Decidim
           "- Component Name: #{translated_attribute(located_current_component.name) || "undefined"}"
         ]
       end
-
     end
   end
 end

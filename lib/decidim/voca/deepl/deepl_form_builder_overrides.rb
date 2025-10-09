@@ -14,7 +14,7 @@ module Decidim
           #
           def translated(type, name, options = {})
             return translated_one_locale(type, name, locales.first, options.merge(label: (options[:label] || label_for(name)))) if locales.count == 1
-            
+
             safe_join [
               label_tabs_tag(name, options),
               tabs_content_tag(type, name, options)
@@ -60,7 +60,7 @@ module Decidim
           def label_tabs_tag(name, options = {})
             tabs_id = sanitized_tabs_id(name, options)
 
-            content_tag(:div, class: "label--tabs", :"data-machine-translated" => true) do
+            content_tag(:div, class: "label--tabs", "data-machine-translated": true) do
               field_label = label_i18n(name, options[:label] || label_for(name), required: options[:required])
 
               language_selector = "".html_safe

@@ -24,7 +24,6 @@ module Decidim
       private
 
       def deepl_context!(env)
-
         return unless Decidim::Voca.deepl_enabled?
 
         organization_context!(env)
