@@ -10,9 +10,10 @@ GIT
 PATH
   remote: .
   specs:
-    decidim-voca (0.0.9)
+    decidim-voca (0.0.10)
       decidim-admin (>= 0.29, < 0.30)
       decidim-decidim_awesome (~> 0.12.3)
+      deepl-rb (~> 3.2.0)
       deface (~> 1.9)
       faker (~> 3.5.1)
       good_job (~> 4.5.1)
@@ -337,6 +338,7 @@ GEM
     declarative-builder (0.2.0)
       trailblazer-option (~> 0.1.0)
     declarative-option (0.1.0)
+    deepl-rb (3.2.0)
     deface (1.9.0)
       actionview (>= 5.2)
       nokogiri (>= 1.6)
@@ -855,6 +857,7 @@ DEPENDENCIES
   decidim-decidim_awesome (~> 0.12.3)
   decidim-dev (~> 0.29.4)
   decidim-voca!
+  deepl-rb
   deface (>= 1.8.1)
   good_job (~> 4.5.1)
   letter_opener_web (~> 2.0)

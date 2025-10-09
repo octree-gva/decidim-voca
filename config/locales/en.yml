@@ -15,6 +15,13 @@ en:
         find_my_location: "Use my location"
         take_photo: "Take photo"
       footer_text: A democratic space for your community
+      admin: 
+        machine_translation_alert:
+          title: |
+            Switch language
+          description_html: |
+            <p>The language "%{current_locale}" is fully translated by machine, you need to switch to "%{default_locale}".</p>
+          button: Switch language
   devise:
     mailer:
       confirmation_instructions:

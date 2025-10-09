@@ -63,6 +63,7 @@ We use environment variables to configure the module:
 | Variable | Description | Default | Options |
 |----------|-------------|---------|---------|
 | `VOCA_ACTIVE_JOB_EXECUTION_MODE` | Mode for good_job execution | `async_server` | `async_server`, `external` |
+| `VOCA_GOOD_JOB_RETRY`| Number of retries before discarding a job | `5` | Integer |
 | `VOCA_GOOD_JOB_MAX_THREADS` | Maximum number of threads for job processing | `5` | Integer |
 | `VOCA_GOOD_JOB_POLL_INTERVAL` | Polling interval in seconds | `30` | Integer |
 | `VOCA_GOOD_JOB_SHUTDOWN_TIMEOUT` | Shutdown timeout in seconds | `120` | Integer |
