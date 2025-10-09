@@ -14,6 +14,7 @@ gem "bootsnap", "~> 1.4"
 gem "decidim", DECIDIM_VERSION
 gem "decidim-decidim_awesome", "~> 0.12.3"
 gem "decidim-voca", path: base_path
+gem "deepl-rb"
 gem "deface", ">= 1.8.1"
 gem "good_job", "~> 4.5.1"
 gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"

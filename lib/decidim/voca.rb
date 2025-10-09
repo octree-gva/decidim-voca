@@ -16,6 +16,12 @@ require_relative "voca/overrides/proposal_serializer_overrides"
 require_relative "voca/overrides/user_group_form_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
+require_relative "voca/deepl/translation_bar_overrides"
+require_relative "voca/deepl/deepl_context"
+require_relative "voca/deepl/deepl_middleware"
+require_relative "voca/deepl/deepl_machine_translator"
+require_relative "voca/deepl/deepl_active_job_context"
+require_relative "voca/deepl/deepl_form_builder_overrides"
 require_relative "voca/overrides/system/system_organization_update_form"
 require_relative "voca/overrides/extra_data_cell_overrides"
 require_relative "voca/overrides/check_boxes_tree_helper_overrides"
@@ -37,11 +43,20 @@ module Decidim
     end
 
     def self.weglot?
-      configuration.enable_weglot
+      # Prefer deepl over weglot
+      configuration.enable_weglot && !deepl_enabled?
     end
 
     def self.weglot_cache?
       configuration.enable_weglot_cache
+    end
+
+    def self.minimalistic_deepl?
+      deepl_enabled? && configuration.enable_minimalistic_deepl
+    end
+
+    def self.deepl_enabled?
+      ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
     end
   end
 end
