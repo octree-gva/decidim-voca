@@ -16,8 +16,7 @@ module Decidim
               if form.images[image_name]
                 content_block.images_container.send("#{image_name}=", form.images[image_name])
               elsif form.images["remove_#{image_name}".to_sym]
-                byebug
-                attachment = content_block.images_container.send("#{image_name}")
+                attachment = content_block.images_container.send(image_name.to_s)
                 attachment.purge if attachment.respond_to?(:purge)
                 content_block.images_container.send("#{image_name}=", nil)
               end
