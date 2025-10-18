@@ -25,7 +25,7 @@ GIT
 PATH
   remote: .
   specs:
-    decidim-voca (0.0.10)
+    decidim-voca (0.0.11)
       decidim-admin (>= 0.29, < 0.30)
       decidim-decidim_awesome (~> 0.12.3)
       decidim-telemetry (~> 0.0.1)

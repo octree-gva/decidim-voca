@@ -26,6 +26,8 @@ require_relative "voca/overrides/system/system_organization_update_form"
 require_relative "voca/overrides/extra_data_cell_overrides"
 require_relative "voca/overrides/check_boxes_tree_helper_overrides"
 require_relative "voca/overrides/attachment_form_overrides"
+require_relative "voca/overrides/attachment_overrides"
+require_relative "voca/overrides/update_content_block_overrides"
 require "good_job/engine"
 
 module Decidim
