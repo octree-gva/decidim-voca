@@ -88,6 +88,9 @@ module Decidim
         # Overrides AttachmentForm
         Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
 
+        # Overrides Attachment
+        Decidim::Attachment.include(Decidim::Voca::Overrides::AttachmentOverrides)
+        
         # Overrides UpdateContentBlock
         Decidim::Admin::ContentBlocks::UpdateContentBlock.include(Decidim::Voca::Overrides::UpdateContentBlockOverrides)
 
