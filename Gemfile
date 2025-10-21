@@ -41,3 +41,6 @@ group :development do
 end
 
 gem "concurrent-ruby", "= 1.3.4"
+gem "decidim-telemetry",
+    git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry",
+    tag: "v0.0.1"
