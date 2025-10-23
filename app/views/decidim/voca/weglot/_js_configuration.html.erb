@@ -2,7 +2,7 @@
 <%
   weglot_js_config = {
     enabled: Decidim::Voca.weglot?,
-    api_key: Decidim::Voca.configuration.weglot_api_key,
+    api_key: Decidim::Voca.configuration.weglot_api_key.to_s,
     default_language: current_organization.default_locale,
     enable_cache: Decidim::Voca.weglot_cache?
   }
