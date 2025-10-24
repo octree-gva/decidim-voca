@@ -25,9 +25,9 @@ GIT
 PATH
   remote: .
   specs:
-    decidim-voca (0.0.11)
+    decidim-voca (0.0.12)
       decidim-admin (>= 0.29, < 0.30)
-      decidim-decidim_awesome (~> 0.12.3)
+      decidim-decidim_awesome (~> 0.12.5)
       decidim-telemetry (~> 0.0.1)
       deface (~> 1.9)
       faker (~> 3.5.1)
@@ -97,6 +97,9 @@ GEM
     activerecord (7.0.8.7)
       activemodel (= 7.0.8.7)
       activesupport (= 7.0.8.7)
+    activerecord-postgis-adapter (8.0.3)
+      activerecord (~> 7.0.0)
+      rgeo-activerecord (~> 7.0.0)
     activestorage (7.0.8.7)
       actionpack (= 7.0.8.7)
       activejob (= 7.0.8.7)
@@ -276,7 +279,7 @@ GEM
     decidim-debates (0.29.4)
       decidim-comments (= 0.29.4)
       decidim-core (= 0.29.4)
-    decidim-decidim_awesome (0.12.3)
+    decidim-decidim_awesome (0.12.5)
       active_hashcash (~> 0.4.0)
       decidim-admin (>= 0.29.1, < 0.30)
       decidim-core (>= 0.29.1, < 0.30)
@@ -699,6 +702,10 @@ GEM
       actionpack (>= 5.2)
       railties (>= 5.2)
     rexml (3.4.1)
+    rgeo (3.0.1)
+    rgeo-activerecord (7.0.1)
+      activerecord (>= 5.0)
+      rgeo (>= 1.0.0)
     rspec (3.13.1)
       rspec-core (~> 3.13.0)
       rspec-expectations (~> 3.13.0)
@@ -892,6 +899,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  activerecord-postgis-adapter
   bootsnap (~> 1.4)
   brakeman (~> 6.1)
   byebug (~> 11.0)

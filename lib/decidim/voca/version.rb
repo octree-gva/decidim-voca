@@ -10,5 +10,9 @@ module Decidim
     def self.decidim_version
       [">= 0.29", "<0.30"].freeze
     end
+
+    def self.compat_decidim_awesome_version
+      "~> 0.12.5"
+    end
   end
 end

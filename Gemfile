@@ -10,6 +10,7 @@ require_relative "#{base_path}lib/decidim/voca/version"
 
 DECIDIM_VERSION = "~> 0.29.4"
 
+gem "activerecord-postgis-adapter"
 gem "bootsnap", "~> 1.4"
 gem "decidim", DECIDIM_VERSION
 gem "decidim-decidim_awesome", "~> 0.12.3"
