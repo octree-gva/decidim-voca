@@ -36,9 +36,10 @@ module Decidim
         preconditions_met = [
           Rails.application.config.action_controller.perform_caching == true,
           Rails.application.config.cache_store.present?,
-          Rails.application.config.cache_store != :null_store,
+          Rails.application.config.cache_store != :null_store
         ].all?
         return if preconditions_met
+
         raise "Rack::Attack preconditions not met. Rack::Attack will not work."
       end
 
@@ -48,6 +49,7 @@ module Decidim
 
       def configure_throttles!
         return if ban_minutes.zero?
+
         Rack::Attack.throttled_response_retry_after_header = true
         Rack::Attack.throttled_response = lambda do |env|
           match_data = env["rack.attack.match_data"]
@@ -65,18 +67,19 @@ module Decidim
 
       def configure_allow2ban!
         return if ban_minutes.zero?
+
         Rack::Attack.blocklisted_responder = lambda do |rack_request|
           request = ActionDispatch::Request.new(rack_request.env)
           controller = ApplicationController.new
           controller.request = request
           controller.response = ActionDispatch::Response.new
-          rendered_content =  I18n.with_locale(I18n.default_locale) do
+          rendered_content = I18n.with_locale(I18n.default_locale) do
             controller.render_to_string(
-              partial: 'decidim/voca/rack_attack/blocked',
+              partial: "decidim/voca/rack_attack/blocked",
               layout: false
             )
           end
-          [ 403, {}, [rendered_content]]
+          [403, {}, [rendered_content]]
         end
       end
 
@@ -102,7 +105,7 @@ module Decidim
         return unless config[:post_signup_per_minute].positive?
 
         Rack::Attack.blocklist("post signup allow2ban") do |request|
-          Rack::Attack::Allow2Ban.filter(request.ip,  maxretry: config[:post_signup_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |req|
+          Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:post_signup_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
             request.ip if request.post? && request.path.start_with?("/users")
           end
         end
@@ -115,8 +118,8 @@ module Decidim
         return unless config[:post_signin_per_minute].positive?
 
         Rack::Attack.blocklist("post signin allow2ban") do |request|
-          Rack::Attack::Allow2Ban.filter(request.ip,  maxretry: config[:post_signin_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |req|
-          # Resistent to ip changes: you can not signin more than x per minute per email
+          Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:post_signin_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
+            # Resistent to ip changes: you can not signin more than x per minute per email
             request.params[:user][:email].to_s.downcase.gsub(/\s+/, "") if request.post? && request.path.start_with?("/users/sign_in")
           end
         end
@@ -129,7 +132,7 @@ module Decidim
         return unless config[:post_password_reset_per_minute].positive?
 
         Rack::Attack.blocklist("post password reset allow2ban") do |request|
-          Rack::Attack::Allow2Ban.filter(request.ip,  maxretry: config[:post_password_reset_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |req|
+          Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:post_password_reset_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
             # Resistent to ip changes: you can not reset password more than x per minute per email
             request.params[:user][:email].to_s.downcase.gsub(/\s+/, "") if request.post? && request.path.start_with?("/users/password")
           end
@@ -141,8 +144,9 @@ module Decidim
       # max 10 requests per minute per IP
       def protect_comments!
         return unless config[:post_comments_per_minute].positive?
+
         Rack::Attack.blocklist("post comments allow2ban") do |request|
-          Rack::Attack::Allow2Ban.filter(request.ip,  maxretry: config[:post_comments_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |req|
+          Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:post_comments_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
             request.ip if (request.post? || request.put?) && request.path.start_with?("/comments")
           end
         end
@@ -153,16 +157,24 @@ module Decidim
       # on POST&PUT requests: max 10 requests per minute per IP
       # on GET requests: max 100 requests per minute per IP
       def protect_conversations!
+        protect_conversations_post!
+        protect_conversations_get!
+      end
+
+      def protect_conversations_post!
         if config[:post_conversations_per_minute].positive?
           Rack::Attack.blocklist("post conversations allow2ban") do |request|
-            Rack::Attack::Allow2Ban.filter(request.ip,  maxretry: config[:post_conversations_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |req|
+            Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:post_conversations_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
               request.ip if (request.post? || request.put?) && request.path.start_with?("/conversations")
             end
           end
         end
+      end
+
+      def protect_conversations_get!
         if config[:get_conversations_per_minute].positive?
           Rack::Attack.blocklist("get conversations allow2ban") do |request|
-            Rack::Attack::Allow2Ban.filter(request.ip,  maxretry: config[:get_conversations_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |req|
+            Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:get_conversations_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
               request.ip if request.get? && request.path.start_with?("/conversations")
             end
           end

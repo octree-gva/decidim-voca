@@ -48,7 +48,7 @@ module Decidim
         Decidim::Messaging::ConversationForm.include(Decidim::Voca::Overrides::ConversationSanitize)
         Decidim::Messaging::Message.include(Decidim::Voca::Overrides::ConversationSanitize)
       end
-      
+
       # Enforce profile verification
       config.to_prepare do
         # Decidim::AccountForm will use these regexps:
@@ -69,12 +69,17 @@ module Decidim
           super(options)
         end
         Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:conversation_path) do |conversation, options = {}|
-          conversation_id = conversation.respond_to?(:to_param) ? conversation.to_param : conversation
-          if conversation_id && (conversation_id.is_a?(Integer) || !conversation_id.match?(Decidim::Voca::UUID_REGEXP))
-            conversation_id = Decidim::Messaging::Conversation.find(conversation_id).uuid
+          options = conversation if conversation.is_a?(Hash) && options.empty?
+          conversation_id = options[:id] || conversation
+          options[:id] = if conversation.respond_to?(:uuid) 
+            conversation.uuid
+          elsif conversation_id.respond_to?(:uuid)
+            conversation_id.uuid
+          elsif conversation_id && (conversation_id.is_a?(Integer) || !conversation_id.match?(Decidim::Voca::UUID_REGEXP))
+            Decidim::Messaging::Conversation.find(conversation_id).uuid
           end
-          super(conversation_id, options)
-        end
+          super(options)
+        end       
         Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
         Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)

@@ -4,7 +4,7 @@ module Decidim
   module Voca
     class Configuration
       include ActiveSupport::Configurable
-      
+
       config_accessor :enable_minimalistic_deepl do
         true
       end
@@ -40,7 +40,7 @@ module Decidim
           post_signin_per_minute: ::Decidim::Env.new("RACK_ATTACK_POST_SIGNIN_PER_MINUTE", "30").to_i,
           post_password_reset_per_minute: ::Decidim::Env.new("RACK_ATTACK_POST_PASSWORD_RESET_PER_MINUTE", "5").to_i,
           post_comments_per_minute: ::Decidim::Env.new("RACK_ATTACK_POST_COMMENTS_PER_MINUTE", "10").to_i,
-          api_per_minute: ::Decidim::Env.new("RACK_ATTACK_API_PER_MINUTE", "300").to_i,
+          api_per_minute: ::Decidim::Env.new("RACK_ATTACK_API_PER_MINUTE", "300").to_i
         }
       end
     end
