@@ -71,15 +71,17 @@ module Decidim
         Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:conversation_path) do |conversation, options = {}|
           options = conversation if conversation.is_a?(Hash) && options.empty?
           conversation_id = options[:id] || conversation
-          options[:id] = if conversation.respond_to?(:uuid) 
-            conversation.uuid
-          elsif conversation_id.respond_to?(:uuid)
-            conversation_id.uuid
-          elsif conversation_id && (conversation_id.is_a?(Integer) || !conversation_id.match?(Decidim::Voca::UUID_REGEXP))
-            Decidim::Messaging::Conversation.find(conversation_id).uuid
-          end
+          options[:id] = if conversation.respond_to?(:uuid)
+                           conversation.uuid
+                         elsif conversation_id.respond_to?(:uuid)
+                           conversation_id.uuid
+                         elsif conversation_id && (conversation_id.is_a?(Integer) || !conversation_id.match?(Decidim::Voca::UUID_REGEXP))
+                           Decidim::Messaging::Conversation.find(conversation_id).uuid
+                         else
+                           conversation_id
+                         end
           super(options)
-        end       
+        end
         Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
         Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
