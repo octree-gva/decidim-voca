@@ -15,6 +15,11 @@ en:
         find_my_location: "Use my location"
         take_photo: "Take photo"
       footer_text: A democratic space for your community
+      rack_attack:
+        blocked:
+          title: "Access Temporarily Restricted"
+          subtitle: "Rate limit exceeded"
+          description: "Too many requests detected. Please wait a few minutes before trying again. Contact support if you need assistance."
       admin: 
         machine_translation_alert:
           title: |
@@ -26,4 +31,3 @@ en:
     mailer:
       confirmation_instructions:
         instruction_html: "You can confirm your email account through the link below:"
-

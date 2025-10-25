@@ -13,6 +13,7 @@ def install_module(path)
     system("bundle add next_gen_images") unless Gem.loaded_specs.has_key?("next_gen_images")
     system("bundle add deface") unless Gem.loaded_specs.has_key?("deface")
     system("bundle add decidim-decidim_awesome #{Decidim::Voca.compat_decidim_awesome_version}") unless Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+    system( "bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref #{Decidim::Voca.compat_decidim_telemetry_version}") unless Gem.loaded_specs.has_key?("decidim-telemetry")
     system("bundle exec rails decidim:update")
   end
 end

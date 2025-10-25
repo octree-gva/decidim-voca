@@ -15,14 +15,40 @@ module Decidim
         Decidim::Core::Engine.routes.draw do
           post :editor_files, to: "voca/editor_files#create"
           post :locate, to: "voca/geolocation#locate"
+
           if Rails.application.config.active_job.queue_adapter == :good_job
             authenticate :admin, ->(admin) { !admin.locked_at? } do
               mount GoodJob::Engine => "/system/active_jobs"
             end
           end
+
+          decidim_engine = ::Decidim::Core::Engine
+          cleaned_routes = decidim_engine.routes.routes.instance_variable_get(:@routes)
+          cleaned_routes.reject! do |route|
+            path_spec = route.path.spec.to_s
+            route.constraints[:id] != Decidim::Voca::UUID_REGEXP && (
+              (path_spec.include?("/conversations") && path_spec.include?("/:id")) ||
+              (path_spec.include?("/profiles/:nickname/conversations") && path_spec.include?("/:id"))
+            )
+          end
+
+          constraints(id: Decidim::Voca::UUID_REGEXP) do
+            resources :conversations, only: [:new, :create, :index, :show, :update], controller: "messaging/conversations"
+          end
+          scope "/profiles/:nickname", format: false, constraints: { nickname: %r{[^/]+} } do
+            constraints(id: Decidim::Voca::UUID_REGEXP) do
+              resources :conversations, except: [:destroy], controller: "user_conversations", as: "profile_conversations"
+            end
+          end
         end
       end
 
+      # Enforce conversation sanitization
+      config.to_prepare do
+        Decidim::Messaging::ConversationForm.include(Decidim::Voca::Overrides::ConversationSanitize)
+        Decidim::Messaging::Message.include(Decidim::Voca::Overrides::ConversationSanitize)
+      end
+      
       # Enforce profile verification
       config.to_prepare do
         # Decidim::AccountForm will use these regexps:
@@ -30,6 +56,28 @@ module Decidim
         Decidim::User::REGEXP_NICKNAME = /\A[\w-]+\z/m
         # If it has gone through forms, and still want to save, we sanitize on save:
         Decidim::UserBaseEntity.include(Decidim::Voca::Overrides::UserProfileVerificationOverride)
+      end
+
+      # Enforce uuid in conversations
+      config.to_prepare do
+        Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:profile_conversation_path) do |options|
+          options[:id] = options[:id].to_param if options[:id].respond_to?(:to_param)
+          if options[:id] && (options[:id].is_a?(Integer) || !options[:id].match?(Decidim::Voca::UUID_REGEXP))
+            options[:id] =
+              Decidim::Messaging::Conversation.find(options[:id]).uuid
+          end
+          super(options)
+        end
+        Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:conversation_path) do |conversation, options = {}|
+          conversation_id = conversation.respond_to?(:to_param) ? conversation.to_param : conversation
+          if conversation_id && (conversation_id.is_a?(Integer) || !conversation_id.match?(Decidim::Voca::UUID_REGEXP))
+            conversation_id = Decidim::Messaging::Conversation.find(conversation_id).uuid
+          end
+          super(conversation_id, options)
+        end
+        Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
+        Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
+        Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
       end
 
       # Fixes for geolocated proposals at creation
@@ -107,6 +155,20 @@ module Decidim
           )
         end
       end
+
+      # Rack::Attack configuration
+      initializer "decidim.voca.rack_attack", after: :load_config_initializers do
+        require "rack/attack"
+        if Rails.env.development?
+          Rails.application.configure do |config|
+            config.middleware.use Rack::Attack
+          end
+        end
+        ActiveSupport::Reloader.to_prepare do
+          Decidim::Voca::RackAttackConfigurator.call
+        end
+      end
+
       initializer "decidim.voca.deepl", after: :load_config_initializers do
         if Decidim::Voca.deepl_enabled?
           require "deepl"

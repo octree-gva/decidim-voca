@@ -24,7 +24,7 @@ Telemetry use behind the hood the gem [Yabeda](https://github.com/yabeda-rb/yabe
 ## Installation
 Add in your installation decidim telemetry
 ```
-  bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref v0.0.1
+  bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref v0.0.3
 `` 
 or add it in your Gemfile:
 
@@ -32,7 +32,7 @@ or add it in your Gemfile:
 # Gemfile
 gem "decidim-telemetry", 
   git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry", 
-  tag: "v0.0.1" # check decidim-voca.gemspec to know wich version is compatible with your install
+  tag: "v0.0.3" # check decidim-voca.gemspec to know wich version is compatible with your install
 ```
 
 Once installed, [follow the installation guidances](https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry)

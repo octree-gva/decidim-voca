@@ -28,10 +28,15 @@ require_relative "voca/overrides/check_boxes_tree_helper_overrides"
 require_relative "voca/overrides/attachment_form_overrides"
 require_relative "voca/overrides/attachment_overrides"
 require_relative "voca/overrides/update_content_block_overrides"
+require_relative "voca/overrides/mod_secure/conversation_uuid"
+require_relative "voca/overrides/mod_secure/conversation_controller_overrides"
+require_relative "voca/overrides/mod_secure/conversation_sanitize"
 require "good_job/engine"
 
 module Decidim
   module Voca
+    UUID_REGEXP = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/
+    autoload :RackAttackConfigurator, "decidim/voca/rack_attack_configurator"
     def self.configuration
       @configuration ||= Configuration.new
     end
