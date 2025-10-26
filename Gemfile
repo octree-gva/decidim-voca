@@ -10,6 +10,7 @@ require_relative "#{base_path}lib/decidim/voca/version"
 
 DECIDIM_VERSION = "~> 0.29.4"
 
+gem "activerecord-postgis-adapter"
 gem "bootsnap", "~> 1.4"
 gem "decidim", DECIDIM_VERSION
 gem "decidim-decidim_awesome", "~> 0.12.3"
@@ -43,4 +44,4 @@ end
 gem "concurrent-ruby", "= 1.3.4"
 gem "decidim-telemetry",
     git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry",
-    tag: "v0.0.1"
+    tag: "v0.0.3"

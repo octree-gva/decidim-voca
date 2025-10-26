@@ -1,0 +1,151 @@
+<html lang="<%= I18n.locale %>">
+  <head>
+    <meta charset="utf-8" />
+    <title><%= t("decidim.voca.rack_attack.blocked.title") %></title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="viewport"
+      content="initial-scale=1, minimum-scale=1, width=device-width"
+    />
+    <style data-emotion="css-global" data-s="">
+      html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        box-sizing: border-box;
+        -webkit-text-size-adjust: 100%;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: inherit;
+      }
+
+      strong,
+      b {
+        font-weight: 700;
+      }
+
+      body {
+        margin: 0;
+        color: rgba(0, 0, 0, 0.87);
+        font-weight: 400;
+        font-size: 1rem;
+        line-height: 1.5;
+        background-color: #eeeeee;
+      }
+
+      @media print {
+        body {
+          background-color: #fff;
+        }
+      }
+
+      body::backdrop {
+        background-color: #eeeeee;
+      }
+
+      h2 {
+        margin: 32px 0px;
+        font-size: 26px;
+        font-weight: bold;
+        line-height: 1.2;
+      }
+
+      h6 {
+        margin: 0px;
+        font-size: 0.875rem;
+        font-weight: bold;
+        line-height: 1.6;
+      }
+
+      #Root {
+        text-align: center;
+        width: 25%;
+        margin: 0 auto;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+      }
+
+      .support {
+        display: inline-flex;
+        -webkit-box-align: center;
+        align-items: center;
+        -webkit-box-pack: center;
+        justify-content: center;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+        outline: 0px;
+        border: 0px;
+        margin: 0px;
+        cursor: pointer;
+        user-select: none;
+        vertical-align: middle;
+        appearance: none;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.875rem;
+        line-height: 1.75;
+        min-height: auto;
+        transition: background-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          box-shadow 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms,
+          border-color 250ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+        border-radius: 20px;
+        padding: 0px 16px;
+        min-width: 40px;
+        width: auto;
+        height: 40px;
+        box-shadow: rgba(0, 0, 0, 0.2) 0px 3px 5px -1px,
+          rgba(0, 0, 0, 0.14) 0px 6px 10px 0px,
+          rgba(0, 0, 0, 0.12) 0px 1px 18px 0px;
+        color: rgb(255, 255, 255);
+        background-color: rgb(37, 53, 80);
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        text-transform: initial;
+        z-index: 1301;
+      }
+
+      .logo {
+        width: 240px;
+        aspect-ratio: auto 240 / 60;
+        height: 60px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="Root">
+      <div>
+        <div>
+          <div>
+            <img
+              alt="Voca.city"
+              fetchpriority="high"
+              width="240"
+              height="60"
+              decoding="async"
+              data-nimg="1"
+              class="logo"
+              src="https://app.voca.city/logo.png"
+              style="color: transparent"
+            />
+          </div>
+        </div>
+        <h2><%= t("decidim.voca.rack_attack.blocked.title") %></h2>
+        <h6><%= t("decidim.voca.rack_attack.blocked.subtitle") %></h6>
+        <p><%= t("decidim.voca.rack_attack.blocked.description") %></p>
+        <a
+          class="support"
+          tabindex="0"
+          aria-label="Need support ?"
+          href="mailto:support@octree.ch"
+          >Need support ?</a>
+      </div>
+    </div>
+  </body>
+</html>
