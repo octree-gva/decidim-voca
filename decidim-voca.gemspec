@@ -20,8 +20,8 @@ Gem::Specification.new do |s|
 
   s.require_paths = ["lib"]
   s.add_dependency "decidim-admin", Decidim::Voca.decidim_version
-  s.add_dependency "decidim-decidim_awesome", "~> 0.12.3"
-  s.add_dependency "decidim-telemetry", "~> 0.0.1"
+  s.add_dependency "decidim-decidim_awesome", Decidim::Voca.compat_decidim_awesome_version
+  s.add_dependency "decidim-telemetry", "~> 0.0.3"
   s.add_dependency "deface", "~> 1.9"
   s.add_dependency "faker", "~> 3.5.1"
   s.add_dependency "good_job", "~> 4.5.1"
