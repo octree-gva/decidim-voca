@@ -120,7 +120,7 @@ module Decidim
         Rack::Attack.blocklist("post signin allow2ban") do |request|
           Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:post_signin_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
             # Resistent to ip changes: you can not signin more than x per minute per email
-            request.params[:user][:email].to_s.downcase.gsub(/\s+/, "") if request.post? && request.path.start_with?("/users/sign_in")
+            request.params["user"][:email].to_s.downcase.gsub(/\s+/, "") if request.post? && request.path.start_with?("/users/sign_in")
           end
         end
       end
@@ -134,7 +134,7 @@ module Decidim
         Rack::Attack.blocklist("post password reset allow2ban") do |request|
           Rack::Attack::Allow2Ban.filter(request.ip, maxretry: config[:post_password_reset_per_minute], findtime: 1.minute, bantime: ban_minutes.minutes.to_i) do |_req|
             # Resistent to ip changes: you can not reset password more than x per minute per email
-            request.params[:user][:email].to_s.downcase.gsub(/\s+/, "") if request.post? && request.path.start_with?("/users/password")
+            request.params["user"][:email].to_s.downcase.gsub(/\s+/, "") if request.post? && request.path.start_with?("/users/password")
           end
         end
       end
