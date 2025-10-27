@@ -4,7 +4,7 @@ module Decidim
   # This holds the decidim-meetings version.
   module Voca
     def self.version
-      "0.0.13" # DO NOT UPDATE MANUALLY
+      "0.0.14" # DO NOT UPDATE MANUALLY
     end
 
     def self.decidim_version
