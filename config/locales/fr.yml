@@ -15,6 +15,11 @@ fr:
         find_my_location: "Ma position"
         take_photo: "Prendre une photo"
       footer_text: Un espace démocratique pour vos communautés
+      rack_attack:
+        blocked:
+          title: "Accès Temporairement Restreint"
+          subtitle: "Limite de taux dépassée"
+          description: "Trop de requêtes détectées. Veuillez patienter quelques minutes avant de réessayer. Contactez le support si vous avez besoin d'aide."
   devise:
     mailer:
       confirmation_instructions:
