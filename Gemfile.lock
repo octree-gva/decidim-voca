@@ -29,6 +29,7 @@ PATH
       decidim-admin (>= 0.29, < 0.30)
       decidim-decidim_awesome (~> 0.12.5)
       decidim-telemetry (~> 0.0.3)
+      deepl-rb (~> 3.2.0)
       deface (~> 1.9)
       faker (~> 3.5.1)
       good_job (~> 4.5.1)

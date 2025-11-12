@@ -64,7 +64,7 @@ module Decidim
     end
 
     def self.deepl_enabled?
-      ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+      Gem.loaded_specs.has_key?("deepl-rb") && ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
     end
   end
 end
