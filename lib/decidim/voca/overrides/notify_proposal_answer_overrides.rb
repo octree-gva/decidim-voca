@@ -12,7 +12,6 @@ module Decidim
           alias_method :decidim_original_notify_followers, :notify_followers
 
           def notify_followers
-            byebug
             return if proposal.state == "not_answered"
 
             Decidim::EventsManager.publish(
