@@ -32,7 +32,7 @@ module Decidim
               event: "decidim.events.proposals.proposal_state_changed",
               event_class: Decidim::Proposals::ProposalStateChangedEvent,
               resource: proposal,
-              affected_users: proposal.notifiable_identities,
+              affected_users: proposal.authors,
               extra: { force_email: true }
             )
           end
