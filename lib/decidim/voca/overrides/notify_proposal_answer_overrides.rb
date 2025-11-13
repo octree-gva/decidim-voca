@@ -18,21 +18,21 @@ module Decidim
               transaction do
                 increment_score
                 notify_followers
-                notify_author
+                notify_authors
               end
             end
 
             broadcast(:ok)
           end
 
-          def notify_author
+          def notify_authors
             return if proposal.state == "not_answered"
 
             Decidim::EventsManager.publish(
               event: "decidim.events.proposals.proposal_state_changed",
               event_class: Decidim::Proposals::ProposalStateChangedEvent,
               resource: proposal,
-              affected_users: proposal.authors,
+              affected_users: proposal.authors.select {|author| !proposal.notifiable_identities.include?(author) },
               extra: { force_email: true }
             )
           end
