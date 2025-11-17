@@ -32,7 +32,7 @@ module Decidim
               event: "decidim.events.proposals.proposal_state_changed",
               event_class: Decidim::Proposals::ProposalStateChangedEvent,
               resource: proposal,
-              affected_users: proposal.authors.select {|author| !proposal.notifiable_identities.include?(author) },
+              affected_users: proposal.authors.reject { |author| proposal.notifiable_identities.include?(author) },
               extra: { force_email: true }
             )
           end
