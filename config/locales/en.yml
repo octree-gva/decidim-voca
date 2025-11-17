@@ -5,6 +5,13 @@ en:
         decidim_title: "Your platform"
         help_title: "Help"
   decidim:
+    events:
+      proposals:
+        proposal_state_changed_for_authors:
+          email_intro: 'The proposal "%{resource_title}" has changed its state to "%{state}". You can read the answer in this page:'
+          email_outro: You have received this notification because you are an author of "%{resource_title}".
+          email_subject: Your proposal has changed its state (%{state})
+          notification_title: Your proposal <a href="%{resource_path}">%{resource_title}</a> has changed its state to "%{state}".
     proposals:
       models:
         proposal:

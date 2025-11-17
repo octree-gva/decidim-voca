@@ -5,6 +5,14 @@ fr:
         decidim_title: "Votre plateforme"
         help_title: "Aide"
   decidim:
+    events:
+      proposals:
+        proposal_state_changed_for_authors:
+          affected_user:
+            email_intro: 'La proposition "%{resource_title}" est passée à l''état "%{state}". Vous pouvez lire la réponse sur cette page :'
+            email_outro: Vous avez reçu cette notification parce que vous êtes un(e) auteur(e) de "%{resource_title}".
+            email_subject: Votre proposition a changé d'état (%{state})
+            notification_title: L'état de votre proposition <a href="%{resource_path}">%{resource_title}</a> est passé à %{state}.
     proposals:
       models:
         proposal:

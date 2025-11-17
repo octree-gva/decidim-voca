@@ -152,6 +152,9 @@ module Decidim
         # Overrides CopyAssembly
         Decidim::Assemblies::Admin::CopyAssembly.include(Decidim::Voca::Overrides::CopyAssemblyOverrides)
 
+        # Overrides NotifyProposalAnswer
+        Decidim::Proposals::Admin::NotifyProposalAnswer.include(Decidim::Voca::Overrides::NotifyProposalAnswerOverrides)
+
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
