@@ -24,7 +24,6 @@ Gem::Specification.new do |s|
   s.add_dependency "decidim-ephemeral_participation", "~> 0.0.6"
   s.add_dependency "decidim-telemetry", "~> 0.0.3"
   s.add_dependency "decidim-user_fields", "~> 0.1.4"
-  s.add_dependency "decidim-ephemeral_participation", "~> 0.0.6"
 
   s.add_dependency "deepl-rb", "~> 3.2.0"
   s.add_dependency "deface", "~> 1.9"
