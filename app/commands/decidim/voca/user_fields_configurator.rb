@@ -24,7 +24,7 @@ module Decidim
       end
 
       def configure_name_authorization_handler!
-        Decidim::CustomUserFields::Verifications.register("NAME") do |config|
+        Decidim::CustomUserFields::Verifications.register("FIRSTNAME") do |config|
           config.add_field :name, type: :text, required: true, skip_hashing: true
           config.ephemerable!
           config.renewable!(1.day)
