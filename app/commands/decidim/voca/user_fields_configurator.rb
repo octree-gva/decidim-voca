@@ -5,7 +5,7 @@ module Decidim
     class UserFieldsConfigurator < Decidim::Command
       def call
         return unless user_fields_installed?
-        
+
         Rails.application.config.after_initialize do
           configure_fullname_and_birthdate_authorization_handler!
           configure_name_authorization_handler!
@@ -19,7 +19,7 @@ module Decidim
           config.add_field :last_name, type: :text, required: true, skip_hashing: true
           config.add_field :birthdate, type: :date, required: true, not_after: 13.years.ago.to_date.iso8601, skip_hashing: true
           config.ephemerable!
-          config.renewable!(1.day)      
+          config.renewable!(1.day)
         end
       end
 
