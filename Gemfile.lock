@@ -1,4 +1,12 @@
 GIT
+  remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-ephemeral_participation
+  revision: 8101d6dc4a459bb34809d37ca53f0478d51a36b2
+  tag: v0.0.6
+  specs:
+    decidim-ephemeral_participation (0.0.6)
+      decidim-verifications (~> 0.29)
+
+GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry
   revision: 065651a511f0a6b914eb7449717dba230553c0a0
   tag: v0.0.3
@@ -12,6 +20,16 @@ GIT
       yabeda-prometheus
       yabeda-puma-plugin
       yabeda-rails
+
+GIT
+  remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields
+  revision: eea3a4f0f75f43095ff9a5436b1a493a928270f8
+  tag: v0.1.4
+  specs:
+    decidim-user_fields (0.1.4)
+      decidim-core (>= 0.29)
+      decidim-verifications (>= 0.29)
+      deface (>= 1.9)
 
 GIT
   remote: https://github.com/froger/next_gen_images
@@ -28,7 +46,10 @@ PATH
     decidim-voca (0.0.14)
       decidim-admin (>= 0.29, < 0.30)
       decidim-decidim_awesome (~> 0.12.5)
+      decidim-ephemeral_participation (~> 0.0.6)
       decidim-telemetry (~> 0.0.3)
+      decidim-user_fields (~> 0.1.4)
+      deepl-rb (~> 3.2.0)
       deface (~> 1.9)
       faker (~> 3.5.1)
       good_job (~> 4.5.1)
@@ -908,7 +929,9 @@ DEPENDENCIES
   decidim (~> 0.29.4)
   decidim-decidim_awesome (~> 0.12.3)
   decidim-dev (~> 0.29.4)
+  decidim-ephemeral_participation!
   decidim-telemetry!
+  decidim-user_fields!
   decidim-voca!
   deepl-rb
   deface (>= 1.8.1)
