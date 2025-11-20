@@ -2,11 +2,8 @@
 translation:
   backend: deepl
   deepl_api_key: <%= ENV.fetch("DECIDIM_DEEPL_API_KEY", "") %>
-  deepl_host: <optional>
-  deepl_version: <optional>
-            config.auth_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", "")
-            config.host = ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com")
-            config.version = ENV.fetch("DECIDIM_DEEPL_VERSION", "v2")
+  deepl_host: <%= ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com") %>
+  deepl_version: <%= ENV.fetch("DECIDIM_DEEPL_VERSION", "v2") %>
 
   deepl_options:
     formality: prefer_less
@@ -31,11 +28,12 @@ data:
   read:
     <% 
       gem_paths = `bundle list --name-only`.split("\n")
-        .select { |gem| gem.start_with?("decidim-") }
+        .select { |gem| gem.start_with?("decidim") }
         .map { |gem| [gem, `bundle info #{gem} --path`.strip] }
     -%>
     <% gem_paths.each do |gem, path| -%>
     <%= "- #{path}/config/locales/%{locale}.yml" %>
+    <%= "- #{path}/config/locales/*.%{locale}.yml" %>
     <% end -%>
 
   # Locale files to write new keys to, based on a list of key pattern => file rules. Matched from top to bottom:
