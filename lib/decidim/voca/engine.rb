@@ -155,6 +155,9 @@ module Decidim
         # Overrides NotifyProposalAnswer
         Decidim::Proposals::Admin::NotifyProposalAnswer.include(Decidim::Voca::Overrides::NotifyProposalAnswerOverrides)
 
+        # Overrides ParticipatoryProcessGroupsController
+        Decidim::ParticipatoryProcesses::Admin::ParticipatoryProcessGroupsController.include(Decidim::Voca::Overrides::ParticipatoryProcessGroupsControllerOverrides)
+
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
