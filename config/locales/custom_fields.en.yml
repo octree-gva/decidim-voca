@@ -9,7 +9,7 @@ en:
         birthdate:
           label: Birthdate
           bad_not_after: The platform is reserved for users over 13 years old
-      name:
+      firstname:
         name:
           label: Name
           bad_format: The name must be a valid name
@@ -21,7 +21,7 @@ en:
       fullname_and_birthdate:
         name: Name and birthdate
         explanation: Collect name and birthdate for verification (+13yrs)
-      name:
+      firstname:
         name: Name
         explanation: Collect name for verification
       code:

@@ -1,0 +1,30 @@
+---
+cs:
+  decidim:
+    authorization_handlers:
+      code:
+        explanation: Shromáždění kódu pro ověření
+        name: Kód
+      firstname:
+        explanation: Shromážděte jméno pro ověření
+        name: Název
+      fullname_and_birthdate:
+        explanation: Shromážděte jméno a datum narození pro ověření (+13 let)
+        name: Jméno a datum narození
+    custom_user_fields:
+      code:
+        code:
+          bad_format: Kód musí být platný
+          label: Kód
+      firstname:
+        name:
+          bad_format: Název musí být platný název
+          label: Název
+      fullname_and_birthdate:
+        birthdate:
+          bad_not_after: Platforma je vyhrazena pro uživatele starší 13 let
+          label: Datum narození
+        first_name:
+          label: Křestní jméno
+        last_name:
+          label: Příjmení
