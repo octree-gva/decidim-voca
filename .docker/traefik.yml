@@ -1,0 +1,38 @@
+entryPoints:
+  websecure:
+    address: ":80"
+
+api:
+  dashboard: false
+  insecure: false
+
+providers:
+  # Redis provider
+  redis:
+    endpoints:
+      - "traefik-db:6379"
+    db: 1
+
+accessLog:
+  filePath: "/var/log/traefik-access.log"
+  bufferingSize: 250
+  filters:
+    minDuration: "10ms"
+    retryAttempts: false
+log:
+  filePath: "/var/log/traefik-log.log"
+  format: json
+  level: INFO
+
+certificatesStores:
+  default:
+    defaultGeneratedCert:
+      domain:
+        main: "*.localhost"
+certificatesResolvers:
+  selfsigned:
+    acme:
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      storage: "/tmp/acme.json"
+      httpChallenge:
+        entryPoint: websecure

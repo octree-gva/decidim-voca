@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "decidim/gem_manager"
-
+namespace :decidim do
 namespace :voca do
   namespace :webpacker do
     desc "Installs Voca webpacker files in Rails instance application"
@@ -61,4 +61,5 @@ namespace :voca do
       "decidim-voca"
     end
   end
+end
 end
