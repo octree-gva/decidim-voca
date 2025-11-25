@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class CreateVocaOrganizationKeyValConfig < ActiveRecord::Migration[7.0]
   def change
     create_table :voca_organization_key_val_configs do |t|

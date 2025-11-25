@@ -167,16 +167,16 @@ module Decidim
       config.to_prepare do
         Decidim::Organization.include(Decidim::Voca::Overrides::OrganizationModelOverrides)
         # Listen on organizatin update.
-        ActiveSupport::Notifications.subscribe(/process_action.action_controller/) do |name, start, finish, id, payload|
+        ActiveSupport::Notifications.subscribe(/process_action.action_controller/) do |_name, _start, _finish, _id, payload|
           controller = payload[:controller]
           action = payload[:action]
-          if controller == "Decidim::System::OrganizationsController" && ["update", "create"].include?(action)
+          if controller == "Decidim::System::OrganizationsController" && %w(update create).include?(action)
             organization = Decidim::Organization.find(payload[:params][:id])
             Decidim::Voca::SyncRedisRouting.call(organization)
           end
         end
       end
-    
+
       # Decidim Awesome Proposal Override
       initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
         config.to_prepare do

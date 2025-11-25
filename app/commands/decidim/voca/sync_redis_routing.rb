@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Decidim
   module Voca
     # This command get all the available host and subdomains of all organizations
@@ -21,7 +23,7 @@ module Decidim
 
       def traefik_kv(organization)
         # Will connect router Host(`host`) || HOST(`subdomains`)
-        # The service will point to the private ip exposed by Environment Variable `MASTER_IP` 
+        # The service will point to the private ip exposed by Environment Variable `MASTER_IP`
         # SEE https://doc.traefik.io/traefik/reference/routing-configuration/other-providers/kv/
         external_id = organization.voca_external_id
         hosts = [organization.host, *organization.secondary_hosts].select do |host|
@@ -31,23 +33,21 @@ module Decidim
           "traefik/http/routers/#{external_id}/rule" => hosts.map { |host| "Host(`#{host}`)" }.join(" || "),
           "traefik/http/routers/#{external_id}/entrypoints/0" => "websecure",
           "traefik/http/routers/#{external_id}/service" => "service-#{service_id}",
-          "traefik/http/routers/#{external_id}/priority" => "100",
+          "traefik/http/routers/#{external_id}/priority" => "100"
         }
         # Skip cert resolver for localhost domains - Traefik will use defaultGeneratedCert
-        unless hosts.any? { |host| host.end_with?(".localhost") || host == "localhost" }
-          kv["traefik/http/routers/#{external_id}/tls/certresolver"] = traefik_cert_resolver
-        end
+        kv["traefik/http/routers/#{external_id}/tls/certresolver"] = traefik_cert_resolver unless hosts.any? { |host| host.end_with?(".localhost") || host == "localhost" }
         kv
       end
 
       def service_id
-        @service_id ||= ENV.fetch("MASTER_ID");
+        @service_id ||= ENV.fetch("MASTER_ID")
       end
 
       def service_url
-        @service_url ||= ENV.fetch("MASTER_IP");
+        @service_url ||= ENV.fetch("MASTER_IP")
       end
-      
+
       def upsert_routing(organization)
         traefik_kv(organization).each do |key, value|
           redis.set(key, value)
@@ -67,23 +67,23 @@ module Decidim
       end
 
       def traefik_service_protocol
-        @traefik_service_protocol ||= ENV.fetch("TRAEFIK_SERVICE_PROTOCOL", "http");
+        @traefik_service_protocol ||= ENV.fetch("TRAEFIK_SERVICE_PROTOCOL", "http")
       end
 
       def traefik_service_port
-        @traefik_service_port ||= ENV.fetch("TRAEFIK_SERVICE_PORT", "8080");
+        @traefik_service_port ||= ENV.fetch("TRAEFIK_SERVICE_PORT", "8080")
       end
 
       def traefik_service_healthcheck_interval
-        @traefik_service_healthcheck_interval ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL", "10s");
+        @traefik_service_healthcheck_interval ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL", "10s")
       end
 
       def traefik_service_healthcheck_timeout
-        @traefik_service_healthcheck_timeout ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_TIMEOUT", "10s");
+        @traefik_service_healthcheck_timeout ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_TIMEOUT", "10s")
       end
 
       def traefik_cert_resolver
-        @traefik_cert_resolver ||= ENV.fetch("TRAEFIK_CERT_RESOLVER", "selfsigned");
+        @traefik_cert_resolver ||= ENV.fetch("TRAEFIK_CERT_RESOLVER", "selfsigned")
       end
     end
   end
