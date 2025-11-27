@@ -14,12 +14,17 @@ module Decidim
       end
 
       def call
+        ensure_voca_external_id!(organization)
         upsert_routing(organization)
         upsert_common_routing!
         broadcast(:ok)
       end
 
       private
+
+      def ensure_voca_external_id!(organization)
+        organization.voca_external_id || organization.create_voca_external_id!
+      end
 
       def traefik_kv(organization)
         # Will connect router Host(`host`) || HOST(`subdomains`)

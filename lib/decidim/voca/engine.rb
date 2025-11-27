@@ -167,13 +167,25 @@ module Decidim
       config.to_prepare do
         Decidim::Organization.include(Decidim::Voca::Overrides::OrganizationModelOverrides)
         # Listen on organizatin update.
-        ActiveSupport::Notifications.subscribe(/process_action.action_controller/) do |_name, _start, _finish, _id, payload|
-          controller = payload[:controller]
-          action = payload[:action]
-          if controller == "Decidim::System::OrganizationsController" && %w(update create).include?(action)
-            organization = Decidim::Organization.find(payload[:params][:id])
-            Decidim::Voca::SyncRedisRouting.call(organization)
-          end
+        ActiveSupport::Notifications.subscribe(/voca.*/) do |_name, _start, _finish, _id, payload|
+          organization = ::Decidim::Organization.find(payload[:resource_id])
+          Decidim::Voca::SyncRedisRouting.call(organization)
+        end
+      end
+
+      # Trigger additional hooks on organization creation and update
+      config.to_prepare do
+        ::Decidim::Organization.after_commit on: :create do |organization|
+          ActiveSupport::Notifications.instrument(
+            "voca.organization_created",
+            resource_id: organization.id
+          )
+        end
+        ::Decidim::Organization.after_commit on: :update do |organization|
+          ActiveSupport::Notifications.instrument(
+            "voca.organization_updated",
+            resource_id: organization.id
+          )
         end
       end
 
