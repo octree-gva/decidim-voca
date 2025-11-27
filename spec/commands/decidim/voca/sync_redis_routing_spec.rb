@@ -1,10 +1,9 @@
-# frozen_string_literal: true
-
 require "spec_helper"
 
 module Decidim
   module Voca
     describe SyncRedisRouting do
+
       let(:organization) do
         create(
           :organization,
@@ -13,8 +12,8 @@ module Decidim
           secondary_hosts:
         ).tap do |org|
           org.voca_organization_key_val_configs
-             .find_or_initialize_by(key: "external_id")
-             .update!(value: external_id)
+            .find_or_initialize_by(key: "external_id")
+            .update!(value: external_id)
         end
       end
       let(:external_id) { "router-123" }
@@ -44,6 +43,7 @@ module Decidim
         allow(Redis).to receive(:new).with(url: redis_url).and_return(redis)
         allow(organization).to receive(:create_voca_external_id!).and_call_original
       end
+
 
       describe "#call" do
         it "broadcasts ok" do
@@ -76,7 +76,7 @@ module Decidim
           before { organization.voca_organization_key_val_configs.destroy_all }
 
           it "generates a new identifier" do
-            expect do
+            expect do 
               described_class.call(organization)
             end.to change(organization, :voca_external_id).from(nil).to(a_string_matching(/^[0-9a-f-]{36}$/))
           end
@@ -96,3 +96,5 @@ module Decidim
     end
   end
 end
+
+

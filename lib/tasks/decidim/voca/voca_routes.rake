@@ -7,7 +7,7 @@ def redis
 end
 
 def redis?
-  connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://localhost:6379/1").present?
+  connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://localhost:6379/1")
   connection_url.present? && Redis.new(url: connection_url).ping == "PONG"
 end
 
