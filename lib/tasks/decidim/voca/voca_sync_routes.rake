@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 namespace :decidim do
   namespace :voca do
     desc "Sync routes to Redis"

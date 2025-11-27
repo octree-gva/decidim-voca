@@ -4,8 +4,8 @@ require "spec_helper"
 module Decidim
   RSpec.describe AccountForm do
     subject { described_class.from_model(user).with_context(current_user: user, current_organization: user.organization) }
-    let(:user_password) { "decidim123456789" }  
-    let(:user) { create(:user, avatar: nil, password: user_password, password_confirmation: user_password, organization: organization) }
+    let(:user_password) { "decidim123456789" }
+    let(:user) { create(:user, avatar: nil, password: user_password, password_confirmation: user_password, organization:) }
     let(:organization) { create(:organization, available_locales: I18n.available_locales) }
 
     it "is valid with a name using_ letters, numbers, spaces, comas, dots, new lines and single quotes" do

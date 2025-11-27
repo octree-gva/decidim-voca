@@ -5,12 +5,15 @@
 def redis
   @redis ||= Redis.new(url: ENV.fetch("TRAEFIK_REDIS_URL", "redis://localhost:6379/1"))
 end
+
 def redis?
   connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://localhost:6379/1").present?
   connection_url.present? && Redis.new(url: connection_url).ping == "PONG"
 end
+
 def print_routes_jsonl
   return unless redis?
+
   router_keys = redis.keys("traefik/http/routers/*/rule")
   router_keys.each do |rule_key|
     matches = rule_key.match(%r{traefik/http/routers/([^/]+)/rule})
@@ -35,6 +38,7 @@ end
 
 def print_routes_traefik
   return unless redis?
+
   router_keys = redis.keys("traefik/http/*")
   traefik_config = {}
   router_keys.each do |rule_key|
