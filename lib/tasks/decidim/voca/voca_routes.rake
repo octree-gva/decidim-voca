@@ -5,8 +5,12 @@
 def redis
   @redis ||= Redis.new(url: ENV.fetch("TRAEFIK_REDIS_URL", "redis://localhost:6379/1"))
 end
-
+def redis?
+  connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://localhost:6379/1").present?
+  connection_url.present? && Redis.new(url: connection_url).ping == "PONG"
+end
 def print_routes_jsonl
+  return unless redis?
   router_keys = redis.keys("traefik/http/routers/*/rule")
   router_keys.each do |rule_key|
     matches = rule_key.match(%r{traefik/http/routers/([^/]+)/rule})
@@ -30,6 +34,7 @@ def print_routes_jsonl
 end
 
 def print_routes_traefik
+  return unless redis?
   router_keys = redis.keys("traefik/http/*")
   traefik_config = {}
   router_keys.each do |rule_key|
@@ -49,6 +54,7 @@ namespace :decidim do
     desc "Print available routes in central Redis instance"
     task routes: :environment do
       format = ENV.fetch("FORMAT", "jsonl")
+      puts "Redis is not available for traefik routing" unless redis?
       print_routes_jsonl if format == "jsonl"
       print_routes_traefik if format == "traefik"
     end

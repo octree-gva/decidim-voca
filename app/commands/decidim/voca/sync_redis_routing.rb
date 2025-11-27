@@ -14,6 +14,7 @@ module Decidim
       end
 
       def call
+        return broadcast(:ok) unless redis?
         ensure_voca_external_id!(organization)
         upsert_routing(organization)
         upsert_common_routing!
@@ -21,6 +22,11 @@ module Decidim
       end
 
       private
+      
+      def redis?
+        connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://traefik-db:6379/1")
+        !connection_url.blank? && URI.parse(connection_url).host.present? && Redis.new(url: connection_url).ping == "PONG"
+      end
 
       def ensure_voca_external_id!(organization)
         organization.voca_external_id || organization.create_voca_external_id!

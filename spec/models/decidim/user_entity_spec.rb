@@ -5,7 +5,8 @@ module Decidim
   RSpec.describe UserBaseEntity do
     subject { user }
 
-    let(:user) { create(:user) }
+    let(:user) { create(:user, organization:) }
+    let(:organization) { create(:organization, available_locales: I18n.available_locales) }
 
     context "when validating user's name" do
       describe "sanitize" do

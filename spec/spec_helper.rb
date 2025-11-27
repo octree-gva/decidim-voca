@@ -3,6 +3,15 @@
 ENV["RAILS_ENV"] = "test"
 ENV["NODE_ENV"] ||= "test"
 ENV["ENGINE_ROOT"] = File.dirname(__dir__)
+ENV["MASTER_ID"] = "1234567890"
+ENV["MASTER_IP"] = "127.0.0.1"
+ENV["DECIDIM_AVAILABLE_LOCALES"] = "en,fr,es,ca"
+ENV["DECIDIM_DEFAULT_LOCALE"] = "en"
+
+require "i18n"
+available_locales = ENV["DECIDIM_AVAILABLE_LOCALES"].split(",").map { |locale| locale.strip.to_sym }
+I18n.available_locales = available_locales
+I18n.default_locale = ENV["DECIDIM_DEFAULT_LOCALE"].to_sym
 
 require "decidim/dev"
 

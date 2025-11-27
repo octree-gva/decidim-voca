@@ -63,7 +63,7 @@ services:
     ports:
       - 8080:80
     volumes:
-      - ./.docker/traefik.yml:/etc/traefik/traefik.yml
+      - ./.docker:/etc/traefik
     depends_on:
       - traefik-db
     links:
@@ -72,6 +72,7 @@ services:
       - DEBUG=1
       - TRAEFIK_DEBUG=1
       - TRAEFIK_LOG_LEVEL=DEBUG
+
   voca-pg:
     image: postgis/postgis:16-3.5-alpine
     restart: always
