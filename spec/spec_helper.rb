@@ -20,3 +20,11 @@ Decidim::Dev.dummy_app_path = File.expand_path(File.join(__dir__, "decidim_dummy
 require "decidim/dev/test/base_spec_helper"
 require "decidim/core/test/factories"
 require "decidim/proposals/test/factories"
+
+RSpec.configure do |config|
+  config.before do
+    redis_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://localhost:6379/1")
+    redis = instance_double(Redis, set: nil, ping: "PONG")
+    allow(Redis).to receive(:new).with(url: redis_url).and_return(redis)
+  end
+end
