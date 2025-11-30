@@ -163,6 +163,32 @@ module Decidim
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
       end
 
+      # Key val configurations on Decidim::Organization
+      config.to_prepare do
+        Decidim::Organization.include(Decidim::Voca::Overrides::OrganizationModelOverrides)
+        # Listen on organizatin update.
+        ActiveSupport::Notifications.subscribe(/voca.*/) do |_name, _start, _finish, _id, payload|
+          organization = ::Decidim::Organization.find(payload[:resource_id])
+          Decidim::Voca::SyncRedisRouting.call(organization)
+        end
+      end
+
+      # Trigger additional hooks on organization creation and update
+      config.to_prepare do
+        ::Decidim::Organization.after_commit on: :create do |organization|
+          ActiveSupport::Notifications.instrument(
+            "voca.organization_created",
+            resource_id: organization.id
+          )
+        end
+        ::Decidim::Organization.after_commit on: :update do |organization|
+          ActiveSupport::Notifications.instrument(
+            "voca.organization_updated",
+            resource_id: organization.id
+          )
+        end
+      end
+
       # Decidim Awesome Proposal Override
       initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
         config.to_prepare do

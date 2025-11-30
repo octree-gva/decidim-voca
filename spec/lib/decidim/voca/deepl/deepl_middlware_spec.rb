@@ -14,8 +14,8 @@ module Decidim
           "decidim.current_component" => component
         }
       end
-      let(:organization) { create(:organization) }
-      let(:participatory_space) { create(:participatory_process) }
+      let(:organization) { create(:organization, available_locales: I18n.available_locales) }
+      let(:participatory_space) { create(:participatory_process, organization:) }
       let(:component) { create(:proposal_component, participatory_space:) }
 
       before do
