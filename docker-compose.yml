@@ -29,12 +29,50 @@ services:
       - DISABLED_DOCKER_COMPOSE=true # To run tests in dockeril vole de building en build
       - DECIDIM_DEEPL_API_KEY=my_deepl_api_key
       - RACK_ATTACK_BLOCK_SYSTEM=false
+      - MASTER_ID=voca
+      - MASTER_IP=voca
+      - TRAEFIK_REDIS_URL=redis://traefik-db:6379/1
+      - TRAEFIK_SERVICE_PROTOCOL=http
+      - TRAEFIK_SERVICE_PORT=3000
+      - TRAEFIK_CERT_RESOLVER=selfsigned
+      - TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL=10s
+      - TRAEFIK_SERVICE_HEALTHCHECK_TIMEOUT=10s
     depends_on:
       - voca-pg
     ports:
       - 3000:3000
     links:
       - voca-pg
+      - traefik-db
+
+  traefik-db:
+    image: redis:8.4.0
+    restart: always
+    volumes:
+      - traefik-db-data:/data
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: redis-cli -h localhost -p 6379 ping
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  traefik:
+    image: traefik:3.6.2
+    restart: always
+    ports:
+      - 8080:80
+    volumes:
+      - ./.docker:/etc/traefik
+    depends_on:
+      - traefik-db
+    links:
+      - voca
+    environment:
+      - DEBUG=1
+      - TRAEFIK_DEBUG=1
+      - TRAEFIK_LOG_LEVEL=DEBUG
 
   voca-pg:
     image: postgis/postgis:16-3.5-alpine
@@ -56,3 +94,4 @@ volumes:
   node_modules: {}
   bundle: {}
   voca-pg-data: {}
+  traefik-db-data: {}

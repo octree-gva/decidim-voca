@@ -155,9 +155,38 @@ module Decidim
         # Overrides NotifyProposalAnswer
         Decidim::Proposals::Admin::NotifyProposalAnswer.include(Decidim::Voca::Overrides::NotifyProposalAnswerOverrides)
 
+        # Overrides ParticipatoryProcessGroupsController
+        Decidim::ParticipatoryProcesses::Admin::ParticipatoryProcessGroupsController.include(Decidim::Voca::Overrides::ParticipatoryProcessGroupsControllerOverrides)
+
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
+      end
+
+      # Key val configurations on Decidim::Organization
+      config.to_prepare do
+        Decidim::Organization.include(Decidim::Voca::Overrides::OrganizationModelOverrides)
+        # Listen on organizatin update.
+        ActiveSupport::Notifications.subscribe(/voca.*/) do |_name, _start, _finish, _id, payload|
+          organization = ::Decidim::Organization.find(payload[:resource_id])
+          Decidim::Voca::SyncRedisRouting.call(organization)
+        end
+      end
+
+      # Trigger additional hooks on organization creation and update
+      config.to_prepare do
+        ::Decidim::Organization.after_commit on: :create do |organization|
+          ActiveSupport::Notifications.instrument(
+            "voca.organization_created",
+            resource_id: organization.id
+          )
+        end
+        ::Decidim::Organization.after_commit on: :update do |organization|
+          ActiveSupport::Notifications.instrument(
+            "voca.organization_updated",
+            resource_id: organization.id
+          )
+        end
       end
 
       # Decidim Awesome Proposal Override

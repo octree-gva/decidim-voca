@@ -8,7 +8,7 @@ base_path = "../" if File.basename(__dir__) == "development_app"
 
 require_relative "#{base_path}lib/decidim/voca/version"
 
-DECIDIM_VERSION = "~> 0.29.4"
+DECIDIM_VERSION = "~> 0.29.6"
 
 gem "activerecord-postgis-adapter"
 gem "bootsnap", "~> 1.4"
