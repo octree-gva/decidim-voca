@@ -5,17 +5,23 @@ function config() {
 }
 
 export default async function startWeglot() {
-  const { enabled, api_key, default_language, enable_cache } = config();
-  if (!enabled || !api_key) {
-    console.log("Voca Weglot: skipping");
-    return;
-  }
   try {
     await waitForWeglot();
   } catch (e) {
     console.log("Voca Weglot: error initializing, skipping");
     return;
   }
+  
+  const { enabled, api_key, default_language, enable_cache } = config();
+  if (!enabled || !api_key) {
+    console.log("Voca Weglot: skipping");
+    return;
+  }
+  if(api_key.length < 10) {
+    console.log("Voca Weglot: invalid api key, skipping");
+    return;
+  }
+ 
 
   window.Weglot.initialize({
     api_key,
