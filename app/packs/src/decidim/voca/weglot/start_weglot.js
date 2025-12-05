@@ -13,7 +13,7 @@ export default async function startWeglot() {
   try {
     await waitForWeglot();
   } catch (e) {
-    console.log("Voca Weglot: skipping");
+    console.log("Voca Weglot: error initializing, skipping");
     return;
   }
 
