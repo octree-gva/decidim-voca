@@ -62,6 +62,11 @@ module Decidim
         rescue StandardError => e
           Rails.logger.error("Formality no supported by #{target_locale}: #{e.message}")
         end
+        begin
+          deepl_kwargs[:enable_beta_languages] = true
+        rescue StandardError => e
+          Rails.logger.error("Beta Languages no supported by #{target_locale}: #{e.message}")
+        end
         deepl_kwargs[:tag_handling] = "html" if html
 
         deepl_kwargs
