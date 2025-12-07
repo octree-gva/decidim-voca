@@ -17,7 +17,8 @@ namespace :decidim do
       # And then loop for each language on records that define locales that are not the default locale
 
       Decidim::Organization.all.each do |current_organization|
-        # SKIP if not machine translation
+        next unless current_organization.enable_machine_translations?
+        
         warn_records = []
         locale = current_organization.default_locale
         other_locales = Decidim.available_locales - [locale]
