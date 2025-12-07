@@ -59,9 +59,14 @@ namespace :decidim do
                 puts "Triggering translation job for #{cls.name}.#{field} in #{available_locale}"
                 field_value = record.send(field)
                 source_text = field_value[locale.to_s] if field_value.is_a?(Hash)
-                next if source_text.blank?
+                if source_text.blank?
+                  # set machine translation to empty string
+                  record.send("#{field}=", "")
+                  record.save!
+                  next
+                end
 
-                translator = Decidim.machine_translation_service_class.new(
+                translator =  Decidim.config.machine_translation_service.constantize.new(
                   record,
                   field,
                   source_text,
