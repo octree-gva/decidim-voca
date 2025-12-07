@@ -57,7 +57,18 @@ namespace :decidim do
                 next if organization.nil? || organization.id != current_organization.id
 
                 puts "Triggering translation job for #{cls.name}.#{field} in #{available_locale}"
-                Decidim::MachineTranslationSaveJob.perform_now(record, field, available_locale, locale)
+                field_value = record.send(field)
+                source_text = field_value[locale.to_s] if field_value.is_a?(Hash)
+                next if source_text.blank?
+
+                translator = Decidim.machine_translation_service_class.new(
+                  record,
+                  field,
+                  source_text,
+                  available_locale,
+                  locale
+                )
+                translator.translate
               end
             end
             # Find records that define the locale
