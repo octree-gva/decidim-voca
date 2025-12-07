@@ -18,7 +18,7 @@ namespace :decidim do
 
       Decidim::Organization.all.each do |current_organization|
         next unless current_organization.enable_machine_translations?
-        
+
         warn_records = []
         locale = current_organization.default_locale
         other_locales = Decidim.available_locales - [locale]
@@ -43,6 +43,14 @@ namespace :decidim do
           next if translatable_fields.empty?
 
           translatable_fields.each do |field|
+            # Find records that have incomplete translations, and trigger translation job
+            current_organization.available_locales.each do |available_locale|
+              next if available_locale == locale
+
+              cls.where.not(field => nil).where(field => { available_locale => nil }).each do |record|
+                Decidim::MachineTranslationSaveJob.perform_later(record, field, available_locale, locale)
+              end
+            end
             # Find records that define the locale
             other_locales.each do |other_locale|
               begin
