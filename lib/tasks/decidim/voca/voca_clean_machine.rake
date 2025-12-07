@@ -47,32 +47,39 @@ namespace :decidim do
             current_organization.available_locales.each do |available_locale|
               next if available_locale == locale
 
-              cls.where.not(field => nil).where(field => { available_locale => nil }).each do |record|
-                Decidim::MachineTranslationSaveJob.perform_later(record, field, available_locale, locale)
+              field_quoted = cls.connection.quote_column_name(field)
+              locale_quoted = cls.connection.quote(available_locale)
+              condition = "(#{field_quoted}->>#{locale_quoted} IS NULL OR #{field_quoted}->>#{locale_quoted} = '')"
+              cls.where.not(field => nil).where(condition).count
+              cls.where.not(field => nil).where(condition).each do |record|
+                organization = record.try(:organization)
+                # If can not get the organization, we can not be sure we are deleting the right thing
+                next if organization.nil? || organization.id != current_organization.id
+
+                puts "Triggering translation job for #{cls.name}.#{field} in #{available_locale}"
+                Decidim::MachineTranslationSaveJob.perform_now(record, field, available_locale, locale)
               end
             end
             # Find records that define the locale
             other_locales.each do |other_locale|
-              begin
-                cls.where.not(field => nil).where.not(field => { other_locale => nil }).each do |record|
-                  organization = record.try(:organization)
-                  # If can not get the organization, we can not be sure we are deleting the right thing
-                  if organization.nil? || organization.id != current_organization.id
-                    warn_records << record
-                    next
-                  end
-                  current_value = record.send(field)
-                  # remove all the locale fields that are not default or machine translated
-                  current_value.delete_if do |key, _value|
-                    other_locales.include?(key)
-                  end
-                  record.send("#{field}=", current_value)
-                  record.save!
+              cls.where.not(field => nil).where.not("#{cls.connection.quote_column_name(field)}->>? IS NULL", other_locale).each do |record|
+                organization = record.try(:organization)
+                # If can not get the organization, we can not be sure we are deleting the right thing
+                if organization.nil? || organization.id != current_organization.id
+                  warn_records << record
+                  next
                 end
-              rescue ActiveRecord::StatementInvalid => e
-                warn "Error processing #{cls.name}.#{field} for locale #{other_locale}: #{e.message}"
-                next
+                current_value = record.send(field)
+                # remove all the locale fields that are not default or machine translated
+                current_value.delete_if do |key, _value|
+                  other_locales.include?(key)
+                end
+                record.send("#{field}=", current_value)
+                record.save!
               end
+            rescue ActiveRecord::StatementInvalid => e
+              warn "Error processing #{cls.name}.#{field} for locale #{other_locale}: #{e.message}"
+              next
             end
           end
         end

@@ -105,15 +105,13 @@ module Decidim
 
       def translate_with_retry(text, source_locale, target_locale, **kwargs)
         DeepL.translate(text, source_locale, target_locale, **kwargs)
-      rescue RuntimeError, FrozenError => e
-        if e.message.include?("frozen") && e.message.include?("SSLContext")
-          # Force a fresh connection by clearing any cached HTTP connections
-          # Retry once after a brief delay to allow connection pool to reset
-          sleep(1)
-          DeepL.translate(text, source_locale, target_locale, **kwargs)
-        else
-          raise
-        end
+      rescue RuntimeError => e
+        raise unless e.message.include?("frozen") && e.message.include?("SSLContext")
+
+        # Force a fresh connection by clearing any cached HTTP connections
+        # Retry once after a brief delay to allow connection pool to reset
+        sleep(1)
+        DeepL.translate(text, source_locale, target_locale, **kwargs)
       end
 
       def target_language
