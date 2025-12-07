@@ -57,11 +57,7 @@ module Decidim
 
       def deepl_kwargs(html:)
         deepl_kwargs = {}
-        begin
-          deepl_kwargs[:formality] = "prefer_more" if target_language? && target_language.supports_formality?
-        rescue StandardError => e
-          Rails.logger.error("Formality no supported by #{target_locale}: #{e.message}")
-        end
+
         begin
           deepl_kwargs[:enable_beta_languages] = true
         rescue StandardError => e
