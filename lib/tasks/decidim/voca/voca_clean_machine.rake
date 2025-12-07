@@ -30,6 +30,13 @@ namespace :decidim do
         translatable_models = decidim_models.filter { |cls| cls.include?(Decidim::TranslatableResource) }
 
         translatable_models.each do |cls|
+          begin
+            next unless cls.table_exists?
+          rescue ActiveRecord::StatementInvalid => e
+            warn "Skipping #{cls.name}: #{e.message}"
+            next
+          end
+
           # Locales are saved in a jsonb field
           translatable_fields = cls.instance_variable_get(:@translatable_fields)
           next if translatable_fields.empty?
@@ -37,20 +44,25 @@ namespace :decidim do
           translatable_fields.each do |field|
             # Find records that define the locale
             other_locales.each do |other_locale|
-              cls.where.not(field => nil).where.not(field => { other_locale => nil }).each do |record|
-                organization = record.try(:organization)
-                # If can not get the organization, we can not be sure we are deleting the right thing
-                if organization.nil? || organization.id != current_organization.id
-                  warn_records << record
-                  next
+              begin
+                cls.where.not(field => nil).where.not(field => { other_locale => nil }).each do |record|
+                  organization = record.try(:organization)
+                  # If can not get the organization, we can not be sure we are deleting the right thing
+                  if organization.nil? || organization.id != current_organization.id
+                    warn_records << record
+                    next
+                  end
+                  current_value = record.send(field)
+                  # remove all the locale fields that are not default or machine translated
+                  current_value.delete_if do |key, _value|
+                    other_locales.include?(key)
+                  end
+                  record.send("#{field}=", current_value)
+                  record.save!
                 end
-                current_value = record.send(field)
-                # remove all the locale fields that are not default or machine translated
-                current_value.delete_if do |key, _value|
-                  other_locales.include?(key)
-                end
-                record.send("#{field}=", current_value)
-                record.save!
+              rescue ActiveRecord::StatementInvalid => e
+                warn "Error processing #{cls.name}.#{field} for locale #{other_locale}: #{e.message}"
+                next
               end
             end
           end
