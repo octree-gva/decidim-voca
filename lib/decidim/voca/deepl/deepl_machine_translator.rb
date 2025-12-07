@@ -113,7 +113,7 @@ module Decidim
         if e.message.include?("frozen") && e.message.include?("SSLContext")
           # Force a fresh connection by clearing any cached HTTP connections
           # Retry once after a brief delay to allow connection pool to reset
-          sleep(0.1)
+          sleep(1)
           DeepL.translate(text, source_locale, target_locale, **kwargs)
         else
           raise
