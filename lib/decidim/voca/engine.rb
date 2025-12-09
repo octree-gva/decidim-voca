@@ -211,6 +211,10 @@ module Decidim
         end
       end
 
+      initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
+        Decidim::Voca::UserFieldsConfigurator.call
+      end
+
       initializer "decidim.voca.deepl", after: :load_config_initializers do
         if Decidim::Voca.deepl_enabled?
           require "deepl"

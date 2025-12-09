@@ -1,0 +1,30 @@
+---
+fr:
+  decidim:
+    authorization_handlers:
+      code:
+        explanation: Recueille le code pour vérification
+        name: Code
+      firstname:
+        explanation: Recueille le nom pour vérification
+        name: Nom
+      fullname_and_birthdate:
+        explanation: Recueille le nom et la date de naissance pour vérification (+13 ans)
+        name: Nom et date de naissance
+    custom_user_fields:
+      code:
+        code:
+          bad_format: Le code doit être un code valide
+          label: Code
+      firstname:
+        name:
+          bad_format: Le nom doit être un nom valide
+          label: Nom
+      fullname_and_birthdate:
+        birthdate:
+          bad_not_after: La plateforme est réservée aux utilisateurs de plus de 13 ans
+          label: Date de naissance
+        first_name:
+          label: Prénom
+        last_name:
+          label: Nom de famille

@@ -41,6 +41,7 @@ module Decidim
   module Voca
     UUID_REGEXP = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/
     autoload :RackAttackConfigurator, "decidim/voca/rack_attack_configurator"
+    autoload :UserFieldsConfigurator, "decidim/voca/user_fields_configurator"
     def self.configuration
       @configuration ||= Configuration.new
     end
