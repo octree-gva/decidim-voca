@@ -1,0 +1,42 @@
+---
+cs:
+  decidim:
+    events:
+      proposals:
+        proposal_state_changed_for_authors:
+          email_intro: 'Návrh "%{resource_title}" změnil svůj stav na "%{state}". Odpověď si můžete přečíst na této stránce:'
+          email_outro: Toto oznámení jste obdrželi, protože jste autorem stránky "%{resource_title}".
+          email_subject: Váš návrh změnil svůj stav (%{state})
+          notification_title: Váš návrh <a href="%{resource_path}">%{resource_title}</a> změnil svůj stav na "%{state}".
+    proposals:
+      models:
+        proposal:
+          fields:
+            votes_on_going: Hlasování (probíhá)
+    voca:
+      admin:
+        machine_translation_alert:
+          button: Přepínání jazyka
+          description_html: '<p>Jazyk "%{current_locale}" je plně přeložen strojově, je třeba přepnout na "%{default_locale}".</p>
+
+            '
+          title: 'Přepínání jazyka
+
+            '
+      footer_text: Demokratický prostor pro vaši komunitu
+      proposals:
+        find_my_location: Použijte mou polohu
+        take_photo: Vyfotografujte se
+      rack_attack:
+        blocked:
+          description: Zjištěno příliš mnoho požadavků. Počkejte prosím několik minut a zkuste to znovu. Pokud potřebujete pomoc, kontaktujte podporu.
+          subtitle: Překročení limitu rychlosti
+          title: Dočasně omezený přístup
+  devise:
+    mailer:
+      confirmation_instructions:
+        instruction_html: 'Svůj e-mailový účet můžete potvrdit prostřednictvím níže uvedeného odkazu:'
+  layouts:
+    decidim:
+      footer:
+        help_title: Nápověda

@@ -1,5 +1,5 @@
 export default async function waitForWeglot(retry = 0) {
-  if (window.Weglot) {
+  if (window.Weglot && window.VocaWeglotConfig) {
     return;
   }
   if (retry > 10) {

@@ -1,0 +1,30 @@
+---
+it:
+  decidim:
+    authorization_handlers:
+      code:
+        explanation: Raccogli il codice per la verifica
+        name: Codice
+      firstname:
+        explanation: Raccogli il nome per la verifica
+        name: Nome
+      fullname_and_birthdate:
+        explanation: Raccogli nome e data di nascita per la verifica (+13 anni)
+        name: Nome e data di nascita
+    custom_user_fields:
+      code:
+        code:
+          bad_format: Il codice deve essere un codice valido
+          label: Codice
+      firstname:
+        name:
+          bad_format: Il nome deve essere un nome valido
+          label: Nome
+      fullname_and_birthdate:
+        birthdate:
+          bad_not_after: La piattaforma è riservata agli utenti di età superiore ai 13 anni
+          label: Data di nascita
+        first_name:
+          label: Nome
+        last_name:
+          label: Cognome
