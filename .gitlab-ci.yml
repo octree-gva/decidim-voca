@@ -81,6 +81,7 @@ ruby::rspec:
     DATABASE_PASSWORD: "TEST-insecure_password"
     DATABASE_USERNAME: "decidim"
     DISABLED_DOCKER_COMPOSE: "true"
+    TRAEFIK_REDIS_URL: "redis://localhost:6379/1"
     NODE_MAJOR: 18
     SIMPLECOV: 1
     CI: 1
