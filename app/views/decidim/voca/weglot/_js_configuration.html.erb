@@ -1,4 +1,4 @@
-
+<% if Decidim::Voca.weglot? %>
 <%
   weglot_js_config = {
     enabled: Decidim::Voca.weglot?,
@@ -7,10 +7,8 @@
     enable_cache: Decidim::Voca.weglot_cache?
   }
 %>
-<%
-  nonce = SecureRandom.base64(16)
-%>
 <script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>
 <script type="text/javascript">
   window.VocaWeglotConfig = <%= weglot_js_config.to_json.html_safe %>;
 </script>
+<% end %>
