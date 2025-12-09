@@ -1,9 +1,5 @@
-fr: 
-  layouts:
-    decidim:
-      footer:
-        decidim_title: "Votre plateforme"
-        help_title: "Aide"
+---
+fr:
   decidim:
     events:
       proposals:
@@ -13,22 +9,40 @@ fr:
             email_outro: Vous avez reçu cette notification parce que vous êtes un(e) auteur(e) de "%{resource_title}".
             email_subject: Votre proposition a changé d'état (%{state})
             notification_title: L'état de votre proposition <a href="%{resource_path}">%{resource_title}</a> est passé à %{state}.
+          email_intro: 'La proposition "%{resource_title}" a changé d''état pour devenir "%{state}". Tu peux lire la réponse dans cette page :'
+          email_outro: Tu as reçu cette notification car tu es un auteur de "%{resource_title}".
+          email_subject: Ta proposition a changé d'état (%{state})
+          notification_title: Ta proposition <a href="%{resource_path}">%{resource_title}</a> a changé d'état et est devenue "%{state}".
     proposals:
       models:
         proposal:
           fields:
             votes_on_going: Votes (en cours)
     voca:
-      proposals:
-        find_my_location: "Ma position"
-        take_photo: "Prendre une photo"
+      admin:
+        machine_translation_alert:
+          button: Change de langue
+          description_html: '<p>La langue "%{current_locale}" est entièrement traduite par la machine, tu dois passer à "%{default_locale}".</p>
+
+            '
+          title: 'Change de langue
+
+            '
       footer_text: Un espace démocratique pour vos communautés
+      proposals:
+        find_my_location: Ma position
+        take_photo: Prendre une photo
       rack_attack:
         blocked:
-          title: "Accès Temporairement Restreint"
-          subtitle: "Limite de taux dépassée"
-          description: "Trop de requêtes détectées. Veuillez patienter quelques minutes avant de réessayer. Contactez le support si vous avez besoin d'aide."
+          description: Trop de requêtes détectées. Veuillez patienter quelques minutes avant de réessayer. Contactez le support si vous avez besoin d'aide.
+          subtitle: Limite de taux dépassée
+          title: Accès Temporairement Restreint
   devise:
     mailer:
       confirmation_instructions:
-        instruction_html: "Vous pouvez confirmer votre compte email par le lien ci-dessous:"
+        instruction_html: 'Vous pouvez confirmer votre compte email par le lien ci-dessous:'
+  layouts:
+    decidim:
+      footer:
+        decidim_title: Votre plateforme
+        help_title: Aide

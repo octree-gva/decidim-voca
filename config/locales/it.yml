@@ -1,0 +1,43 @@
+---
+it:
+  decidim:
+    events:
+      proposals:
+        proposal_state_changed_for_authors:
+          email_intro: 'La proposta "%{resource_title}" ha cambiato il suo stato in "%{state}". Puoi leggere la risposta in questa pagina:'
+          email_outro: Hai ricevuto questa notifica perché sei un autore di "%{resource_title}".
+          email_subject: La tua proposta ha cambiato stato (%{state})
+          notification_title: La tua proposta <a href="%{resource_path}">%{resource_title}</a> ha cambiato il suo stato in "%{state}".
+    proposals:
+      models:
+        proposal:
+          fields:
+            votes_on_going: Votazioni (in corso)
+    voca:
+      admin:
+        machine_translation_alert:
+          button: Cambia lingua
+          description_html: '<p>La lingua "%{current_locale}" è completamente tradotta dalla macchina, devi passare a "%{default_locale}".</p>
+
+            '
+          title: 'Cambia lingua
+
+            '
+      footer_text: Uno spazio democratico per la tua comunità
+      proposals:
+        find_my_location: Usa la mia posizione
+        take_photo: Scatta una foto
+      rack_attack:
+        blocked:
+          description: Sono state rilevate troppe richieste. Attendi qualche minuto prima di riprovare. Contatta il supporto se hai bisogno di assistenza.
+          subtitle: Limite di velocità superato
+          title: Accesso temporaneamente limitato
+  devise:
+    mailer:
+      confirmation_instructions:
+        instruction_html: 'Puoi confermare il tuo account e-mail attraverso il link sottostante:'
+  layouts:
+    decidim:
+      footer:
+        decidim_title: La tua piattaforma
+        help_title: Aiuto

@@ -1,0 +1,38 @@
+en: 
+  decidim:
+    custom_user_fields:
+      fullname_and_birthdate:
+        first_name:
+          label: First name
+        last_name:
+          label: Last name
+        birthdate:
+          label: Birthdate
+          bad_not_after: The platform is reserved for users over 13 years old
+      firstname:
+        name:
+          label: Name
+          bad_format: The name must be a valid name
+      code:
+        code:
+          label: Code
+          bad_format: The code must be a valid code
+    authorization_handlers: 
+      fullname_and_birthdate:
+        name: Name and birthdate
+        explanation: Collect name and birthdate for verification (+13yrs)
+      firstname:
+        name: Name
+        explanation: Collect name for verification
+      code:
+        name: Code
+        explanation: Collect code for verification
+    authorization_modals:
+      content:
+        missing:
+          authorize: Complete the «%{authorization}»
+          explanation: To perform this action, you must complete the «%{authorization}»
+    verifications:
+      authorizations:
+        new:
+          authorize_with: Verify your identity with the «%{authorizer}»
