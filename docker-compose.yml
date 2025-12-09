@@ -27,7 +27,6 @@ services:
       - DEV_MODULE=decidim-voca
       - RAILS_ENV=development
       - DISABLED_DOCKER_COMPOSE=true # To run tests in dockeril vole de building en build
-      - DECIDIM_DEEPL_API_KEY=my_deepl_api_key
       - RACK_ATTACK_BLOCK_SYSTEM=false
       - MASTER_ID=voca
       - MASTER_IP=voca

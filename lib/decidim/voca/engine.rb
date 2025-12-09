@@ -282,11 +282,14 @@ module Decidim
         end
       end
 
+      initializer "decidim.voca.csp", after: :load_config_initializers do
+        Decidim.configure do |decidim_config|
+          decidim_config.content_security_policies_extra["worker-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "worker-src"
+          decidim_config.content_security_policies_extra["worker-src"].push("blob:")
+        end
+      end
+
       initializer "decidim.voca.weglot", after: :load_config_initializers do
-        decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
-        decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
-        decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
-        
         # configure additional CSP for weglot
         if ::Decidim::Voca.weglot?
           Decidim.configure do |decidim_config|
@@ -294,6 +297,9 @@ module Decidim
             decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
             decidim_config.content_security_policies_extra["connect-src"].push("cdn-api-weglot.com")
 
+            decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
+            decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
+            decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
 
             decidim_config.content_security_policies_extra["style-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "style-src"
             decidim_config.content_security_policies_extra["style-src"].push("cdn.weglot.com")

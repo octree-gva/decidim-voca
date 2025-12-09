@@ -45,7 +45,7 @@ PATH
   specs:
     decidim-voca (0.0.15)
       decidim-admin (>= 0.29, < 0.30)
-      decidim-decidim_awesome (~> 0.12.5)
+      decidim-decidim_awesome (~> 0.12.6)
       decidim-ephemeral_participation (~> 0.0.6)
       decidim-telemetry (~> 0.0.3)
       decidim-user_fields (~> 0.1.4)
@@ -300,7 +300,7 @@ GEM
     decidim-debates (0.29.7)
       decidim-comments (= 0.29.7)
       decidim-core (= 0.29.7)
-    decidim-decidim_awesome (0.12.5)
+    decidim-decidim_awesome (0.12.6)
       active_hashcash (~> 0.4.0)
       decidim-admin (>= 0.29.1, < 0.30)
       decidim-core (>= 0.29.1, < 0.30)
@@ -930,6 +930,7 @@ DEPENDENCIES
   decidim (~> 0.29.6)
   decidim-decidim_awesome (~> 0.12.3)
   decidim-dev (~> 0.29.6)
+  decidim-ephemeral_participation!
   decidim-telemetry!
   decidim-user_fields!
   decidim-voca!
