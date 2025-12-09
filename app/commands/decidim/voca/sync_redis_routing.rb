@@ -78,6 +78,7 @@ module Decidim
       def traefik_service_healthcheck_port
         @traefik_service_healthcheck_port ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_PORT", "8080")
       end
+
       def traefik_service_healthcheck_path
         @traefik_service_healthcheck_path ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_PATH", "/health/live")
       end
