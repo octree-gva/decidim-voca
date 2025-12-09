@@ -1,12 +1,11 @@
-
 ---
-sidebar_position: 6
+sidebar_position: 4
 slug: /routing
-title: Redis Routing
+title: Traefik Routing
 description: How to sync Decidim organizations to Traefik via Redis
 ---
 
-# Redis Routing
+# Traefik Routing
 
 This module synchronizes Decidim organization hosts and subdomains to a Redis database using Traefik's KV store format. This enables dynamic routing configuration for multi-tenant Decidim instances behind a Traefik reverse proxy.
 
