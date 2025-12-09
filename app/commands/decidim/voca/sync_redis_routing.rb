@@ -72,6 +72,11 @@ module Decidim
         redis.set("traefik/http/services/service-#{service_id}/loadbalancer/healthcheck/path", "/health/live")
         redis.set("traefik/http/services/service-#{service_id}/loadbalancer/healthcheck/interval", traefik_service_healthcheck_interval)
         redis.set("traefik/http/services/service-#{service_id}/loadbalancer/healthcheck/timeout", traefik_service_healthcheck_timeout)
+        redis.set("traefik/http/services/service-#{service_id}/loadbalancer/healthcheck/port", traefik_service_healthcheck_port)
+      end
+
+      def traefik_service_healthcheck_port
+        @traefik_service_healthcheck_port ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_PORT", "8080")
       end
 
       def redis
@@ -87,7 +92,7 @@ module Decidim
       end
 
       def traefik_service_healthcheck_interval
-        @traefik_service_healthcheck_interval ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL", "10s")
+        @traefik_service_healthcheck_interval ||= ENV.fetch("TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL", "60s")
       end
 
       def traefik_service_healthcheck_timeout
@@ -95,7 +100,7 @@ module Decidim
       end
 
       def traefik_cert_resolver
-        @traefik_cert_resolver ||= ENV.fetch("TRAEFIK_CERT_RESOLVER", "selfsigned")
+        @traefik_cert_resolver ||= ENV.fetch("TRAEFIK_CERT_RESOLVER", "letsencrypt")
       end
     end
   end
