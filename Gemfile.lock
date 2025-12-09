@@ -930,6 +930,7 @@ DEPENDENCIES
   decidim (~> 0.29.6)
   decidim-decidim_awesome (~> 0.12.3)
   decidim-dev (~> 0.29.6)
+  decidim-ephemeral_participation!
   decidim-telemetry!
   decidim-user_fields!
   decidim-voca!
