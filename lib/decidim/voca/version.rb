@@ -12,7 +12,7 @@ module Decidim
     end
 
     def self.compat_decidim_awesome_version
-      "~> 0.12.5"
+      "~> 0.12.6"
     end
 
     def self.compat_decidim_telemetry_version
