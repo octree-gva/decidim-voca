@@ -26,7 +26,7 @@ module Decidim
 
       def redis?
         raw_connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://traefik-db:6379/1")
-        connection_url = begin 
+        connection_url = begin
           URI.parse(raw_connection_url)
         rescue URI::InvalidURIError
           ""

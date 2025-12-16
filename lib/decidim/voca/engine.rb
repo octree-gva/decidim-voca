@@ -4,6 +4,8 @@ require "rails"
 require "decidim/core"
 require "deface"
 require "next_gen_images"
+require "decidim/verifications"
+require "decidim/voca/code_census"
 
 module Decidim
   module Voca
@@ -15,6 +17,7 @@ module Decidim
         Decidim::Core::Engine.routes.draw do
           post :editor_files, to: "voca/editor_files#create"
           post :locate, to: "voca/geolocation#locate"
+          mount Decidim::Voca::CodeCensus::Engine, at: "/code_census", as: "decidim_code_census"
 
           if Rails.application.config.active_job.queue_adapter == :good_job
             authenticate :admin, ->(admin) { !admin.locked_at? } do

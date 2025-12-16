@@ -5,6 +5,13 @@ en:
         decidim_title: "Your platform"
         help_title: "Help"
   decidim:
+    authorization_handlers:
+      code_census:
+        name: "Code census"
+        explanation: "Verify your identity using a code census access code."
+    application:
+      geocoding:
+        unconfigured: "Geocoding is not configured for this organization."
     events:
       proposals:
         proposal_state_changed_for_authors:
@@ -22,12 +29,38 @@ en:
         find_my_location: "Use my location"
         take_photo: "Take photo"
       footer_text: A democratic space for your community
+      code_census:
+        create:
+          success: "Your access code has been created."
+        authorizations:
+          new:
+            title: Verify with code census
+            code: Access code
+            submit: Verify
+          create:
+            success: You are now authorized.
+            error: The provided code is not valid.
+      admin:
+        code_census:
+          code_lists:
+            edit:
+              title: Code census (%{count})
+            form:
+              label: Codes
+              help: Paste or type all allowed codes, one per line.
+              submit: Save codes
+            update:
+              success: Codes saved.
+              error: Codes could not be saved.
+      editor_files:
+        create:
+          success: "File uploaded successfully."
+          error: "File could not be uploaded."
       rack_attack:
         blocked:
           title: "Access Temporarily Restricted"
           subtitle: "Rate limit exceeded"
           description: "Too many requests detected. Please wait a few minutes before trying again. Contact support if you need assistance."
-      admin: 
         machine_translation_alert:
           title: |
             Switch language
