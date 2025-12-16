@@ -7,7 +7,7 @@ module Decidim
         class CodeListsController < Decidim::Admin::ApplicationController
           layout "decidim/admin/users"
           helper_method :existing_codes
-
+          
           def edit
             @form = form(CodeListForm).from_params(codes_text: existing_codes.join("\n"))
           end

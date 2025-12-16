@@ -16,7 +16,7 @@ module Decidim
         def unique_id
           code.to_s.strip
         end
-
+        
         private
 
         def code_exists
