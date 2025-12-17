@@ -15,7 +15,7 @@ module Decidim
             return original_authorize_action_path(handler) unless handler == "code_census"
 
             begin
-              path = decidim_code_census.new_authorization_path(redirect_url: request.referer)
+              path = decidim_code_census.new_authorization_path(redirect_url: params[:redirect_url] || request.referer)
               return path.to_s if path.present?
             rescue NoMethodError, ActionController::UrlGenerationError
               # Route helper not available, fall back to original
