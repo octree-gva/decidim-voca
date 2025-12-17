@@ -35,7 +35,6 @@ require_relative "voca/overrides/participatory_process_groups_controller_overrid
 require_relative "voca/overrides/mod_secure/conversation_uuid"
 require_relative "voca/overrides/mod_secure/conversation_controller_overrides"
 require_relative "voca/overrides/mod_secure/conversation_sanitize"
-require_relative "voca/overrides/authorization_modals_controller_overrides"
 require "good_job/engine"
 
 module Decidim
