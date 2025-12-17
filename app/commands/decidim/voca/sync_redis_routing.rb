@@ -32,7 +32,7 @@ module Decidim
           ""
         end
 
-        connection_url.present? && URI.parse(connection_url).host.present? && Redis.new(url: connection_url).ping == "PONG"
+        connection_url.present? && URI.parse(connection_url).host.present? && Redis.new(url: connection_url.to_s).ping == "PONG"
       rescue Redis::CannotConnectError => e
         Rails.logger.error("Can't connect to Redis: #{e.message}")
         false
