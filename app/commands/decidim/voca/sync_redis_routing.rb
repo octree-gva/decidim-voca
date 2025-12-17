@@ -25,8 +25,17 @@ module Decidim
       private
 
       def redis?
-        connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://traefik-db:6379/1")
-        connection_url.present? && URI.parse(connection_url).host.present? && Redis.new(url: connection_url).ping == "PONG"
+        raw_connection_url = ENV.fetch("TRAEFIK_REDIS_URL", "redis://traefik-db:6379/1")
+        connection_url = begin
+          URI.parse(raw_connection_url)
+        rescue URI::InvalidURIError
+          ""
+        end
+
+        connection_url.present? && URI.parse(connection_url).host.present? && Redis.new(url: connection_url.to_s).ping == "PONG"
+      rescue Redis::CannotConnectError => e
+        Rails.logger.error("Can't connect to Redis: #{e.message}")
+        false
       end
 
       def ensure_voca_external_id!(organization)

@@ -9,7 +9,6 @@ module Decidim
         Rails.application.config.after_initialize do
           configure_fullname_and_birthdate_authorization_handler!
           configure_name_authorization_handler!
-          configure_code_authorization_handler!
         end
       end
 
@@ -26,14 +25,6 @@ module Decidim
       def configure_name_authorization_handler!
         Decidim::CustomUserFields::Verifications.register("FIRSTNAME") do |config|
           config.add_field :name, type: :text, required: true, skip_hashing: true
-          config.ephemerable!
-          config.renewable!(1.day)
-        end
-      end
-
-      def configure_code_authorization_handler!
-        Decidim::CustomUserFields::Verifications.register("CODE") do |config|
-          config.add_field :code, type: :text, required: true, skip_hashing: true
           config.ephemerable!
           config.renewable!(1.day)
         end
