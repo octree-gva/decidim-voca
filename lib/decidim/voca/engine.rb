@@ -124,6 +124,9 @@ module Decidim
         # Meetings
         Decidim::Meetings::Admin::MeetingsController.include(Decidim::Voca::Overrides::MeetingsControllerOverrides)
 
+        # Authorization Modals
+        Decidim::AuthorizationModalsController.include(Decidim::Voca::Overrides::AuthorizationModalsControllerOverrides)
+
         # Etherpad
         Decidim::Etherpad::Pad.include(Decidim::Voca::Overrides::EtherpadOverrides)
 
