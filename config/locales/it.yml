@@ -1,6 +1,19 @@
 ---
 it:
   decidim:
+    core:
+      actions:
+        unauthorized: "Non sei autorizzato a eseguire questa azione."
+    wizard_step_form:
+      wizard_aside:
+        back: "Indietro"
+    authorization_handlers:
+      code_census:
+        name: "Codice censimento"
+        explanation: "Verifica la tua identità utilizzando un codice di accesso fornito dall'organizzazione."
+    application:
+      geocoding:
+        unconfigured: "La geocodifica non è configurata per questa organizzazione."
     events:
       proposals:
         proposal_state_changed_for_authors:
@@ -14,7 +27,35 @@ it:
           fields:
             votes_on_going: Votazioni (in corso)
     voca:
+      code_census:
+        create:
+          success: "Il tuo codice di accesso è stato creato."
+        authorizations:
+          new:
+            title: Verifica con codice censimento
+            code: Codice di accesso
+            submit: Verifica
+          create:
+            success: Ora sei autorizzato.
+            error: Il codice fornito non è valido.
       admin:
+        code_census:
+          authorizations:
+            new:
+              title: Genera codici di autorizzazione
+              intro: Usa questa pagina per creare codici di autorizzazione per i tuoi utenti.
+              info: Inserisci i dettagli dell'utente qui sotto. Il sistema genererà un codice di accesso univoco che può essere condiviso con l'utente per la verifica.
+              example: "Esempio: Inserisci l'email o l'identificatore dell'utente"
+          code_lists:
+            edit:
+              title: Codice censimento (%{count})
+            form:
+              label: Codici
+              help: Incolla o digita tutti i codici consentiti, uno per riga.
+              submit: Salva codici
+            update:
+              success: Codici salvati.
+              error: I codici non possono essere salvati.
         machine_translation_alert:
           button: Cambia lingua
           description_html: '<p>La lingua "%{current_locale}" è completamente tradotta dalla macchina, devi passare a "%{default_locale}".</p>
@@ -23,11 +64,21 @@ it:
           title: 'Cambia lingua
 
             '
+      editor_files:
+        create:
+          success: "File caricato con successo."
+          error: "Impossibile caricare il file."
       footer_text: Uno spazio democratico per la tua comunità
       proposals:
         find_my_location: Usa la mia posizione
         take_photo: Scatta una foto
       rack_attack:
+        machine_translation_alert:
+          title: |
+            Cambia lingua
+          description_html: |
+            <p>La lingua "%{current_locale}" è completamente tradotta dalla macchina, devi passare a "%{default_locale}".</p>
+          button: Cambia lingua
         blocked:
           description: Sono state rilevate troppe richieste. Attendi qualche minuto prima di riprovare. Contatta il supporto se hai bisogno di assistenza.
           subtitle: Limite di velocità superato

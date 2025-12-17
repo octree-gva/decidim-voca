@@ -1,6 +1,12 @@
 ---
 fr:
   decidim:
+    core:
+      actions:
+        unauthorized: "Vous n'êtes pas autorisé à effectuer cette action."
+    wizard_step_form:
+      wizard_aside:
+        back: "Retour"
     authorization_handlers:
       code_census:
         name: "Code"
@@ -39,6 +45,12 @@ fr:
             error: Le code fourni n'est pas valide.
       admin:
         code_census:
+          authorizations:
+            new:
+              title: Générer des codes d'autorisation
+              intro: Utilisez cette page pour créer des codes d'autorisation pour vos utilisateurs.
+              info: Entrez les détails de l'utilisateur ci-dessous. Le système générera un code d'accès unique qui peut être partagé avec l'utilisateur pour vérification.
+              example: "Exemple : Entrez l'email ou l'identifiant de l'utilisateur"
           code_lists:
             edit:
               title: Code (%{count})
@@ -70,6 +82,12 @@ fr:
           description: Trop de requêtes détectées. Veuillez patienter quelques minutes avant de réessayer. Contactez le support si vous avez besoin d'aide.
           subtitle: Limite de taux dépassée
           title: Accès Temporairement Restreint
+        machine_translation_alert:
+          title: |
+            Changer de langue
+          description_html: |
+            <p>La langue "%{current_locale}" est entièrement traduite par la machine, vous devez passer à "%{default_locale}".</p>
+          button: Changer de langue
   devise:
     mailer:
       confirmation_instructions:
