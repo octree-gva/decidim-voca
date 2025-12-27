@@ -11,6 +11,7 @@ module Decidim
 
         Rails.logger.info("[OpenTelemetry] Initializing...")
         Rails.logger.info("[OpenTelemetry] Traces endpoint: #{traces_endpoint}")
+        Rails.logger.info("[OpenTelemetry] Logs endpoint: #{logs_endpoint}")
         Rails.logger.info("[OpenTelemetry] Service name: #{service_name}")
 
         configure_opentelemetry!
@@ -28,6 +29,10 @@ module Decidim
         Decidim::Voca.opentelemetry_traces_endpoint
       end
 
+      def logs_endpoint
+        Decidim::Voca.opentelemetry_logs_endpoint
+      end
+
       def configure_opentelemetry!
         require_opentelemetry!
         configure_sdk!
@@ -37,6 +42,7 @@ module Decidim
         require "opentelemetry/sdk"
         require "opentelemetry/exporter/otlp"
         require "opentelemetry/instrumentation/all"
+        require "opentelemetry/sdk/logs"
       end
 
       def configure_sdk!
@@ -48,6 +54,7 @@ module Decidim
           c.add_span_processor(span_processor)
         end
         Rails.logger.info("[OpenTelemetry] SDK configured successfully")
+        setup_logging!
         setup_error_reporting!
       end
 
@@ -73,6 +80,34 @@ module Decidim
             endpoint: traces_endpoint
           )
         )
+      end
+
+      def setup_logging!
+        return unless logs_endpoint.present?
+
+        Rails.logger.debug("[OpenTelemetry] Configuring logging...")
+        logger_provider = ::OpenTelemetry::SDK::Logs::LoggerProvider.create(
+          resource: resource,
+          log_record_processors: [
+            ::OpenTelemetry::SDK::Logs::Export::BatchLogRecordProcessor.new(
+              ::OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: logs_endpoint)
+            )
+          ]
+        )
+        ::OpenTelemetry::Logs.logger_provider = logger_provider
+
+        # Extend Rails logger to also send to OpenTelemetry
+        # Handle both regular Logger and BroadcastLogger
+        if Rails.logger.is_a?(ActiveSupport::Logger)
+          Rails.logger.extend(Decidim::Voca::OpenTelemetry::OtelLogger)
+        elsif Rails.logger.respond_to?(:broadcast)
+          # For BroadcastLogger, extend each logger in the broadcast chain
+          Rails.logger.instance_variable_get(:@broadcasts)&.each do |broadcast_logger|
+            broadcast_logger.extend(Decidim::Voca::OpenTelemetry::OtelLogger) if broadcast_logger.is_a?(ActiveSupport::Logger)
+          end
+        end
+
+        Rails.logger.info("[OpenTelemetry] Logging configured successfully")
       end
 
       def setup_error_reporting!

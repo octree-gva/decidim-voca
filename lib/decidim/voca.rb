@@ -35,8 +35,10 @@ require_relative "voca/overrides/participatory_process_groups_controller_overrid
 require_relative "voca/overrides/mod_secure/conversation_uuid"
 require_relative "voca/overrides/mod_secure/conversation_controller_overrides"
 require_relative "voca/overrides/mod_secure/conversation_sanitize"
+require_relative "voca/open_telemetry/decidim_context_attributes"
 require_relative "voca/open_telemetry/otel_decidim_context"
 require_relative "voca/open_telemetry/otel_error_subscriber"
+require_relative "voca/open_telemetry/otel_logger_subscriber"
 require "good_job/engine"
 
 module Decidim
@@ -79,6 +81,17 @@ module Decidim
         ENV.fetch(
           "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
           "#{ENV.fetch("OTEL_EXPORTER_OTLP_ENDPOINT")}/v1/traces"
+        )
+      rescue KeyError
+        ""
+      end
+    end
+
+    def self.opentelemetry_logs_endpoint
+      @opentelemetry_logs_endpoint ||= begin
+        ENV.fetch(
+          "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+          "#{ENV.fetch("OTEL_EXPORTER_OTLP_ENDPOINT")}/v1/logs"
         )
       rescue KeyError
         ""
