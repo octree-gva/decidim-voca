@@ -104,5 +104,13 @@ module Decidim
       endpoint = opentelemetry_traces_endpoint
       endpoint.present? && endpoint.strip.present?
     end
+
+    def self.opentelemetry_logger_provider
+      @opentelemetry_logger_provider
+    end
+
+    def self.opentelemetry_logger_provider=(provider)
+      @opentelemetry_logger_provider = provider
+    end
   end
 end

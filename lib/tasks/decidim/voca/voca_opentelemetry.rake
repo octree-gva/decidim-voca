@@ -123,26 +123,34 @@ namespace :decidim do
             puts "  Add 'opentelemetry-logs-sdk' to Gemfile"
           end
 
+          # Check logger provider - try both OpenTelemetry::Logs and our stored version
+          logger_provider = nil
           if defined?(::OpenTelemetry::Logs)
             begin
               if ::OpenTelemetry::Logs.respond_to?(:logger_provider)
                 logger_provider = ::OpenTelemetry::Logs.logger_provider
                 if logger_provider
-                  puts "✓ Logger provider configured: #{logger_provider.class}"
-                else
-                  puts "⚠ Logger provider not configured (nil)"
-                  puts "  Check that setup_logging! was called in the initializer"
+                  puts "✓ Logger provider configured (via OpenTelemetry::Logs): #{logger_provider.class}"
                 end
               else
-                puts "⚠ OpenTelemetry::Logs.logger_provider method not available"
-                puts "  This may indicate the logs SDK API is different or not loaded"
+                puts "⚠ OpenTelemetry::Logs.logger_provider getter not available (Ruby logs SDK limitation)"
               end
             rescue NoMethodError => e
-              puts "⚠ Cannot access logger_provider: #{e.message}"
-              puts "  The logs SDK may not be properly initialized"
+              puts "⚠ Cannot access logger_provider via OpenTelemetry::Logs: #{e.message}"
             end
           else
             puts "⚠ OpenTelemetry::Logs not available"
+          end
+          
+          # Check our stored logger provider
+          stored_provider = Decidim::Voca.opentelemetry_logger_provider
+          if stored_provider
+            puts "✓ Logger provider configured (stored in Decidim::Voca): #{stored_provider.class}"
+            logger_provider ||= stored_provider
+          elsif !logger_provider
+            puts "⚠ Logger provider not configured"
+            puts "  Check that setup_logging! was called in the initializer"
+            puts "  Check application logs for '[OpenTelemetry]' messages"
           end
 
           # Check if Rails logger is extended
@@ -163,11 +171,12 @@ namespace :decidim do
           end
 
           # Test sending a log record
-          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.respond_to?(:logger_provider) && ::OpenTelemetry::Logs.logger_provider
+          test_logger_provider = logger_provider || Decidim::Voca.opentelemetry_logger_provider
+          if test_logger_provider
             puts
             puts "Sending test log record..."
             begin
-              logger = ::OpenTelemetry::Logs.logger_provider.logger("decidim-voca-test")
+              logger = test_logger_provider.logger("decidim-voca-test")
               log_record = logger.create_log_record(
                 timestamp: Time.now,
                 severity_number: 9, # INFO
@@ -188,7 +197,7 @@ namespace :decidim do
           end
 
           # Test Rails logger integration
-          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.respond_to?(:logger_provider) && ::OpenTelemetry::Logs.logger_provider
+          if test_logger_provider
             puts
             puts "Testing Rails logger integration..."
             begin
@@ -256,10 +265,16 @@ namespace :decidim do
         puts "OpenTelemetry SDK status:"
         puts "  SDK loaded: #{defined?(::OpenTelemetry::SDK)}"
         puts "  Logs SDK loaded: #{defined?(::OpenTelemetry::SDK::Logs)}"
-        logger_provider_status = if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.respond_to?(:logger_provider)
-                                  ::OpenTelemetry::Logs.logger_provider ? 'configured' : 'not configured'
+        stored_provider = Decidim::Voca.opentelemetry_logger_provider
+        otel_provider = if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.respond_to?(:logger_provider)
+                          ::OpenTelemetry::Logs.logger_provider
+                        end
+        logger_provider_status = if stored_provider || otel_provider
+                                  'configured'
+                                elsif defined?(::OpenTelemetry::Logs) && !::OpenTelemetry::Logs.respond_to?(:logger_provider)
+                                  'method not available (Ruby SDK limitation)'
                                 else
-                                  'method not available'
+                                  'not configured'
                                 end
         puts "  Logger provider: #{logger_provider_status}"
         puts

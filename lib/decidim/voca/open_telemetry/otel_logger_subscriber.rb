@@ -17,7 +17,18 @@ module Decidim
 
         def send_to_otel(severity, timestamp, progname, msg)
           return unless defined?(::OpenTelemetry::Logs)
-          return unless (logger_provider = ::OpenTelemetry::Logs.logger_provider)
+          
+          # Try to get logger provider - Ruby OpenTelemetry logs SDK is incomplete
+          # so we store it ourselves in Decidim::Voca
+          logger_provider = begin
+            if ::OpenTelemetry::Logs.respond_to?(:logger_provider)
+              ::OpenTelemetry::Logs.logger_provider
+            else
+              Decidim::Voca.opentelemetry_logger_provider
+            end
+          end
+          
+          return unless logger_provider
 
           message = msg.is_a?(String) ? msg : msg.inspect
           return if message.nil? || message.empty?
