@@ -46,8 +46,7 @@ module Decidim
         def extract_env(context)
           return context[:request].env if context.is_a?(Hash) && context[:request]&.respond_to?(:env)
 
-          request = ActionDispatch::Request.current if defined?(ActionDispatch::Request)
-          request&.env
+          nil
         end
 
         def set_user_attributes(env, span)
