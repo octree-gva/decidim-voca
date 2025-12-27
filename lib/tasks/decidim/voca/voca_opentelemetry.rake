@@ -104,6 +104,95 @@ namespace :decidim do
           puts "  Backtrace: #{e.backtrace.first(3).join("\n  ")}"
         end
 
+        # Test logs configuration
+        puts
+        puts "Testing logs configuration..."
+        begin
+          logs_endpoint = Decidim::Voca.opentelemetry_logs_endpoint
+          if logs_endpoint.present?
+            puts "✓ Logs endpoint: #{logs_endpoint}"
+          else
+            puts "⚠ Logs endpoint not configured"
+            puts "  Set OTEL_EXPORTER_OTLP_LOGS_ENDPOINT or OTEL_EXPORTER_OTLP_ENDPOINT"
+          end
+
+          if defined?(::OpenTelemetry::SDK::Logs::LoggerProvider)
+            puts "✓ Logs SDK available"
+          else
+            puts "✗ Logs SDK not available"
+            puts "  Add 'opentelemetry-logs-sdk' to Gemfile"
+          end
+
+          if defined?(::OpenTelemetry::Logs)
+            logger_provider = ::OpenTelemetry::Logs.logger_provider
+            if logger_provider
+              puts "✓ Logger provider configured: #{logger_provider.class}"
+            else
+              puts "⚠ Logger provider not configured"
+            end
+          else
+            puts "⚠ OpenTelemetry::Logs not available"
+          end
+
+          # Check if Rails logger is extended
+          if Rails.logger.is_a?(ActiveSupport::Logger)
+            if Rails.logger.singleton_class.included_modules.include?(Decidim::Voca::OpenTelemetry::OtelLogger)
+              puts "✓ Rails logger extended with OtelLogger"
+            else
+              puts "⚠ Rails logger not extended with OtelLogger"
+            end
+          elsif Rails.logger.respond_to?(:broadcast)
+            broadcasts = Rails.logger.instance_variable_get(:@broadcasts) || []
+            extended_count = broadcasts.count { |b| b.singleton_class.included_modules.include?(Decidim::Voca::OpenTelemetry::OtelLogger) }
+            if extended_count > 0
+              puts "✓ Rails logger (BroadcastLogger) extended: #{extended_count}/#{broadcasts.length} loggers"
+            else
+              puts "⚠ Rails logger (BroadcastLogger) not extended with OtelLogger"
+            end
+          end
+
+          # Test sending a log record
+          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.logger_provider
+            puts
+            puts "Sending test log record..."
+            begin
+              logger = ::OpenTelemetry::Logs.logger_provider.logger("decidim-voca-test")
+              log_record = logger.create_log_record(
+                timestamp: Time.now,
+                severity_number: 9, # INFO
+                severity_text: "INFO",
+                body: "Test log message from rake task - #{Time.now.iso8601}",
+                attributes: {
+                  "test.source" => "rake_task",
+                  "test.timestamp" => Time.now.to_i
+                }
+              )
+              logger.emit(log_record)
+              puts "✓ Test log record sent"
+              puts "  Check SigNoz for log with message: 'Test log message from rake task'"
+            rescue StandardError => e
+              puts "✗ Failed to send log record: #{e.class} - #{e.message}"
+              puts "  Backtrace: #{e.backtrace.first(3).join("\n  ")}"
+            end
+          end
+
+          # Test Rails logger integration
+          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.logger_provider
+            puts
+            puts "Testing Rails logger integration..."
+            begin
+              Rails.logger.info("[OpenTelemetry Test] Test log from Rails.logger - #{Time.now.iso8601}")
+              puts "✓ Test log sent via Rails.logger.info"
+              puts "  Check SigNoz for log with message containing '[OpenTelemetry Test]'"
+            rescue StandardError => e
+              puts "⚠ Rails logger test failed: #{e.message}"
+            end
+          end
+        rescue StandardError => e
+          puts "⚠ Logs configuration test failed: #{e.message}"
+          puts "  Backtrace: #{e.backtrace.first(3).join("\n  ")}"
+        end
+
         # Check middleware registration
         begin
           middleware_stack = Rails.application.config.middleware
@@ -136,6 +225,11 @@ namespace :decidim do
         puts "  2. Check network connectivity to SigNoz/OTLP collector"
         puts "  3. Review application logs for OpenTelemetry errors"
         puts "  4. Verify OTLP collector is running and configured correctly"
+        puts "If logs still don't appear in SigNoz:"
+        puts "  1. Verify logs endpoint is configured: #{Decidim::Voca.opentelemetry_logs_endpoint || '(not set)'}"
+        puts "  2. Ensure opentelemetry-logs-sdk gem is installed"
+        puts "  3. Check that logger provider is configured in initializer"
+        puts "  4. Verify Rails logger is extended with OtelLogger"
       end
 
       desc "Show OpenTelemetry configuration"
@@ -144,12 +238,19 @@ namespace :decidim do
         puts
         puts "Enabled: #{Decidim::Voca.opentelemetry_enabled?}"
         puts "Traces endpoint: #{Decidim::Voca.opentelemetry_traces_endpoint}"
+        puts "Logs endpoint: #{Decidim::Voca.opentelemetry_logs_endpoint || '(not set)'}"
         puts "Service name: #{ENV.fetch('MASTER_ID', ENV.fetch('OTEL_SERVICE_NAME', 'rails-app'))}"
         puts "Host name: #{ENV.fetch('MASTER_HOST', ENV.fetch('MASTER_IP', 'unknown'))}"
+        puts
+        puts "OpenTelemetry SDK status:"
+        puts "  SDK loaded: #{defined?(::OpenTelemetry::SDK)}"
+        puts "  Logs SDK loaded: #{defined?(::OpenTelemetry::SDK::Logs)}"
+        puts "  Logger provider: #{defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.logger_provider ? 'configured' : 'not configured'}"
         puts
         puts "Environment variables:"
         puts "  OTEL_EXPORTER_OTLP_ENDPOINT: #{ENV['OTEL_EXPORTER_OTLP_ENDPOINT'] || '(not set)'}"
         puts "  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: #{ENV['OTEL_EXPORTER_OTLP_TRACES_ENDPOINT'] || '(not set)'}"
+        puts "  OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: #{ENV['OTEL_EXPORTER_OTLP_LOGS_ENDPOINT'] || '(not set)'}"
         puts "  OTEL_SERVICE_NAME: #{ENV['OTEL_SERVICE_NAME'] || '(not set)'}"
         puts "  MASTER_ID: #{ENV['MASTER_ID'] || '(not set)'}"
         puts "  MASTER_HOST: #{ENV['MASTER_HOST'] || '(not set)'}"
