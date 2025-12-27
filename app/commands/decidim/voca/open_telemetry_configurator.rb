@@ -44,7 +44,7 @@ module Decidim
         ::OpenTelemetry::SDK.configure do |c|
           c.service_name = service_name
           c.resource = resource
-          c.use_all
+          c.use_all(excluded_instrumentations: ["OpenTelemetry::Instrumentation::ActionPack"])
           c.add_span_processor(span_processor)
         end
         Rails.logger.info("[OpenTelemetry] SDK configured successfully")
