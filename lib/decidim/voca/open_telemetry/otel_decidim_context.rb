@@ -22,7 +22,7 @@ module Decidim
 
           @app.call(env)
         rescue StandardError => e
-          record_exception(e, span) if span&.recording?
+          Rails.error.report(e, context: { request: ActionDispatch::Request.new(env) }, source: "middleware") if defined?(Rails.error)
           raise
         end
 
@@ -54,11 +54,6 @@ module Decidim
 
           span.set_attribute("decidim.component.id", component.id.to_s)
           span.set_attribute("decidim.component.manifest", component.manifest_name.to_s) if component.respond_to?(:manifest_name)
-        end
-
-        def record_exception(error, span)
-          span.record_exception(error)
-          span.status = ::OpenTelemetry::Trace::Status.error(error.to_s)
         end
       end
     end
