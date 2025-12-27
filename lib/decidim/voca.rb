@@ -35,11 +35,13 @@ require_relative "voca/overrides/participatory_process_groups_controller_overrid
 require_relative "voca/overrides/mod_secure/conversation_uuid"
 require_relative "voca/overrides/mod_secure/conversation_controller_overrides"
 require_relative "voca/overrides/mod_secure/conversation_sanitize"
+require_relative "voca/open_telemetry/otel_decidim_context"
 require "good_job/engine"
 
 module Decidim
   module Voca
     UUID_REGEXP = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/
+    autoload :OpenTelemetryConfigurator, "decidim/voca/open_telemetry_configurator"
     autoload :RackAttackConfigurator, "decidim/voca/rack_attack_configurator"
     autoload :UserFieldsConfigurator, "decidim/voca/user_fields_configurator"
     def self.configuration
@@ -69,6 +71,24 @@ module Decidim
 
     def self.deepl_enabled?
       ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+    end
+
+    def self.opentelemetry_traces_endpoint
+      @opentelemetry_traces_endpoint ||= begin
+        ENV.fetch(
+          "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+          "#{ENV.fetch("OTEL_EXPORTER_OTLP_ENDPOINT")}/v1/traces"
+        )
+      rescue KeyError
+        ""
+      end
+    end
+
+    def self.opentelemetry_enabled?
+      return false unless defined?(OpenTelemetry)
+
+      endpoint = opentelemetry_traces_endpoint
+      endpoint.present? && endpoint.strip.present?
     end
   end
 end

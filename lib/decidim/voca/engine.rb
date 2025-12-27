@@ -214,6 +214,16 @@ module Decidim
         end
       end
 
+      # OpenTelemetry configuration
+      initializer "decidim.voca.open_telemetry", after: :load_config_initializers do
+        if Decidim::Voca.opentelemetry_enabled?
+          ActiveSupport::Reloader.to_prepare do
+            Decidim::Voca::OpenTelemetryConfigurator.call
+          end
+          Rails.application.config.middleware.use ::Decidim::Voca::OpenTelemetry::OtelDecidimContext
+        end
+      end
+
       initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
         Decidim::Voca::UserFieldsConfigurator.call
       end
