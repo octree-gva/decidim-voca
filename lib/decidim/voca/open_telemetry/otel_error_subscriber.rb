@@ -5,7 +5,7 @@ module Decidim
     module OpenTelemetry
       class OtelErrorSubscriber
         def report(error, handled:, severity:, context:, source: nil)
-          return unless defined?(OpenTelemetry)
+          return unless defined?(::OpenTelemetry)
 
           span = ::OpenTelemetry::Trace.current_span
           return unless span&.recording?

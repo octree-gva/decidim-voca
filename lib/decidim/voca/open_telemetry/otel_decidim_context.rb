@@ -16,6 +16,8 @@ module Decidim
             set_organization_attributes(env, span)
             set_participatory_space_attributes(env, span)
             set_component_attributes(env, span)
+          else
+            Rails.logger.debug("[OpenTelemetry] No active span for request: #{env['PATH_INFO']}")
           end
 
           @app.call(env)

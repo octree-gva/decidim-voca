@@ -86,7 +86,7 @@ module Decidim
     end
 
     def self.opentelemetry_enabled?
-      return false unless defined?(OpenTelemetry)
+      return false unless defined?(::OpenTelemetry)
 
       endpoint = opentelemetry_traces_endpoint
       endpoint.present? && endpoint.strip.present?
