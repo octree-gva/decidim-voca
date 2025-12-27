@@ -7,14 +7,15 @@ module Decidim
         def report(error, handled:, severity:, context:, source: nil)
           return unless defined?(::OpenTelemetry)
 
-          span = ::OpenTelemetry::Trace.current_span
+          current_span = ::OpenTelemetry::Trace.current_span
           
           # Create a span if none exists (e.g., background jobs, rake tasks)
-          if span.nil? || !span.recording?
+          if current_span.nil? || !current_span.recording?
             tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-error")
             span = tracer.start_span("error.report")
             created_span = true
           else
+            span = current_span
             created_span = false
           end
 
@@ -33,6 +34,9 @@ module Decidim
               set_organization_attributes(env, span)
               set_participatory_space_attributes(env, span)
               set_component_attributes(env, span)
+            else
+              # Try to extract from controller context if available
+              extract_from_controller_context(context, span)
             end
 
             span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
@@ -44,7 +48,30 @@ module Decidim
         private
 
         def extract_env(context)
-          return context[:request].env if context.is_a?(Hash) && context[:request]&.respond_to?(:env)
+          # Try to get env from context[:request]
+          if context.is_a?(Hash) && context[:request]&.respond_to?(:env)
+            return context[:request].env
+          end
+
+          # Try to get env from context[:env] directly
+          if context.is_a?(Hash) && context[:env].is_a?(Hash)
+            return context[:env]
+          end
+
+          # Try to get current request from ActionDispatch::Request.current
+          if defined?(ActionDispatch::Request)
+            begin
+              request = ActionDispatch::Request.current
+              return request.env if request&.respond_to?(:env)
+            rescue StandardError
+              # ActionDispatch::Request.current might not be available
+            end
+          end
+
+          # Try to get request from Thread.current (Rails pattern)
+          if (request = Thread.current[:request])&.respond_to?(:env)
+            return request.env
+          end
 
           nil
         end
@@ -75,6 +102,35 @@ module Decidim
 
           span.set_attribute("decidim.component.id", component.id.to_s)
           span.set_attribute("decidim.component.manifest", component.manifest_name.to_s) if component.respond_to?(:manifest_name)
+        end
+
+        def extract_from_controller_context(context, span)
+          return unless context.is_a?(Hash)
+
+          # Try to get request from controller
+          controller = context[:controller] || context[:controller_class]
+          if controller&.respond_to?(:request)
+            request = controller.request
+            env = request.env if request&.respond_to?(:env)
+            if env
+              set_user_attributes(env, span)
+              set_organization_attributes(env, span)
+              set_participatory_space_attributes(env, span)
+              set_component_attributes(env, span)
+              return
+            end
+          end
+
+          # Try to get user directly from context
+          if (user = context[:user] || context[:current_user])
+            span.set_attribute("enduser.id", user.id.to_s) if user.respond_to?(:id)
+          end
+
+          # Try to get organization directly from context
+          if (org = context[:organization] || context[:current_organization])
+            span.set_attribute("decidim.organization.id", org.id.to_s) if org.respond_to?(:id)
+            span.set_attribute("decidim.organization.slug", org.slug.to_s) if org.respond_to?(:slug)
+          end
         end
       end
     end
