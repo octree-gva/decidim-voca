@@ -3,28 +3,37 @@
 module Decidim
   module Voca
     module OpenTelemetry
-      class OtelDecidimContext
-        def initialize(app)
-          @app = app
-        end
+      class OtelErrorSubscriber
+        def report(error, handled:, severity:, context:, source: nil)
+          return unless defined?(OpenTelemetry)
 
-        def call(env)
           span = ::OpenTelemetry::Trace.current_span
+          return unless span&.recording?
 
-          if span&.recording?
+          span.record_exception(error)
+          span.set_attribute("error.handled", handled)
+          span.set_attribute("error.severity", severity.to_s)
+          span.set_attribute("error.source", source.to_s) if source
+
+          env = extract_env(context)
+          if env
             set_user_attributes(env, span)
             set_organization_attributes(env, span)
             set_participatory_space_attributes(env, span)
             set_component_attributes(env, span)
           end
 
-          @app.call(env)
-        rescue StandardError => e
-          record_exception(e, span) if span&.recording?
-          raise
+          span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
         end
 
         private
+
+        def extract_env(context)
+          return context[:request].env if context.is_a?(Hash) && context[:request]&.respond_to?(:env)
+
+          request = ActionDispatch::Request.current if defined?(ActionDispatch::Request)
+          request&.env
+        end
 
         def set_user_attributes(env, span)
           return unless (user = env["warden"]&.user)
@@ -52,11 +61,6 @@ module Decidim
 
           span.set_attribute("decidim.component.id", component.id.to_s)
           span.set_attribute("decidim.component.manifest", component.manifest_name.to_s) if component.respond_to?(:manifest_name)
-        end
-
-        def record_exception(error, span)
-          span.record_exception(error)
-          span.status = ::OpenTelemetry::Trace::Status.error(error.to_s)
         end
       end
     end

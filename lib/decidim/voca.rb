@@ -36,6 +36,7 @@ require_relative "voca/overrides/mod_secure/conversation_uuid"
 require_relative "voca/overrides/mod_secure/conversation_controller_overrides"
 require_relative "voca/overrides/mod_secure/conversation_sanitize"
 require_relative "voca/open_telemetry/otel_decidim_context"
+require_relative "voca/open_telemetry/otel_error_subscriber"
 require "good_job/engine"
 
 module Decidim

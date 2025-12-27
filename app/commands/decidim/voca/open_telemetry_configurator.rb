@@ -2,8 +2,6 @@
 
 module Decidim
   module Voca
-    ##
-    # Configures OpenTelemetry for Decidim Voca
     class OpenTelemetryConfigurator < Decidim::Command
       def call
         return broadcast(:ok) unless Decidim::Voca.opentelemetry_enabled?
@@ -38,6 +36,7 @@ module Decidim
           c.use_all
           c.add_span_processor(span_processor)
         end
+        setup_error_reporting!
       end
 
       def service_name
@@ -62,6 +61,10 @@ module Decidim
             endpoint: traces_endpoint
           )
         )
+      end
+
+      def setup_error_reporting!
+        Rails.error.subscribe(Decidim::Voca::OpenTelemetry::OtelErrorSubscriber.new) if defined?(Rails.error)
       end
     end
   end
