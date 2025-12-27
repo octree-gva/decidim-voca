@@ -71,6 +71,67 @@ namespace :decidim do
           puts "⚠ Could not inspect span processors: #{e.message}"
         end
 
+        # Check error subscriber registration
+        puts
+        puts "Testing error reporting integration..."
+        begin
+          if defined?(Rails.error)
+            subscribers = Rails.error.instance_variable_get(:@subscribers) || []
+            otel_subscriber = subscribers.find { |s| s.is_a?(Decidim::Voca::OpenTelemetry::OtelErrorSubscriber) }
+            if otel_subscriber
+              puts "✓ Error subscriber registered"
+            else
+              puts "⚠ Error subscriber not found in Rails.error subscribers"
+              puts "  Subscribers: #{subscribers.map(&:class).join(', ')}"
+            end
+          else
+            puts "⚠ Rails.error not available (Rails < 7.0)"
+          end
+        rescue StandardError => e
+          puts "⚠ Could not check error subscriber: #{e.message}"
+        end
+
+        # Test error reporting
+        begin
+          if defined?(Rails.error)
+            test_error = StandardError.new("Test error for OpenTelemetry")
+            tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-test")
+            span = tracer.start_span("test.error.reporting")
+            begin
+              Rails.error.report(test_error, context: {}, source: "rake_test")
+              puts "✓ Error reported via Rails.error"
+            ensure
+              span.finish
+            end
+          end
+        rescue StandardError => e
+          puts "⚠ Error reporting test failed: #{e.message}"
+        end
+
+        # Check middleware registration
+        begin
+          middleware_stack = Rails.application.config.middleware
+          middlewares = middleware_stack.instance_variable_get(:@middlewares) || []
+          otel_middleware = middlewares.find do |m|
+            m.klass == Decidim::Voca::OpenTelemetry::OtelDecidimContext ||
+              (m.respond_to?(:klass) && m.klass.to_s == "Decidim::Voca::OpenTelemetry::OtelDecidimContext")
+          end
+          if otel_middleware
+            puts "✓ OtelDecidimContext middleware registered"
+          else
+            # Try alternative check
+            middleware_names = middlewares.map { |m| m.respond_to?(:klass) ? m.klass.to_s : m.to_s }
+            if middleware_names.any? { |name| name.include?("OtelDecidimContext") }
+              puts "✓ OtelDecidimContext middleware registered (found by name)"
+            else
+              puts "⚠ OtelDecidimContext middleware not found in stack"
+              puts "  Middleware count: #{middlewares.length}"
+            end
+          end
+        rescue StandardError => e
+          puts "⚠ Could not check middleware: #{e.message}"
+        end
+
         puts
         puts "=== Summary ==="
         puts "Configuration looks correct. Check your logs for [OpenTelemetry] messages."

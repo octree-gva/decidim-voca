@@ -8,22 +8,34 @@ module Decidim
           return unless defined?(::OpenTelemetry)
 
           span = ::OpenTelemetry::Trace.current_span
-          return unless span&.recording?
-
-          span.record_exception(error)
-          span.set_attribute("error.handled", handled)
-          span.set_attribute("error.severity", severity.to_s)
-          span.set_attribute("error.source", source.to_s) if source
-
-          env = extract_env(context)
-          if env
-            set_user_attributes(env, span)
-            set_organization_attributes(env, span)
-            set_participatory_space_attributes(env, span)
-            set_component_attributes(env, span)
+          
+          # Create a span if none exists (e.g., background jobs, rake tasks)
+          if span.nil? || !span.recording?
+            tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-error")
+            span = tracer.start_span("error.report")
+            created_span = true
+          else
+            created_span = false
           end
 
-          span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
+          begin
+            span.record_exception(error)
+            span.set_attribute("error.handled", handled)
+            span.set_attribute("error.severity", severity.to_s)
+            span.set_attribute("error.source", source.to_s) if source
+
+            env = extract_env(context)
+            if env
+              set_user_attributes(env, span)
+              set_organization_attributes(env, span)
+              set_participatory_space_attributes(env, span)
+              set_component_attributes(env, span)
+            end
+
+            span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
+          ensure
+            span.finish if created_span
+          end
         end
 
         private
