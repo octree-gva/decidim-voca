@@ -124,11 +124,22 @@ namespace :decidim do
           end
 
           if defined?(::OpenTelemetry::Logs)
-            logger_provider = ::OpenTelemetry::Logs.logger_provider
-            if logger_provider
-              puts "✓ Logger provider configured: #{logger_provider.class}"
-            else
-              puts "⚠ Logger provider not configured"
+            begin
+              if ::OpenTelemetry::Logs.respond_to?(:logger_provider)
+                logger_provider = ::OpenTelemetry::Logs.logger_provider
+                if logger_provider
+                  puts "✓ Logger provider configured: #{logger_provider.class}"
+                else
+                  puts "⚠ Logger provider not configured (nil)"
+                  puts "  Check that setup_logging! was called in the initializer"
+                end
+              else
+                puts "⚠ OpenTelemetry::Logs.logger_provider method not available"
+                puts "  This may indicate the logs SDK API is different or not loaded"
+              end
+            rescue NoMethodError => e
+              puts "⚠ Cannot access logger_provider: #{e.message}"
+              puts "  The logs SDK may not be properly initialized"
             end
           else
             puts "⚠ OpenTelemetry::Logs not available"
@@ -152,7 +163,7 @@ namespace :decidim do
           end
 
           # Test sending a log record
-          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.logger_provider
+          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.respond_to?(:logger_provider) && ::OpenTelemetry::Logs.logger_provider
             puts
             puts "Sending test log record..."
             begin
@@ -177,7 +188,7 @@ namespace :decidim do
           end
 
           # Test Rails logger integration
-          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.logger_provider
+          if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.respond_to?(:logger_provider) && ::OpenTelemetry::Logs.logger_provider
             puts
             puts "Testing Rails logger integration..."
             begin
@@ -245,7 +256,12 @@ namespace :decidim do
         puts "OpenTelemetry SDK status:"
         puts "  SDK loaded: #{defined?(::OpenTelemetry::SDK)}"
         puts "  Logs SDK loaded: #{defined?(::OpenTelemetry::SDK::Logs)}"
-        puts "  Logger provider: #{defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.logger_provider ? 'configured' : 'not configured'}"
+        logger_provider_status = if defined?(::OpenTelemetry::Logs) && ::OpenTelemetry::Logs.respond_to?(:logger_provider)
+                                  ::OpenTelemetry::Logs.logger_provider ? 'configured' : 'not configured'
+                                else
+                                  'method not available'
+                                end
+        puts "  Logger provider: #{logger_provider_status}"
         puts
         puts "Environment variables:"
         puts "  OTEL_EXPORTER_OTLP_ENDPOINT: #{ENV['OTEL_EXPORTER_OTLP_ENDPOINT'] || '(not set)'}"
