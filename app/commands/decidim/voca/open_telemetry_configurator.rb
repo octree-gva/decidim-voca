@@ -42,7 +42,12 @@ module Decidim
         require "opentelemetry/sdk"
         require "opentelemetry/exporter/otlp"
         require "opentelemetry/instrumentation/all"
-        require "opentelemetry/sdk/logs"
+        begin
+          require "opentelemetry/sdk/logs"
+        rescue LoadError
+          # Logs SDK may not be available in all OpenTelemetry SDK versions
+          Rails.logger.debug("[OpenTelemetry] Logs SDK not available - logs will be disabled")
+        end
       end
 
       def configure_sdk!
@@ -84,6 +89,7 @@ module Decidim
 
       def setup_logging!
         return unless logs_endpoint.present?
+        return unless defined?(::OpenTelemetry::SDK::Logs::LoggerProvider)
 
         Rails.logger.debug("[OpenTelemetry] Configuring logging...")
         logger_provider = ::OpenTelemetry::SDK::Logs::LoggerProvider.create(
