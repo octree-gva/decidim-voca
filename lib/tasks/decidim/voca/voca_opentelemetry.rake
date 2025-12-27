@@ -94,18 +94,14 @@ namespace :decidim do
         # Test error reporting
         begin
           if defined?(Rails.error)
-            test_error = StandardError.new("Test error for OpenTelemetry")
-            tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-test")
-            span = tracer.start_span("test.error.reporting")
-            begin
-              Rails.error.report(test_error, context: {}, source: "rake_test")
-              puts "✓ Error reported via Rails.error"
-            ensure
-              span.finish
-            end
+            test_error = StandardError.new("Test error for OpenTelemetry integration test")
+            Rails.error.report(test_error, handled: false, severity: :error, context: {}, source: "rake_test")
+            puts "✓ Error reported via Rails.error"
+            puts "  Check SigNoz for error trace with message: 'Test error for OpenTelemetry integration test'"
           end
         rescue StandardError => e
           puts "⚠ Error reporting test failed: #{e.message}"
+          puts "  Backtrace: #{e.backtrace.first(3).join("\n  ")}"
         end
 
         # Check middleware registration
