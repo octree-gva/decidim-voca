@@ -95,7 +95,7 @@ namespace :decidim do
         begin
           if defined?(Rails.error)
             test_error = StandardError.new("Test error for OpenTelemetry integration test")
-            Rails.error.report(test_error, handled: false, severity: :error, context: {}, source: "rake_test")
+            Rails.error.report(test_error, handled: false, severity: :error, context: { source: "rake_test" })
             puts "✓ Error reported via Rails.error"
             puts "  Check SigNoz for error trace with message: 'Test error for OpenTelemetry integration test'"
           end

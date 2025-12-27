@@ -22,7 +22,9 @@ module Decidim
 
           @app.call(env)
         rescue StandardError => e
-          Rails.error.report(e, context: { request: ActionDispatch::Request.new(env) }, source: "middleware") if defined?(Rails.error)
+          if defined?(Rails.error)
+            Rails.error.report(e, handled: false, severity: :error, context: { request: ActionDispatch::Request.new(env), source: "middleware" })
+          end
           raise
         end
 

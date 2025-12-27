@@ -22,7 +22,10 @@ module Decidim
             span.record_exception(error)
             span.set_attribute("error.handled", handled)
             span.set_attribute("error.severity", severity.to_s)
-            span.set_attribute("error.source", source.to_s) if source
+            
+            # Extract source from context or parameter
+            error_source = source || (context.is_a?(Hash) ? context[:source] : nil)
+            span.set_attribute("error.source", error_source.to_s) if error_source
 
             env = extract_env(context)
             if env
