@@ -39,29 +39,28 @@ module Decidim
             
             attributes = extract_attributes(progname)
             
-            # Try different API approaches - Ruby logs SDK API is inconsistent
+            # Try emit with keyword parameters
             if logger.respond_to?(:emit)
-              # Method 1: emit with parameters directly
-              logger.emit(
-                timestamp: timestamp,
-                severity_number: severity_to_number(severity),
-                severity_text: severity_to_text(severity),
-                body: message,
-                attributes: attributes
-              )
-            elsif defined?(::OpenTelemetry::Logs::LogRecord) && ::OpenTelemetry::Logs::LogRecord.respond_to?(:new)
-              # Method 2: Create LogRecord and emit it
-              log_record = ::OpenTelemetry::Logs::LogRecord.new(
-                timestamp: timestamp,
-                severity_number: severity_to_number(severity),
-                severity_text: severity_to_text(severity),
-                body: message,
-                attributes: attributes
-              )
-              logger.emit(log_record)
-            else
-              # Method 3: Try calling emit with positional args
-              logger.emit(timestamp, severity_to_number(severity), severity_to_text(severity), message, attributes)
+              begin
+                logger.emit(
+                  timestamp: timestamp,
+                  severity_number: severity_to_number(severity),
+                  severity_text: severity_to_text(severity),
+                  body: message,
+                  attributes: attributes
+                )
+              rescue ArgumentError
+                # If keyword args don't work, try creating LogRecord and setting attributes
+                if defined?(::OpenTelemetry::Logs::LogRecord)
+                  log_record = ::OpenTelemetry::Logs::LogRecord.new
+                  log_record.timestamp = timestamp
+                  log_record.severity_number = severity_to_number(severity)
+                  log_record.severity_text = severity_to_text(severity)
+                  log_record.body = message
+                  log_record.attributes = attributes
+                  logger.emit(log_record)
+                end
+              end
             end
           rescue StandardError => e
             # Don't break logging if OpenTelemetry fails

@@ -178,34 +178,41 @@ namespace :decidim do
             begin
               logger = test_logger_provider.logger(name: "decidim-voca-test")
               
-              # Try different API approaches - Ruby logs SDK API is inconsistent
+              # Check what methods logger actually has
+              puts "  Logger methods: #{logger.methods.grep(/emit|log|record/).join(', ')}" if ENV["OTEL_DEBUG"]
+              
+              # Try emit with keyword parameters (most likely API)
               if logger.respond_to?(:emit)
-                # Method 1: emit with keyword parameters
-                logger.emit(
-                  timestamp: Time.now,
-                  severity_number: 9, # INFO
-                  severity_text: "INFO",
-                  body: "Test log message from rake task - #{Time.now.iso8601}",
-                  attributes: {
-                    "test.source" => "rake_task",
-                    "test.timestamp" => Time.now.to_i
-                  }
-                )
-              elsif defined?(::OpenTelemetry::Logs::LogRecord) && ::OpenTelemetry::Logs::LogRecord.respond_to?(:new)
-                # Method 2: Create LogRecord first
-                log_record = ::OpenTelemetry::Logs::LogRecord.new(
-                  timestamp: Time.now,
-                  severity_number: 9,
-                  severity_text: "INFO",
-                  body: "Test log message from rake task - #{Time.now.iso8601}",
-                  attributes: {
-                    "test.source" => "rake_task",
-                    "test.timestamp" => Time.now.to_i
-                  }
-                )
-                logger.emit(log_record)
+                begin
+                  logger.emit(
+                    timestamp: Time.now,
+                    severity_number: 9, # INFO
+                    severity_text: "INFO",
+                    body: "Test log message from rake task - #{Time.now.iso8601}",
+                    attributes: {
+                      "test.source" => "rake_task",
+                      "test.timestamp" => Time.now.to_i
+                    }
+                  )
+                rescue ArgumentError => e
+                  # If keyword args don't work, try creating LogRecord and setting attributes
+                  if defined?(::OpenTelemetry::Logs::LogRecord)
+                    log_record = ::OpenTelemetry::Logs::LogRecord.new
+                    log_record.timestamp = Time.now
+                    log_record.severity_number = 9
+                    log_record.severity_text = "INFO"
+                    log_record.body = "Test log message from rake task - #{Time.now.iso8601}"
+                    log_record.attributes = {
+                      "test.source" => "rake_task",
+                      "test.timestamp" => Time.now.to_i
+                    }
+                    logger.emit(log_record)
+                  else
+                    raise "Cannot create log record: #{e.message}"
+                  end
+                end
               else
-                raise "Logger does not have emit method and LogRecord class not available"
+                raise "Logger does not have emit method"
               end
               
               # Flush log record processors
