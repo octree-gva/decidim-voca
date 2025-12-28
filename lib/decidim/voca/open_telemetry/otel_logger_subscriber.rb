@@ -38,17 +38,15 @@ module Decidim
             return unless logger
             
             attributes = extract_attributes(progname)
-            log_record = logger.create_log_record(
+            
+            # Logger.emit takes parameters directly, not a log record object
+            logger.emit(
               timestamp: timestamp,
               severity_number: severity_to_number(severity),
               severity_text: severity_to_text(severity),
               body: message,
               attributes: attributes
             )
-            
-            return unless log_record
-            
-            logger.emit(log_record)
           rescue StandardError => e
             # Don't break logging if OpenTelemetry fails
             # Use stderr to avoid recursion

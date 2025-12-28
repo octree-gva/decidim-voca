@@ -97,6 +97,7 @@ module Decidim
       def setup_logging!
         unless logs_endpoint.present?
           Rails.logger.debug("[OpenTelemetry] Logs endpoint not configured - skipping logs setup")
+          Rails.logger.debug("[OpenTelemetry] Set OTEL_EXPORTER_OTLP_LOGS_ENDPOINT or OTEL_EXPORTER_OTLP_ENDPOINT")
           return
         end
 
@@ -106,21 +107,42 @@ module Decidim
         end
 
         Rails.logger.debug("[OpenTelemetry] Configuring logging...")
+        Rails.logger.debug("[OpenTelemetry] Logs endpoint: #{logs_endpoint}")
         
         begin
-          # Create OTLP exporter for logs with explicit endpoint
+          # Ensure environment variables are set for OTLP exporter auto-configuration
+          # See: https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/
+          # The exporter should read from OTEL_EXPORTER_OTLP_LOGS_ENDPOINT automatically
+          unless ENV["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]
+            ENV["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"] = logs_endpoint
+            Rails.logger.debug("[OpenTelemetry] Set OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=#{logs_endpoint}")
+          end
+          
+          # Create OTLP exporter for logs
           # Use logs-specific exporter if available, otherwise fall back to generic
           logs_exporter = if defined?(::OpenTelemetry::Exporter::OTLP::Logs::Exporter)
-            ::OpenTelemetry::Exporter::OTLP::Logs::Exporter.new(
-              endpoint: logs_endpoint,
-              headers: {}
-            )
-          else
+            # Logs-specific exporter - should auto-read from ENV, but pass endpoint explicitly to be sure
+            begin
+              ::OpenTelemetry::Exporter::OTLP::Logs::Exporter.new(
+                endpoint: logs_endpoint,
+                headers: {}
+              )
+            rescue ArgumentError
+              # If it doesn't accept endpoint, try without (it should read from ENV)
+              ::OpenTelemetry::Exporter::OTLP::Logs::Exporter.new
+            end
+          elsif defined?(::OpenTelemetry::Exporter::OTLP::Exporter)
+            # Fallback to generic exporter with explicit endpoint
             ::OpenTelemetry::Exporter::OTLP::Exporter.new(
               endpoint: logs_endpoint,
               headers: {}
             )
+          else
+            Rails.logger.error("[OpenTelemetry] No OTLP exporter available for logs")
+            return
           end
+          
+          Rails.logger.debug("[OpenTelemetry] Created logs exporter: #{logs_exporter.class}")
           
           # Use SimpleLogRecordProcessor for immediate sending instead of batching
           # This ensures logs are sent immediately rather than waiting for batch flush

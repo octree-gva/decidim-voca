@@ -177,7 +177,8 @@ namespace :decidim do
             puts "Sending test log record..."
             begin
               logger = test_logger_provider.logger(name: "decidim-voca-test")
-              log_record = logger.create_log_record(
+              # Logger.emit takes parameters directly, not a log record object
+              logger.emit(
                 timestamp: Time.now,
                 severity_number: 9, # INFO
                 severity_text: "INFO",
@@ -187,7 +188,6 @@ namespace :decidim do
                   "test.timestamp" => Time.now.to_i
                 }
               )
-              logger.emit(log_record)
               
               # Flush log record processors
               if Decidim::Voca.opentelemetry_flush_logs(timeout: 5)
