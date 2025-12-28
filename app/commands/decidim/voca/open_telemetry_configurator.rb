@@ -50,7 +50,7 @@ module Decidim
         end
         
         begin
-          require "opentelemetry/exporter/otlp/logs"
+          require "opentelemetry/exporter/otlp_logs"
         rescue LoadError => e
           Rails.logger.warn("[OpenTelemetry] OTLP logs exporter not available: #{e.message}")
           Rails.logger.warn("[OpenTelemetry] Add 'opentelemetry-exporter-otlp-logs' to Gemfile")
@@ -118,27 +118,22 @@ module Decidim
             Rails.logger.debug("[OpenTelemetry] Set OTEL_EXPORTER_OTLP_LOGS_ENDPOINT=#{logs_endpoint}")
           end
           
-          # Create OTLP exporter for logs
-          # Use logs-specific exporter if available, otherwise fall back to generic
-          logs_exporter = if defined?(::OpenTelemetry::Exporter::OTLP::Logs::Exporter)
-            # Logs-specific exporter - should auto-read from ENV, but pass endpoint explicitly to be sure
+          # Create OTLP exporter for logs - must use logs-specific exporter
+          # The generic OTLP exporter tries to encode logs as spans, which fails
+          logs_exporter = if defined?(::OpenTelemetry::Exporter::OTLP::Logs::LogsExporter)
+            # Logs-specific exporter - reads from ENV or accepts endpoint
             begin
-              ::OpenTelemetry::Exporter::OTLP::Logs::Exporter.new(
+              ::OpenTelemetry::Exporter::OTLP::Logs::LogsExporter.new(
                 endpoint: logs_endpoint,
                 headers: {}
               )
             rescue ArgumentError
               # If it doesn't accept endpoint, try without (it should read from ENV)
-              ::OpenTelemetry::Exporter::OTLP::Logs::Exporter.new
+              ::OpenTelemetry::Exporter::OTLP::Logs::LogsExporter.new
             end
-          elsif defined?(::OpenTelemetry::Exporter::OTLP::Exporter)
-            # Fallback to generic exporter with explicit endpoint
-            ::OpenTelemetry::Exporter::OTLP::Exporter.new(
-              endpoint: logs_endpoint,
-              headers: {}
-            )
           else
-            Rails.logger.error("[OpenTelemetry] No OTLP exporter available for logs")
+            Rails.logger.error("[OpenTelemetry] Logs-specific OTLP exporter not available")
+            Rails.logger.error("[OpenTelemetry] Cannot use generic OTLP exporter for logs - it encodes logs as spans")
             return
           end
           
