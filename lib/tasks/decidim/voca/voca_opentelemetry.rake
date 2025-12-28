@@ -177,17 +177,36 @@ namespace :decidim do
             puts "Sending test log record..."
             begin
               logger = test_logger_provider.logger(name: "decidim-voca-test")
-              # Logger.emit takes parameters directly, not a log record object
-              logger.emit(
-                timestamp: Time.now,
-                severity_number: 9, # INFO
-                severity_text: "INFO",
-                body: "Test log message from rake task - #{Time.now.iso8601}",
-                attributes: {
-                  "test.source" => "rake_task",
-                  "test.timestamp" => Time.now.to_i
-                }
-              )
+              
+              # Try different API approaches - Ruby logs SDK API is inconsistent
+              if logger.respond_to?(:emit)
+                # Method 1: emit with keyword parameters
+                logger.emit(
+                  timestamp: Time.now,
+                  severity_number: 9, # INFO
+                  severity_text: "INFO",
+                  body: "Test log message from rake task - #{Time.now.iso8601}",
+                  attributes: {
+                    "test.source" => "rake_task",
+                    "test.timestamp" => Time.now.to_i
+                  }
+                )
+              elsif defined?(::OpenTelemetry::Logs::LogRecord) && ::OpenTelemetry::Logs::LogRecord.respond_to?(:new)
+                # Method 2: Create LogRecord first
+                log_record = ::OpenTelemetry::Logs::LogRecord.new(
+                  timestamp: Time.now,
+                  severity_number: 9,
+                  severity_text: "INFO",
+                  body: "Test log message from rake task - #{Time.now.iso8601}",
+                  attributes: {
+                    "test.source" => "rake_task",
+                    "test.timestamp" => Time.now.to_i
+                  }
+                )
+                logger.emit(log_record)
+              else
+                raise "Logger does not have emit method and LogRecord class not available"
+              end
               
               # Flush log record processors
               if Decidim::Voca.opentelemetry_flush_logs(timeout: 5)

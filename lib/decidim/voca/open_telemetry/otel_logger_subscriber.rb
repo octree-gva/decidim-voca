@@ -39,14 +39,30 @@ module Decidim
             
             attributes = extract_attributes(progname)
             
-            # Logger.emit takes parameters directly, not a log record object
-            logger.emit(
-              timestamp: timestamp,
-              severity_number: severity_to_number(severity),
-              severity_text: severity_to_text(severity),
-              body: message,
-              attributes: attributes
-            )
+            # Try different API approaches - Ruby logs SDK API is inconsistent
+            if logger.respond_to?(:emit)
+              # Method 1: emit with parameters directly
+              logger.emit(
+                timestamp: timestamp,
+                severity_number: severity_to_number(severity),
+                severity_text: severity_to_text(severity),
+                body: message,
+                attributes: attributes
+              )
+            elsif defined?(::OpenTelemetry::Logs::LogRecord) && ::OpenTelemetry::Logs::LogRecord.respond_to?(:new)
+              # Method 2: Create LogRecord and emit it
+              log_record = ::OpenTelemetry::Logs::LogRecord.new(
+                timestamp: timestamp,
+                severity_number: severity_to_number(severity),
+                severity_text: severity_to_text(severity),
+                body: message,
+                attributes: attributes
+              )
+              logger.emit(log_record)
+            else
+              # Method 3: Try calling emit with positional args
+              logger.emit(timestamp, severity_to_number(severity), severity_to_text(severity), message, attributes)
+            end
           rescue StandardError => e
             # Don't break logging if OpenTelemetry fails
             # Use stderr to avoid recursion
