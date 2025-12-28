@@ -44,10 +44,16 @@ module Decidim
         require "opentelemetry/instrumentation/all"
         begin
           require "opentelemetry/sdk/logs"
-          require "opentelemetry/exporter/otlp/logs"
         rescue LoadError => e
           # Logs SDK may not be available in all OpenTelemetry SDK versions
           Rails.logger.debug("[OpenTelemetry] Logs SDK not available - logs will be disabled: #{e.message}")
+        end
+        
+        begin
+          require "opentelemetry/exporter/otlp/logs"
+        rescue LoadError => e
+          Rails.logger.warn("[OpenTelemetry] OTLP logs exporter not available: #{e.message}")
+          Rails.logger.warn("[OpenTelemetry] Add 'opentelemetry-exporter-otlp-logs' to Gemfile")
         end
       end
 
@@ -128,11 +134,18 @@ module Decidim
             batch_processor
           end
           
-          # LoggerProvider uses .new, not .create in Ruby SDK
-          logger_provider = ::OpenTelemetry::SDK::Logs::LoggerProvider.new(
-            resource: resource,
-            log_record_processors: [log_record_processor]
-          )
+          # LoggerProvider uses .new with just resource, then add processors
+          logger_provider = ::OpenTelemetry::SDK::Logs::LoggerProvider.new(resource: resource)
+          
+          # Add log record processor - check if there's an add method or setter
+          if logger_provider.respond_to?(:add_log_record_processor)
+            logger_provider.add_log_record_processor(log_record_processor)
+          elsif logger_provider.respond_to?(:log_record_processors=)
+            logger_provider.log_record_processors = [log_record_processor]
+          else
+            # Try to set via instance variable as fallback
+            logger_provider.instance_variable_set(:@log_record_processors, [log_record_processor])
+          end
           
           # Store logger provider ourselves since OpenTelemetry::Logs.logger_provider getter
           # may not be available in Ruby SDK (logs support is incomplete)
