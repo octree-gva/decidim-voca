@@ -7,9 +7,18 @@ module Decidim
         include DecidimContextAttributes
         def add(severity, message = nil, progname = nil, &block)
           # Extract message before calling super (block might have side effects)
-          log_message = message || (block ? block.call : nil)
+          # If message is nil, try to get it from the block
+          log_message = if message.nil? && block
+            block.call
+          else
+            message
+          end
+          
+          # If still nil, use progname as fallback
+          log_message ||= progname
+          
           result = super
-          send_to_otel(severity, Time.now, progname, log_message)
+          send_to_otel(severity, Time.now, progname, log_message) if log_message
           result
         end
 
@@ -30,8 +39,20 @@ module Decidim
           
           return unless logger_provider
 
-          message = msg.is_a?(String) ? msg : msg.inspect
-          return if message.nil? || message.empty?
+          # Skip if message is nil or empty
+          return if msg.nil?
+          
+          # Convert message to string, but handle nil properly
+          message = if msg.is_a?(String)
+            msg
+          elsif msg.respond_to?(:to_s)
+            msg.to_s
+          else
+            msg.inspect
+          end
+          
+          # Skip empty messages
+          return if message.empty?
 
           begin
             logger = logger_provider.logger(name: "decidim-voca")
