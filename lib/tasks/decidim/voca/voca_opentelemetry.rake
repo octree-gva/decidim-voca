@@ -176,7 +176,7 @@ namespace :decidim do
             puts
             puts "Sending test log record..."
             begin
-              logger = test_logger_provider.logger("decidim-voca-test")
+              logger = test_logger_provider.logger(name: "decidim-voca-test")
               log_record = logger.create_log_record(
                 timestamp: Time.now,
                 severity_number: 9, # INFO

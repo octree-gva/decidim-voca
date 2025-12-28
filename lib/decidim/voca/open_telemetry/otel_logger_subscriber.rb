@@ -34,7 +34,7 @@ module Decidim
           return if message.nil? || message.empty?
 
           begin
-            logger = logger_provider.logger("decidim-voca")
+            logger = logger_provider.logger(name: "decidim-voca")
             return unless logger
             
             attributes = extract_attributes(progname)
