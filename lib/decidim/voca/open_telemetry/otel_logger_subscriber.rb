@@ -39,29 +39,14 @@ module Decidim
             
             attributes = extract_attributes(progname)
             
-            # Try emit with keyword parameters
-            if logger.respond_to?(:emit)
-              begin
-                logger.emit(
-                  timestamp: timestamp,
-                  severity_number: severity_to_number(severity),
-                  severity_text: severity_to_text(severity),
-                  body: message,
-                  attributes: attributes
-                )
-              rescue ArgumentError
-                # If keyword args don't work, try creating LogRecord and setting attributes
-                if defined?(::OpenTelemetry::Logs::LogRecord)
-                  log_record = ::OpenTelemetry::Logs::LogRecord.new
-                  log_record.timestamp = timestamp
-                  log_record.severity_number = severity_to_number(severity)
-                  log_record.severity_text = severity_to_text(severity)
-                  log_record.body = message
-                  log_record.attributes = attributes
-                  logger.emit(log_record)
-                end
-              end
-            end
+            # Use on_emit method (not emit) - this is the correct API per source code
+            logger.on_emit(
+              timestamp: timestamp,
+              severity_number: severity_to_number(severity),
+              severity_text: severity_to_text(severity),
+              body: message,
+              attributes: attributes
+            )
           rescue StandardError => e
             # Don't break logging if OpenTelemetry fails
             # Use stderr to avoid recursion
