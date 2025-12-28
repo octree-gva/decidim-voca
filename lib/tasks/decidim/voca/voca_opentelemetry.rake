@@ -188,6 +188,14 @@ namespace :decidim do
                 }
               )
               logger.emit(log_record)
+              
+              # Flush log record processors
+              if Decidim::Voca.opentelemetry_flush_logs(timeout: 5)
+                puts "✓ Flushed log record processors"
+              else
+                puts "⚠ Could not flush processors"
+              end
+              
               puts "✓ Test log record sent"
               puts "  Check SigNoz for log with message: 'Test log message from rake task'"
             rescue StandardError => e
@@ -202,6 +210,10 @@ namespace :decidim do
             puts "Testing Rails logger integration..."
             begin
               Rails.logger.info("[OpenTelemetry Test] Test log from Rails.logger - #{Time.now.iso8601}")
+              
+              # Flush log record processors
+              Decidim::Voca.opentelemetry_flush_logs(timeout: 5)
+              
               puts "✓ Test log sent via Rails.logger.info"
               puts "  Check SigNoz for log with message containing '[OpenTelemetry Test]'"
             rescue StandardError => e

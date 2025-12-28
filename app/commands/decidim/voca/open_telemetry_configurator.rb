@@ -44,9 +44,10 @@ module Decidim
         require "opentelemetry/instrumentation/all"
         begin
           require "opentelemetry/sdk/logs"
-        rescue LoadError
+          require "opentelemetry/exporter/otlp/logs"
+        rescue LoadError => e
           # Logs SDK may not be available in all OpenTelemetry SDK versions
-          Rails.logger.debug("[OpenTelemetry] Logs SDK not available - logs will be disabled")
+          Rails.logger.debug("[OpenTelemetry] Logs SDK not available - logs will be disabled: #{e.message}")
         end
       end
 
@@ -101,13 +102,36 @@ module Decidim
         Rails.logger.debug("[OpenTelemetry] Configuring logging...")
         
         begin
-          logger_provider = ::OpenTelemetry::SDK::Logs::LoggerProvider.create(
+          # Create OTLP exporter for logs with explicit endpoint
+          # Use logs-specific exporter if available, otherwise fall back to generic
+          logs_exporter = if defined?(::OpenTelemetry::Exporter::OTLP::Logs::Exporter)
+            ::OpenTelemetry::Exporter::OTLP::Logs::Exporter.new(
+              endpoint: logs_endpoint,
+              headers: {}
+            )
+          else
+            ::OpenTelemetry::Exporter::OTLP::Exporter.new(
+              endpoint: logs_endpoint,
+              headers: {}
+            )
+          end
+          
+          # Use SimpleLogRecordProcessor for immediate sending instead of batching
+          # This ensures logs are sent immediately rather than waiting for batch flush
+          log_record_processor = if defined?(::OpenTelemetry::SDK::Logs::Export::SimpleLogRecordProcessor)
+            ::OpenTelemetry::SDK::Logs::Export::SimpleLogRecordProcessor.new(logs_exporter)
+          else
+            # Fallback to batch processor if simple doesn't exist
+            batch_processor = ::OpenTelemetry::SDK::Logs::Export::BatchLogRecordProcessor.new(logs_exporter)
+            # Force flush on shutdown
+            at_exit { batch_processor.force_flush(timeout: 5) if batch_processor.respond_to?(:force_flush) }
+            batch_processor
+          end
+          
+          # LoggerProvider uses .new, not .create in Ruby SDK
+          logger_provider = ::OpenTelemetry::SDK::Logs::LoggerProvider.new(
             resource: resource,
-            log_record_processors: [
-              ::OpenTelemetry::SDK::Logs::Export::BatchLogRecordProcessor.new(
-                ::OpenTelemetry::Exporter::OTLP::Exporter.new(endpoint: logs_endpoint)
-              )
-            ]
+            log_record_processors: [log_record_processor]
           )
           
           # Store logger provider ourselves since OpenTelemetry::Logs.logger_provider getter
@@ -123,6 +147,11 @@ module Decidim
           # Store in our module for access
           Decidim::Voca.opentelemetry_logger_provider = logger_provider
           Rails.logger.debug("[OpenTelemetry] Logger provider stored in Decidim::Voca")
+          
+          # Ensure batch processor flushes on shutdown
+          if log_record_processor.respond_to?(:force_flush)
+            at_exit { log_record_processor.force_flush(timeout: 5) }
+          end
 
           # Extend Rails logger to also send to OpenTelemetry
           # Handle both regular Logger and BroadcastLogger

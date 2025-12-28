@@ -33,21 +33,28 @@ module Decidim
           message = msg.is_a?(String) ? msg : msg.inspect
           return if message.nil? || message.empty?
 
-          logger = logger_provider.logger("decidim-voca")
-          log_record = logger.create_log_record(
-            timestamp: timestamp,
-            severity_number: severity_to_number(severity),
-            severity_text: severity_to_text(severity),
-            body: message,
-            attributes: extract_attributes(progname)
-          )
-
-          logger.emit(log_record)
-        rescue StandardError => e
-          # Don't break logging if OpenTelemetry fails
-          # Use original logger to avoid recursion
-          original_logger = Rails.logger.instance_variable_get(:@logdev)&.dev
-          original_logger&.puts("[OpenTelemetry] Failed to emit log: #{e.message}")
+          begin
+            logger = logger_provider.logger("decidim-voca")
+            return unless logger
+            
+            attributes = extract_attributes(progname)
+            log_record = logger.create_log_record(
+              timestamp: timestamp,
+              severity_number: severity_to_number(severity),
+              severity_text: severity_to_text(severity),
+              body: message,
+              attributes: attributes
+            )
+            
+            return unless log_record
+            
+            logger.emit(log_record)
+          rescue StandardError => e
+            # Don't break logging if OpenTelemetry fails
+            # Use stderr to avoid recursion
+            $stderr.puts("[OpenTelemetry] Failed to emit log: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
+            $stderr.puts("[OpenTelemetry] Backtrace: #{e.backtrace.first(3).join("\n")}") if ENV["OTEL_DEBUG"]
+          end
         end
 
         def severity_to_number(severity)

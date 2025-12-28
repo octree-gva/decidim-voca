@@ -112,5 +112,20 @@ module Decidim
     def self.opentelemetry_logger_provider=(provider)
       @opentelemetry_logger_provider = provider
     end
+
+    def self.opentelemetry_flush_logs(timeout: 5)
+      return unless opentelemetry_logger_provider
+
+      begin
+        processors = opentelemetry_logger_provider.instance_variable_get(:@log_record_processors) || []
+        processors.each do |processor|
+          processor.force_flush(timeout: timeout) if processor.respond_to?(:force_flush)
+        end
+        true
+      rescue StandardError => e
+        Rails.logger.warn("[OpenTelemetry] Failed to flush logs: #{e.message}") if defined?(Rails)
+        false
+      end
+    end
   end
 end
