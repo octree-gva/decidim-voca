@@ -59,6 +59,19 @@ module Decidim
 
       def configure_sdk!
         Rails.logger.debug("[OpenTelemetry] Configuring SDK...")
+        
+        # Set timeout environment variables for OTLP exporter HTTP client
+        # These are read by the OpenTelemetry SDK's HTTP client
+        unless ENV["OTEL_EXPORTER_OTLP_TIMEOUT"]
+          ENV["OTEL_EXPORTER_OTLP_TIMEOUT"] = exporter_timeout.to_s
+        end
+        unless ENV["OTEL_EXPORTER_OTLP_TRACES_TIMEOUT"]
+          ENV["OTEL_EXPORTER_OTLP_TRACES_TIMEOUT"] = exporter_timeout.to_s
+        end
+        unless ENV["OTEL_EXPORTER_OTLP_LOGS_TIMEOUT"]
+          ENV["OTEL_EXPORTER_OTLP_LOGS_TIMEOUT"] = exporter_timeout.to_s
+        end
+        
         ::OpenTelemetry::SDK.configure do |c|
           c.service_name = service_name
           c.resource = resource
@@ -86,11 +99,25 @@ module Decidim
         ENV.fetch("MASTER_HOST", ENV.fetch("MASTER_IP", "unknown")).to_s
       end
 
+      def exporter_timeout
+        ENV.fetch("OTEL_EXPORTER_TIMEOUT", "5").to_i
+      end
+
       def span_processor
+        # OTLP::Exporter accepts timeout in seconds
+        exporter = ::OpenTelemetry::Exporter::OTLP::Exporter.new(
+          endpoint: traces_endpoint,
+          timeout: exporter_timeout
+        )
+        
+        # BatchSpanProcessor accepts exporter_timeout in milliseconds
+        # schedule_delay in milliseconds, max_queue_size, max_export_batch_size
         ::OpenTelemetry::SDK::Trace::Export::BatchSpanProcessor.new(
-          ::OpenTelemetry::Exporter::OTLP::Exporter.new(
-            endpoint: traces_endpoint
-          )
+          exporter,
+          exporter_timeout: exporter_timeout * 1000,
+          schedule_delay: 1000,
+          max_queue_size: 2048,
+          max_export_batch_size: 512
         )
       end
 
@@ -121,16 +148,12 @@ module Decidim
           # Create OTLP exporter for logs - must use logs-specific exporter
           # The generic OTLP exporter tries to encode logs as spans, which fails
           logs_exporter = if defined?(::OpenTelemetry::Exporter::OTLP::Logs::LogsExporter)
-            # Logs-specific exporter - reads from ENV or accepts endpoint
-            begin
-              ::OpenTelemetry::Exporter::OTLP::Logs::LogsExporter.new(
-                endpoint: logs_endpoint,
-                headers: {}
-              )
-            rescue ArgumentError
-              # If it doesn't accept endpoint, try without (it should read from ENV)
-              ::OpenTelemetry::Exporter::OTLP::Logs::LogsExporter.new
-            end
+            # LogsExporter accepts timeout in seconds
+            ::OpenTelemetry::Exporter::OTLP::Logs::LogsExporter.new(
+              endpoint: logs_endpoint,
+              timeout: exporter_timeout,
+              headers: {}
+            )
           else
             Rails.logger.error("[OpenTelemetry] Logs-specific OTLP exporter not available")
             Rails.logger.error("[OpenTelemetry] Cannot use generic OTLP exporter for logs - it encodes logs as spans")
@@ -145,9 +168,23 @@ module Decidim
             ::OpenTelemetry::SDK::Logs::Export::SimpleLogRecordProcessor.new(logs_exporter)
           else
             # Fallback to batch processor if simple doesn't exist
-            batch_processor = ::OpenTelemetry::SDK::Logs::Export::BatchLogRecordProcessor.new(logs_exporter)
-            # Force flush on shutdown
-            at_exit { batch_processor.force_flush(timeout: 5) if batch_processor.respond_to?(:force_flush) }
+            # BatchLogRecordProcessor accepts exporter_timeout in milliseconds
+            # schedule_delay in milliseconds, max_queue_size, max_export_batch_size
+            batch_processor = ::OpenTelemetry::SDK::Logs::Export::BatchLogRecordProcessor.new(
+              logs_exporter,
+              exporter_timeout: exporter_timeout * 1000,
+              schedule_delay: 1000,
+              max_queue_size: 2048,
+              max_export_batch_size: 512
+            )
+            # Force flush on shutdown with timeout
+            at_exit do
+              begin
+                batch_processor.force_flush(timeout: exporter_timeout) if batch_processor.respond_to?(:force_flush)
+              rescue StandardError => e
+                $stderr.puts("[OpenTelemetry] Failed to flush logs on shutdown: #{e.message}")
+              end
+            end
             batch_processor
           end
           
@@ -221,14 +258,17 @@ module Decidim
       end
 
       def verify_configuration!
-        tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca")
-        span = tracer.start_span("opentelemetry.verification")
-        span.set_attribute("verification.check", true)
-        span.finish
-        Rails.logger.info("[OpenTelemetry] Verification span created - tracer is active")
-      rescue StandardError => e
-        Rails.logger.warn("[OpenTelemetry] Verification failed: #{e.message}")
-        raise
+        begin
+          tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca")
+          span = tracer.start_span("opentelemetry.verification")
+          span.set_attribute("verification.check", true)
+          span.finish
+          Rails.logger.info("[OpenTelemetry] Verification span created - tracer is active")
+        rescue StandardError => e
+          Rails.logger.warn("[OpenTelemetry] Verification failed: #{e.message}")
+          # Don't raise - allow application to continue even if OTEL is misconfigured
+          Rails.logger.warn("[OpenTelemetry] Continuing without telemetry - collector may be unavailable")
+        end
       end
     end
   end

@@ -8,41 +8,46 @@ module Decidim
         def report(error, handled:, severity:, context:, source: nil)
           return unless defined?(::OpenTelemetry)
 
-          current_span = ::OpenTelemetry::Trace.current_span
-          
-          # Create a span if none exists (e.g., background jobs, rake tasks)
-          if current_span.nil? || !current_span.recording?
-            tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-error")
-            span = tracer.start_span("error.report")
-            created_span = true
-          else
-            span = current_span
-            created_span = false
-          end
-
           begin
-            span.record_exception(error)
-            span.set_attribute("error.handled", handled)
-            span.set_attribute("error.severity", severity.to_s)
+            current_span = ::OpenTelemetry::Trace.current_span
             
-            # Extract source from context or parameter
-            error_source = source || (context.is_a?(Hash) ? context[:source] : nil)
-            span.set_attribute("error.source", error_source.to_s) if error_source
-
-            env = extract_env(context)
-            if env
-              set_user_attributes(env, span)
-              set_organization_attributes(env, span)
-              set_participatory_space_attributes(env, span)
-              set_component_attributes(env, span)
+            # Create a span if none exists (e.g., background jobs, rake tasks)
+            if current_span.nil? || !current_span.recording?
+              tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-error")
+              span = tracer.start_span("error.report")
+              created_span = true
             else
-              # Try to extract from controller context if available
-              extract_from_controller_context(context, span)
+              span = current_span
+              created_span = false
             end
 
-            span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
-          ensure
-            span.finish if created_span
+            begin
+              span.record_exception(error)
+              span.set_attribute("error.handled", handled)
+              span.set_attribute("error.severity", severity.to_s)
+              
+              # Extract source from context or parameter
+              error_source = source || (context.is_a?(Hash) ? context[:source] : nil)
+              span.set_attribute("error.source", error_source.to_s) if error_source
+
+              env = extract_env(context)
+              if env
+                set_user_attributes(env, span)
+                set_organization_attributes(env, span)
+                set_participatory_space_attributes(env, span)
+                set_component_attributes(env, span)
+              else
+                # Try to extract from controller context if available
+                extract_from_controller_context(context, span)
+              end
+
+              span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
+            ensure
+              span.finish if created_span
+            end
+          rescue StandardError => e
+            # Don't break error reporting if OpenTelemetry fails
+            $stderr.puts("[OpenTelemetry] Failed to report error: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
           end
         end
 
