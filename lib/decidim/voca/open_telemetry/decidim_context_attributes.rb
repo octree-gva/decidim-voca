@@ -5,9 +5,11 @@ module Decidim
     module OpenTelemetry
       module DecidimContextAttributes
         def set_user_attributes(env, target)
-          return unless (user = env["warden"]&.user)
+          return unless (warden = env["warden"])
+          return unless (user = warden.authenticate(scope: :user))
 
           set_attribute(target, "enduser.id", user.id.to_s)
+          set_attribute(target, "enduser.nickname", user.nickname.to_s)
         end
 
         def set_organization_attributes(env, target)
