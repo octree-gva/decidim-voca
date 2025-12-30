@@ -27,6 +27,9 @@ module Decidim
         def send_to_otel(severity, timestamp, progname, msg)
           return unless defined?(::OpenTelemetry::Logs)
           
+          # Only send WARN, ERROR, and FATAL to OpenTelemetry
+          return if severity == 0 || severity == 1 || severity == "DEBUG" || severity == "debug" || severity == "INFO" || severity == "info"
+          
           # Try to get logger provider - Ruby OpenTelemetry logs SDK is incomplete
           # so we store it ourselves in Decidim::Voca
           logger_provider = begin
