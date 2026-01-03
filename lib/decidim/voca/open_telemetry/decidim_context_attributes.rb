@@ -17,6 +17,7 @@ module Decidim
 
           set_attribute(target, "decidim.organization.id", org.id.to_s)
           set_attribute(target, "decidim.organization.slug", org.slug.to_s) if org.respond_to?(:slug)
+          set_attribute(target, "service.instance.id", org.host.to_s) if org.respond_to?(:host) && org.host.present?
         end
 
         def set_participatory_space_attributes(env, target)
