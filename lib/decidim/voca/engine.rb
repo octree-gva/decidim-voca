@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails"
+require "socket"
 require "decidim/core"
 require "deface"
 require "next_gen_images"
@@ -198,6 +199,42 @@ module Decidim
           Decidim::Proposals::ProposalSerializer.include(
             Decidim::Voca::Overrides::ProposalSerializerOverrides
           )
+        end
+      end
+
+      # Cache namespace configuration
+      # See https://guides.rubyonrails.org/caching_with_rails.html
+      initializer "decidim.voca.cache_namespace", before: "decidim.voca.rack_attack" do
+        Rails.application.configure do |_config|
+          cache_store = Rails.application.config.cache_store
+          next unless cache_store.present? && cache_store != :null_store
+
+          cache_namespace = ENV.fetch("MASTER_ID", nil).presence
+          # Sanitize namespace: remove special characters, keep alphanumeric, dash, underscore
+          cache_namespace = cache_namespace.to_s.gsub(/[^a-zA-Z0-9_-]/, "_")
+          next if cache_namespace.blank?
+
+          cache_store_config = Array(cache_store)
+          store_type = cache_store_config.first
+
+          # Handle memcached stores (dalli)
+          if store_type == :mem_cache_store
+            # cache_store_config[1] can be a string (server address) or hash (options)
+            if cache_store_config[1].is_a?(Hash)
+              cache_store_config[1][:namespace] = cache_namespace
+            else
+              # Server address(es) are strings, options hash goes after all servers
+              # Format: [:mem_cache_store, "server1:11211", "server2:11211", { options }]
+              # Find existing options hash (after all server strings) or create new one
+              options_index = cache_store_config.find_index { |item| item.is_a?(Hash) }
+              if options_index
+                cache_store_config[options_index][:namespace] = cache_namespace
+              else
+                cache_store_config << { namespace: cache_namespace }
+              end
+            end
+            Rails.application.config.cache_store = cache_store_config
+          end
         end
       end
 
