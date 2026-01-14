@@ -52,7 +52,7 @@ module Decidim
         end
         kv = {
           "traefik/http/routers/#{external_id}/rule" => hosts.map { |host| "Host(`#{host}`)" }.join(" || "),
-          "traefik/http/routers/#{external_id}/entrypoints/0" => "websecure",
+          "traefik/http/routers/#{external_id}/entrypoints/0" => traefik_service_entrypoint,
           "traefik/http/routers/#{external_id}/service" => "service-#{service_id}",
           "traefik/http/routers/#{external_id}/priority" => "100"
         }
@@ -102,6 +102,10 @@ module Decidim
 
       def traefik_service_port
         @traefik_service_port ||= ENV.fetch("TRAEFIK_SERVICE_PORT", "8080")
+      end
+
+      def traefik_service_entrypoint
+        @traefik_service_entrypoint ||= ENV.fetch("TRAEFIK_SERVICE_ENTRYPOINT", "websecure")
       end
 
       def traefik_service_healthcheck_interval

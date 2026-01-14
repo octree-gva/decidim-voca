@@ -27,6 +27,7 @@ module Decidim
       let(:health_interval) { "30s" }
       let(:health_timeout) { "5s" }
       let(:cert_resolver) { "letsencrypt" }
+      let(:service_entrypoint) { "websecure" }
       let(:redis_url) { "redis://redis.internal:6379/7" }
 
       before do
@@ -41,6 +42,7 @@ module Decidim
         ENV["TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL"] = health_interval
         ENV["TRAEFIK_SERVICE_HEALTHCHECK_TIMEOUT"] = health_timeout
         ENV["TRAEFIK_CERT_RESOLVER"] = cert_resolver
+        ENV["TRAEFIK_SERVICE_ENTRYPOINT"] = service_entrypoint
         allow(Redis).to receive(:new).with(url: redis_url).and_return(redis)
         allow(organization).to receive(:create_voca_external_id!).and_call_original
       end
@@ -61,7 +63,7 @@ module Decidim
             "#{router_prefix}/rule",
             hosts.map { |host| "Host(`#{host}`)" }.join(" || ")
           )
-          expect(redis).to have_received(:set).with("#{router_prefix}/entrypoints/0", "websecure")
+          expect(redis).to have_received(:set).with("#{router_prefix}/entrypoints/0", service_entrypoint)
           expect(redis).to have_received(:set).with("#{router_prefix}/service", "service-#{service_id}")
           expect(redis).to have_received(:set).with("#{router_prefix}/priority", "100")
           expect(redis).to have_received(:set).with("#{router_prefix}/tls/certresolver", cert_resolver)
@@ -90,6 +92,17 @@ module Decidim
 
             router_prefix = "traefik/http/routers/#{external_id}"
             expect(redis).not_to have_received(:set).with("#{router_prefix}/tls/certresolver", anything)
+          end
+        end
+
+        context "when TRAEFIK_SERVICE_ENTRYPOINT is set" do
+          let(:service_entrypoint) { "custom-entrypoint" }
+
+          it "uses the custom entrypoint" do
+            described_class.call(organization)
+
+            router_prefix = "traefik/http/routers/#{external_id}"
+            expect(redis).to have_received(:set).with("#{router_prefix}/entrypoints/0", service_entrypoint)
           end
         end
       end

@@ -84,6 +84,7 @@ FORMAT=traefik bundle exec rake decidim:voca:routes
 | `TRAEFIK_SERVICE_HEALTHCHECK_PORT` | Health check port | `8080` |
 | `TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL` | Health check interval | `60s` |
 | `TRAEFIK_SERVICE_HEALTHCHECK_TIMEOUT` | Health check timeout | `10s` |
+| `TRAEFIK_SERVICE_ENTRYPOINT` | Traefik entrypoint name | `websecure` |
 | `TRAEFIK_CERT_RESOLVER` | Certificate resolver name for TLS | `letsencrypt` |
 
 :::info
@@ -98,7 +99,7 @@ Virtuozzo/Jelastic environments expose `MASTER_ID` and `MASTER_IP` natively.
 Each organization creates the following Traefik router configuration:
 
 - **Router rule**: `Host(primary_host) || Host(secondary_host_1) || ...`
-- **Entrypoint**: `websecure` (port 80)
+- **Entrypoint**: Configured via `TRAEFIK_SERVICE_ENTRYPOINT` (default: `websecure`)
 - **Service**: Points to `service-{MASTER_ID}`
 - **Priority**: `100`
 - **TLS**: Uses configured cert resolver (skipped for `.localhost` domains)
