@@ -16,8 +16,9 @@ Gem::Specification.new do |s|
   s.summary = "A decidim voca module"
   s.description = "Small fixes and improvements for Decidim distributed by voca.city."
 
-  s.files = Dir["{app,config,lib}/**/*", "LICENSE.md", "Rakefile", "README.md"]
+  s.files = Dir["{app,config,lib,bin}/**/*", "LICENSE.md", "Rakefile", "README.md"]
 
+  s.executables = ["vocasnap"]
   s.require_paths = ["lib"]
   s.add_dependency "decidim-admin", Decidim::Voca.decidim_version
   s.add_dependency "decidim-decidim_awesome", Decidim::Voca.compat_decidim_awesome_version
@@ -33,5 +34,6 @@ Gem::Specification.new do |s|
   s.add_dependency "image_processing", "~> 1.2"
   s.add_dependency "next_gen_images", "~> 1.1.1"
   s.add_dependency "ruby-vips", "~> 2.2.4"
+  s.add_dependency "thor", "~> 1.0"
   s.metadata["rubygems_mfa_required"] = "true"
 end

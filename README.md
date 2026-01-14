@@ -19,6 +19,7 @@ The documentation and the API specification are in the [documentation website](h
 
 ### Features
 - `anonymize users`: Run`rails decidim:voca:anonymize` to anonymize all your database and avoid sending email or leaking nicknames/passwords.
+- `snapshot management`: Use `bin/vocasnap dump` to create encrypted snapshots and `bin/vocasnap restore` to restore them. See [docs/snapshot-restore-local.md](docs/snapshot-restore-local.md) and [docs/snapshot-restore-server.md](docs/snapshot-restore-server.md) for details.
 
 ## Contribute
 

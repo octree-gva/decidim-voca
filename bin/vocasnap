@@ -1,0 +1,221 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+begin
+  # Add lib directory to load path (relative to script location, not current dir)
+  script_dir = File.dirname(File.expand_path(__FILE__))
+  lib_path = File.expand_path("../lib", script_dir)
+  $LOAD_PATH.unshift(lib_path) unless $LOAD_PATH.include?(lib_path)
+
+  require "decidim/voca/snapshot"
+  require "thor"
+  require "io/console"
+  require "fileutils"
+rescue LoadError => e
+  $stderr.puts "Failed to load dependencies: #{e.message}"
+  $stderr.puts "Script dir: #{script_dir}" if defined?(script_dir)
+  $stderr.puts "Lib path: #{lib_path}" if defined?(lib_path)
+  exit 1
+end
+
+SCRIPT_DIR = File.dirname(File.expand_path(__FILE__))
+
+def find_rails_root
+  dir = Dir.pwd
+  loop do
+    env_path = File.join(dir, "config", "environment.rb")
+    return dir if File.exist?(env_path)
+    parent = File.dirname(dir)
+    break if parent == dir
+    dir = parent
+  end
+  nil
+end
+
+module Decidim
+  module Voca
+    class VocasnapCLI < Thor
+      include Thor::Actions
+
+      def self.exit_on_failure?
+        true
+      end
+      default_task :help
+      desc "help", "Show help"
+      def help
+        super
+      end
+      
+      desc "dump", "Create an encrypted snapshot of the instance"
+      def dump
+        rails_root = find_rails_root
+        unless rails_root
+          say "Error: Could not find Rails application (config/environment.rb)", :red
+          exit 1
+        end
+        require File.join(rails_root, "config", "environment")
+
+        password = ask_password("Enter password to encrypt snapshot: ")
+        password_confirm = ask_password("Confirm password: ")
+
+        unless password == password_confirm
+          say "Passwords do not match!", :red
+          exit 1
+        end
+
+        Snapshot::Dump.new.execute(password: password)
+      end
+
+      desc "restore SNAPSHOT_PATH", "Restore an instance from a snapshot"
+      def restore(snapshot_path)
+        rails_root = find_rails_root
+        unless rails_root
+          say "Error: Could not find Rails application (config/environment.rb)", :red
+          exit 1
+        end
+        require File.join(rails_root, "config", "environment")
+
+        unless snapshot_path
+          say "Error: snapshot path required", :red
+          say "Usage: vocasnap restore <snapshot_path>", :yellow
+          exit 1
+        end
+
+        password = validate_password_with_retry(snapshot_path)
+
+        is_test = yes?("Is this a test instance? (y/N): ", :yellow)
+
+        Snapshot::Restore.new(snapshot_path).execute(
+          password: password,
+          is_test_instance: is_test
+        )
+      end
+
+      desc "mirror-assets", "Mirror assets from S3 to local storage"
+      method_option :from, type: :string, default: "s3", desc: "Source for assets"
+      method_option :to, type: :string, default: "local", desc: "Target for assets"
+      def mirror_assets
+        rails_root = find_rails_root
+        unless rails_root
+          say "Error: Could not find Rails application (config/environment.rb)", :red
+          exit 1
+        end
+        require File.join(rails_root, "config", "environment")
+
+        unless options[:from] == "s3" && options[:to] == "local"
+          say "Error: Only --from=s3 --to=local is supported", :red
+          exit 1
+        end
+
+        mirror_assets_from_s3
+      end
+
+      desc "lint", "Check prerequisites and system compatibility"
+      def lint
+        rails_root = find_rails_root
+        unless rails_root
+          say "Error: Could not find Rails application (config/environment.rb)", :red
+          exit 1
+        end
+        require File.join(rails_root, "config", "environment")
+
+        checker = Snapshot::PrerequisitesChecker.new
+        checker.check!
+        say "All prerequisites are satisfied.", :green
+      rescue RuntimeError => e
+        say e.message, :red
+        exit 1
+      end
+
+      desc "version", "Show vocasnap version"
+      def version
+        require "decidim/voca/version"
+        say "vocasnap #{Decidim::Voca.version}", :green
+      end
+
+      private
+
+      def mirror_assets_from_s3
+        storage_path = Rails.root.join("storage")
+        say "Mirroring assets from S3 to local storage...", :yellow
+
+        # This would integrate with your S3 setup
+        # For now, it's a placeholder that can be extended
+        say "Asset mirroring not yet implemented. Extend Decidim::Voca::Snapshot::AssetMirror", :yellow
+      end
+
+      def ask_password(prompt)
+        print prompt
+        $stdin.noecho(&:gets).chomp.tap { puts }
+      end
+
+      def validate_password_with_retry(snapshot_path)
+        max_attempts = 3
+        attempt = 0
+
+        loop do
+          attempt += 1
+          password = ask_password("Enter password to decrypt snapshot: ")
+
+          if password.empty?
+            say "Error: Password cannot be empty", :red
+            if attempt >= max_attempts
+              say "Maximum attempts reached. Exiting.", :red
+              exit 1
+            end
+            next
+          end
+
+          unless password_valid?(snapshot_path, password)
+            say "Error: Invalid password", :red
+            if attempt >= max_attempts
+              say "Maximum attempts reached. Exiting.", :red
+              exit 1
+            end
+            next
+          end
+
+          return password
+        end
+      end
+
+      def password_valid?(snapshot_path, password)
+        temp_dir = File.join(Dir.tmpdir, "vocasnap-validation-#{Process.pid}")
+        FileUtils.mkdir_p(temp_dir)
+
+        encrypted_path = if remote_path?(snapshot_path)
+          download_for_validation(snapshot_path, temp_dir)
+        else
+          snapshot_path
+        end
+
+        decrypted_path = File.join(temp_dir, "validation.tar.gz")
+
+        begin
+          Snapshot::Encryption.decrypt_file(encrypted_path, decrypted_path, password)
+          true
+        rescue OpenSSL::Cipher::CipherError
+          false
+        ensure
+          FileUtils.rm_rf(temp_dir) if Dir.exist?(temp_dir)
+        end
+      end
+
+      def remote_path?(path)
+        path.start_with?("http://") || path.start_with?("https://")
+      end
+
+      def download_for_validation(url, temp_dir)
+        require "open-uri"
+        local_path = File.join(temp_dir, File.basename(url))
+        URI.open(url) do |remote|
+          File.open(local_path, "wb") do |local|
+            local.write(remote.read)
+          end
+        end
+        local_path
+      end
+    end
+  end
+end
+Decidim::Voca::VocasnapCLI.start if File.basename(__FILE__) == File.basename($0)

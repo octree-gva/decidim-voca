@@ -23,3 +23,5 @@ development_app
 
 .circleci
 node_modules
+*.vocasnap
+*.sql
