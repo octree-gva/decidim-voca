@@ -91,7 +91,7 @@ FORMAT=traefik bundle exec rake decidim:voca:routes
 Virtuozzo/Jelastic environments expose `MASTER_ID` and `MASTER_IP` natively.
 **If you don't use Jelastic, set these variables**:
 - `MASTER_ID`: a random unique identifier
-- `MASTER_IP`: an IP address that the Traefik instance can reach
+- `MASTER_IP`: an IP address that the Traefik instance can reach (do not add a public ip for more security)
 :::
 
 ## Routing Configuration
