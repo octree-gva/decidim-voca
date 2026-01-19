@@ -219,8 +219,8 @@ bin/vocasnap lint
 bin/vocasnap restore https://example.com/vocasnap/snapshot-xxx.vocasnap
 # Enter decryption password
 # Enter new host (e.g., localhost:3000) or press Enter
-# Confirm database drop: yes
 # Is this a test instance? y/N
+# Confirm database drop: yes
 ```
 
 ### Example: Restore on Another Server
@@ -339,14 +339,6 @@ If host references aren't updated correctly:
 ```bash
 bundle exec rails console
 Decidim::Organization.update_all(host: 'new-host.com')
-```
-
-### Storage Permissions
-
-If storage files aren't accessible:
-```bash
-chown -R app_user:app_group storage/
-chmod -R 755 storage/
 ```
 
 ### Version Compatibility
