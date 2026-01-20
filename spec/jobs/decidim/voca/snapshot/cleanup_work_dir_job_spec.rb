@@ -24,7 +24,7 @@ module Decidim
             let(:work_dir) { Dir.mktmpdir("cleanup_test") }
 
             after do
-              FileUtils.rm_rf(work_dir) if File.exist?(work_dir)
+              FileUtils.rm_rf(work_dir)
             end
 
             it "removes the directory" do
@@ -53,4 +53,3 @@ module Decidim
     end
   end
 end
-

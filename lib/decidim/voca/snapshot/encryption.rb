@@ -16,7 +16,7 @@ module Decidim
           File.open(output_path, "wb") do |out|
             out.write(iv)
             File.open(input_path, "rb") do |in_file|
-              while chunk = in_file.read(4096)
+              while (chunk = in_file.read(4096))
                 out.write(cipher.update(chunk))
               end
               out.write(cipher.final)
@@ -34,7 +34,7 @@ module Decidim
             cipher.iv = iv
 
             File.open(output_path, "wb") do |out|
-              while chunk = in_file.read(4096)
+              while (chunk = in_file.read(4096))
                 out.write(cipher.update(chunk))
               end
               out.write(cipher.final)
@@ -49,4 +49,3 @@ module Decidim
     end
   end
 end
-

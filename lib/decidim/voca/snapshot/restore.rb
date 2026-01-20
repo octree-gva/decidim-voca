@@ -34,6 +34,7 @@ module Decidim
             confirm_database_drop
             restore_migrations
             restore_database
+            migrate_active_storage_to_local
             restore_storage
             run_migrations
             anonymize_if_test(is_test_instance)
@@ -69,13 +70,13 @@ module Decidim
 
         def download_snapshot
           local_path = work_dir.join(File.basename(snapshot_path))
-          puts "Downloading snapshot from #{snapshot_path}..."
+          Rails.logger.debug { "Downloading snapshot from #{snapshot_path}..." }
 
           require "open-uri"
+          # rubocop:disable Security/Open
           URI.open(snapshot_path) do |remote|
-            File.open(local_path, "wb") do |local|
-              local.write(remote.read)
-            end
+            # rubocop:enable Security/Open
+            File.binwrite(local_path, remote.read)
           end
 
           @snapshot_path = local_path.to_s
@@ -97,20 +98,18 @@ module Decidim
 
         def validate_lockfile
           lockfile_path = work_dir.join("vocasnap.lockfile")
-          unless Lockfile.validate(lockfile_path.to_s)
-            snapshot_modules = extract_snapshot_modules(lockfile_path)
-            current_modules = Lockfile.extract_decidim_modules
-            missing_modules = find_missing_modules(snapshot_modules, current_modules)
+          return if Lockfile.validate(lockfile_path.to_s)
 
-            error_message = "Lockfile validation failed. "
-            if missing_modules.any?
-              error_message += "Missing modules: #{missing_modules.join(', ')}. "
-            end
-            error_message += "Module versions or dependencies do not match the snapshot. " \
+          snapshot_modules = extract_snapshot_modules(lockfile_path)
+          current_modules = Lockfile.extract_decidim_modules
+          missing_modules = find_missing_modules(snapshot_modules, current_modules)
+
+          error_message = "Lockfile validation failed. "
+          error_message += "Missing modules: #{missing_modules.join(", ")}. " if missing_modules.any?
+          error_message += "Module versions or dependencies do not match the snapshot. " \
                            "Please install the required modules and versions before restoring."
 
-            raise error_message
-          end
+          raise error_message
         end
 
         def extract_snapshot_modules(lockfile_path)
@@ -132,15 +131,14 @@ module Decidim
           return unless File.exist?(gitignore_path)
 
           gitignore_content = File.read(gitignore_path)
-          unless gitignore_content.include?("*.vocasnap") || gitignore_content.include?("*.vocasnapshot")
+          return if gitignore_content.include?("*.vocasnap") || gitignore_content.include?("*.vocasnapshot")
 
-            puts "Warning: .gitignore does not exclude *.vocasnap files"
-            print "Add *.vocasnap to .gitignore? (y/N): "
-            response = $stdin.gets.chomp.downcase
-            if response == "y"
-              File.open(gitignore_path, "a") { |f| f.puts("\n*.vocasnap") }
-              puts "Added *.vocasnap to .gitignore"
-            end
+          Rails.logger.debug "Warning: .gitignore does not exclude *.vocasnap files"
+          Rails.logger.debug "Add *.vocasnap to .gitignore? (y/N): "
+          response = $stdin.gets.chomp.downcase
+          if response == "y"
+            File.open(gitignore_path, "a") { |f| f.puts("\n*.vocasnap") }
+            Rails.logger.debug "Added *.vocasnap to .gitignore"
           end
         end
 
@@ -150,7 +148,7 @@ module Decidim
 
         def confirm_database_drop
           loop do
-            print "This will drop the current database. Continue? (yes/no): "
+            Rails.logger.debug "This will drop the current database. Continue? (yes/no): "
             response = $stdin.gets.chomp.downcase
             if response == "yes"
               break
@@ -165,20 +163,16 @@ module Decidim
 
         def restore_database
           disconnect_active_record
-          db_config = get_db_config_without_connection
+          db_config = db_config_without_connection
           sql_dump_path = work_dir.join("dump.sql")
 
-          unless File.exist?(sql_dump_path)
-            raise "Database dump not found in snapshot"
-          end
+          raise "Database dump not found in snapshot" unless File.exist?(sql_dump_path)
 
           system("bundle exec rails db:create", exception: true)
           reconnect_active_record
 
           prepared_dump_path = replace_hosts_in_dump(sql_dump_path)
-          unless File.exist?(prepared_dump_path)
-            raise "Prepared database dump not found: #{prepared_dump_path}"
-          end
+          raise "Prepared database dump not found: #{prepared_dump_path}" unless File.exist?(prepared_dump_path)
 
           restore_from_sql_dump(db_config, prepared_dump_path)
         end
@@ -194,7 +188,7 @@ module Decidim
           content = File.read(sql_dump_path)
 
           hosts.each do |old_host|
-            print "Enter new host for #{old_host} (or press Enter to keep original): "
+            Rails.logger.debug { "Enter new host for #{old_host} (or press Enter to keep original): " }
             new_host = $stdin.gets.chomp
             next if new_host.empty?
 
@@ -207,7 +201,7 @@ module Decidim
           modified_dump_path.to_s
         end
 
-        def get_db_config_without_connection
+        def db_config_without_connection
           # Get config without establishing connection
           env_name = Rails.env.to_s
           config = ActiveRecord::Base.configurations.configurations.find do |db_config|
@@ -231,21 +225,20 @@ module Decidim
           env = { "PGPASSWORD" => db_config[:password] }
           stdout, stderr, status = Open3.capture3(env, *cmd)
 
-
           # Check for critical errors (relation does not exist)
           critical_errors = stderr.lines.select do |line|
             line.match?(/ERROR.*relation.*does not exist/i) && !line.match?(/already exists/i)
           end
 
           if critical_errors.any?
-            $stderr.puts "Critical errors detected:", critical_errors.join
-            $stderr.puts "Full stderr:", stderr
+            warn "Critical errors detected:", critical_errors.join
+            warn "Full stderr:", stderr
             raise "Database restore failed: Critical errors during restore"
           end
 
-          if !status.success?
-            $stderr.puts "STDOUT:", stdout
-            $stderr.puts "STDERR:", stderr
+          unless status.success?
+            warn "STDOUT:", stdout
+            warn "STDERR:", stderr
             raise "Database restore failed with errors"
           end
 
@@ -253,15 +246,15 @@ module Decidim
           verify_restore(db_config, stdout, stderr)
         end
 
-        def verify_restore(db_config, stdout = nil, stderr = nil)
+        def verify_restore(_db_config, stdout = nil, stderr = nil)
           # Reconnect to ensure we see the restored data
           reconnect_active_record
 
           # Check if table exists before querying
           table_exists = ActiveRecord::Base.connection.select_value(
             "SELECT EXISTS (
-              SELECT FROM information_schema.tables 
-              WHERE table_schema = 'public' 
+              SELECT FROM information_schema.tables
+              WHERE table_schema = 'public'
               AND table_name = 'decidim_organizations'
             )"
           )
@@ -270,8 +263,8 @@ module Decidim
             error_msg = "Database restore verification failed: decidim_organizations table does not exist after restore"
             if stdout || stderr
               error_msg += "\n\npsql output:\n"
-              error_msg += "STDOUT:\n#{stdout}\n" if stdout && !stdout.empty?
-              error_msg += "STDERR:\n#{stderr}\n" if stderr && !stderr.empty?
+              error_msg += "STDOUT:\n#{stdout}\n" if stdout.present?
+              error_msg += "STDERR:\n#{stderr}\n" if stderr.present?
             end
             raise error_msg
           end
@@ -280,9 +273,7 @@ module Decidim
             "SELECT COUNT(*) FROM decidim_organizations"
           ).to_i
 
-          if org_count.zero?
-            raise "Database restore verification failed: decidim_organizations table is empty after restore"
-          end
+          raise "Database restore verification failed: decidim_organizations table is empty after restore" if org_count.zero?
         end
 
         def restore_migrations
@@ -302,6 +293,17 @@ module Decidim
           end
         end
 
+        def migrate_active_storage_to_local
+          reconnect_active_record
+
+          # Update all blobs that are not already using local service
+          # rubocop:disable Rails/SkipsModelValidations
+          updated_count = ActiveStorage::Blob.where.not(service_name: "local").update_all(service_name: "local")
+          # rubocop:enable Rails/SkipsModelValidations
+
+          Rails.logger.debug { "Migrated #{updated_count} Active Storage blob(s) to local service" } if updated_count.positive?
+        end
+
         def restore_storage
           storage_snapshot = work_dir.join("storage")
           root = Rails.root
@@ -309,7 +311,7 @@ module Decidim
 
           return unless Dir.exist?(storage_snapshot.to_s)
 
-          FileUtils.rm_rf(storage_target.to_s) if Dir.exist?(storage_target.to_s)
+          FileUtils.rm_rf(storage_target.to_s)
           FileUtils.mv(storage_snapshot.to_s, storage_target.to_s)
         end
 
@@ -322,9 +324,7 @@ module Decidim
           reconnect_active_record
 
           status_output, = Open3.capture2("bundle exec rails db:migrate:status 2>&1")
-          if status_output.include?("down")
-            puts "Warning: Some migrations are still down. Please check db:migrate:status"
-          end
+          Rails.logger.debug "Warning: Some migrations are still down. Please check db:migrate:status" if status_output.include?("down")
         end
 
         def anonymize_if_test(is_test_instance)
@@ -339,11 +339,11 @@ module Decidim
         end
 
         def precompile_assets
-          packs_dir = Rails.root.join("public", "decidim-packs")
-          backup_dir = Rails.root.join("public", "decidim-packs.bak")
+          packs_dir = Rails.public_path.join("decidim-packs")
+          backup_dir = Rails.public_path.join("decidim-packs.bak")
 
           if Dir.exist?(packs_dir.to_s)
-            FileUtils.rm_rf(backup_dir.to_s) if Dir.exist?(backup_dir.to_s)
+            FileUtils.rm_rf(backup_dir.to_s)
             FileUtils.mv(packs_dir.to_s, backup_dir.to_s)
           end
 
@@ -354,7 +354,7 @@ module Decidim
             raise("Asset precompilation failed: decidim-packs directory was not created")
           end
 
-          FileUtils.rm_rf(backup_dir.to_s) if Dir.exist?(backup_dir.to_s)
+          FileUtils.rm_rf(backup_dir.to_s)
         end
 
         def cleanup
@@ -362,19 +362,18 @@ module Decidim
           if File.exist?(snapshot_path) && !remote_path? && File.file?(snapshot_path)
             root = Rails.root
             local_snapshot = Pathname.new(snapshot_path).absolute? ? snapshot_path : root.join(snapshot_path)
-            FileUtils.rm(local_snapshot.to_s) if File.exist?(local_snapshot.to_s)
+            FileUtils.rm_f(local_snapshot.to_s)
           end
         end
 
         def display_completion_message
-          puts "\n" + "=" * 60
-          puts "Restore completed successfully!"
-          puts "=" * 60
-          puts "Ready. You can delete the remote snapshot file."
-          puts "=" * 60
+          Rails.logger.debug { "\n#{("=" * 60)}" }
+          Rails.logger.debug "Restore completed successfully!"
+          Rails.logger.debug "=" * 60
+          Rails.logger.debug "Ready. You can delete the remote snapshot file."
+          Rails.logger.debug "=" * 60
         end
       end
     end
   end
 end
-

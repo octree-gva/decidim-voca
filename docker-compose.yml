@@ -4,11 +4,10 @@ services:
     image: octree/decidim-dev:0.29
     entrypoint: ""
     volumes:
-      - .:/home/decidim/module
-      - bundle:/home/decidim/app/vendor
-      - node_modules:/home/decidim/app/node_modules
+      - .:/home/module
+      - bundle:/home/decidim/vendor
+      - node_modules:/home/decidim/node_modules
     environment:
-      - DECIDIM_VERSION=0.29.4
       - PORT=3000
       - MAPS_PROVIDER=osm
       - MAPS_STATIC_PROVIDER=osm

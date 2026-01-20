@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "English"
 require "open3"
 
 module Decidim
@@ -21,12 +22,12 @@ module Decidim
           return if missing.empty?
 
           hints = installation_hints(missing)
-          raise("Missing required binaries: #{missing.join(', ')}\n\n#{hints}")
+          raise("Missing required binaries: #{missing.join(", ")}\n\n#{hints}")
         end
 
         def check_pg_dump_version_compatibility!
           server_version = postgresql_server_version
-          client_version = get_pg_dump_version
+          client_version = pg_dump_version
 
           return unless server_version && client_version
 
@@ -56,22 +57,52 @@ module Decidim
           hints.join("\n")
         end
 
+        # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
         def install_pg_dump_hint(os_info)
+          server_version = postgresql_server_version
+          server_major_int = server_version&.split(".")&.first&.to_i
+
           case os_info[:type]
           when :debian
-            "Install pg_dump: apt-get update && apt-get install -y postgresql-client"
+            if server_major_int
+              # rubocop:disable Layout/LineLength
+              "Install pg_dump at PostgreSQL #{server_version}:\n  " \
+                "curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg\n  " \
+                "echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list\n  " \
+                "apt-get update && apt-get install -y postgresql-client-#{server_major_int}"
+              # rubocop:enable Layout/LineLength
+            else
+              "Install pg_dump: apt-get update && apt-get install -y postgresql-client"
+            end
           when :fedora
-            "Install pg_dump: dnf install -y postgresql"
+            if server_major_int
+              "Install pg_dump at PostgreSQL #{server_version}: dnf install -y postgresql#{server_major_int}"
+            else
+              "Install pg_dump: dnf install -y postgresql"
+            end
           when :rhel
-            "Install pg_dump: yum install -y postgresql"
+            if server_major_int
+              "Install pg_dump at PostgreSQL #{server_version}: yum install -y postgresql#{server_major_int}"
+            else
+              "Install pg_dump: yum install -y postgresql"
+            end
           when :arch
             "Install pg_dump: pacman -S postgresql"
           when :alpine
-            "Install pg_dump: apk add postgresql-client"
+            if server_major_int
+              "Install pg_dump at PostgreSQL #{server_version}: apk add postgresql#{server_major_int}-client"
+            else
+              "Install pg_dump: apk add postgresql-client"
+            end
           else
-            "Install pg_dump: Install PostgreSQL client tools for your distribution"
+            if server_version
+              "Install pg_dump at PostgreSQL #{server_version} or newer via your package manager"
+            else
+              "Install pg_dump: Install PostgreSQL client tools for your distribution"
+            end
           end
         end
+        # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
         def postgresql_server_version
           result = ActiveRecord::Base.connection.execute("SELECT version();")
@@ -90,9 +121,9 @@ module Decidim
           output.strip.match(/(\d+\.\d+)/)&.[](1)
         end
 
-        def get_pg_dump_version
+        def pg_dump_version
           output = `pg_dump --version 2>&1`.strip
-          return nil unless $?.success?
+          return nil unless $CHILD_STATUS.success?
 
           output.match(/(\d+\.\d+)/)&.[](1)
         end
@@ -101,14 +132,12 @@ module Decidim
           os_info = detect_os
           case os_info[:type]
           when :debian
-            "Upgrade pg_dump to PostgreSQL #{server_major_version}:\n" \
-            "Add PostgreSQL official repository:\n" \
-            "  rm -f /etc/apt/sources.list.d/pgdg.list*\n" \
-            "  curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg\n" \
-            "  CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')\n" \
-            "  echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt \$CODENAME-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list\n" \
-            "  apt-get update\n" \
-            "  apt-get install -y postgresql-client-#{server_major_version}"
+            # rubocop:disable Layout/LineLength
+            "Upgrade pg_dump to PostgreSQL #{server_major_version}:\n  " \
+            "curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg\n  " \
+            "echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list\n  " \
+            "apt-get update && apt-get install -y postgresql-client-#{server_major_version}"
+            # rubocop:enable Layout/LineLength
           when :fedora
             "Upgrade pg_dump to PostgreSQL #{server_major_version}: dnf install -y postgresql#{server_major_version}"
           when :rhel
@@ -135,14 +164,12 @@ module Decidim
           os_info = detect_os
           case os_info[:type]
           when :debian
-            "Upgrade psql to PostgreSQL #{server_major_version}:\n" \
-            "Add PostgreSQL official repository:\n" \
-            "  rm -f /etc/apt/sources.list.d/pgdg.list*\n" \
-            "  curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg\n" \
-            "  CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')\n" \
-            "  echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt \$CODENAME-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list\n" \
-            "  apt-get update\n" \
-            "  apt-get install -y postgresql-client-#{server_major_version}"
+            # rubocop:disable Layout/LineLength
+            "Upgrade psql to PostgreSQL #{server_major_version}:\n  " \
+            "curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg\n  " \
+            "echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list\n  " \
+            "apt-get update && apt-get install -y postgresql-client-#{server_major_version}"
+            # rubocop:enable Layout/LineLength
           when :fedora
             "Upgrade psql to PostgreSQL #{server_major_version}: dnf install -y postgresql#{server_major_version}"
           when :rhel
@@ -156,6 +183,7 @@ module Decidim
           end
         end
 
+        # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
         def detect_os
           os_release_path = "/etc/os-release"
           return { type: :unknown } unless File.exist?(os_release_path)
@@ -172,21 +200,21 @@ module Decidim
           id = os_release["id"]&.downcase
           id_like = os_release["id_like"]&.downcase
 
-          case
-          when id == "ubuntu" || id == "debian" || id_like&.include?("debian")
-            { type: :debian, id: id }
-          when id == "fedora" || id_like&.include?("fedora")
-            { type: :fedora, id: id }
-          when id == "centos" || id == "rhel" || id_like&.include?("rhel") || id_like&.include?("centos")
-            { type: :rhel, id: id }
-          when id == "arch" || id_like&.include?("arch")
-            { type: :arch, id: id }
-          when id == "alpine"
-            { type: :alpine, id: id }
+          if id == "ubuntu" || id == "debian" || id_like&.include?("debian")
+            { type: :debian, id: }
+          elsif id == "fedora" || id_like&.include?("fedora")
+            { type: :fedora, id: }
+          elsif id == "centos" || id == "rhel" || id_like&.include?("rhel") || id_like&.include?("centos")
+            { type: :rhel, id: }
+          elsif id == "arch" || id_like&.include?("arch")
+            { type: :arch, id: }
+          elsif id == "alpine"
+            { type: :alpine, id: }
           else
-            { type: :unknown, id: id }
+            { type: :unknown, id: }
           end
         end
+        # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
         private
 
@@ -198,6 +226,7 @@ module Decidim
           end
         end
 
+        # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
         def install_psql_hint(os_info)
           server_version = postgresql_server_version
           server_major_int = server_version&.split(".")&.first&.to_i
@@ -205,14 +234,12 @@ module Decidim
           case os_info[:type]
           when :debian
             if server_major_int
-              "Install psql at PostgreSQL #{server_version}:\n" \
-              "Add PostgreSQL official repository:\n" \
-              "  rm -f /etc/apt/sources.list.d/pgdg.list*\n" \
-              "  curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg\n" \
-              "  CODENAME=$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')\n" \
-              "  echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt \$CODENAME-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list\n" \
-              "  apt-get update\n" \
-              "  apt-get install -y postgresql-client-#{server_major_int}"
+              # rubocop:disable Layout/LineLength
+              "Install psql at PostgreSQL #{server_version}:\n  " \
+                "curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg\n  " \
+                "echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list\n  " \
+                "apt-get update && apt-get install -y postgresql-client-#{server_major_int}"
+              # rubocop:enable Layout/LineLength
             else
               "Install psql: apt-get update && apt-get install -y postgresql-client"
             end
@@ -244,6 +271,7 @@ module Decidim
             end
           end
         end
+        # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
         def check_postgresql_version_compatibility!
           server_version = postgresql_server_version
@@ -265,14 +293,14 @@ module Decidim
               "SELECT rolcreatedb, rolsuper, rolname FROM pg_roles WHERE rolname = current_user"
             )
 
-            return unless result.any?
+            next unless result.any?
 
             row = result.first
             username = row["rolname"]
             has_createdb = row["rolcreatedb"] == true || row["rolcreatedb"] == "t"
             is_superuser = row["rolsuper"] == true || row["rolsuper"] == "t"
 
-            return if is_superuser || has_createdb
+            next if is_superuser || has_createdb
 
             raise("Database user '#{username}' lacks CREATEDB privilege. " \
                   "Grant CREATEDB privilege: ALTER USER #{username} CREATEDB;")
@@ -287,4 +315,3 @@ module Decidim
     end
   end
 end
-

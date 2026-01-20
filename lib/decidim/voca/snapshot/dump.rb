@@ -19,20 +19,18 @@ module Decidim
         end
 
         def execute(password:)
-          begin
-            check_prerequisites
-            setup_directories
-            dump_database
-            create_lockfile
-            create_metadata
-            create_archive
-            encrypt_archive(password)
-            cleanup_old_snapshots
-            move_to_public
-            display_download_link
-          ensure
-            cleanup_work_dir
-          end
+          check_prerequisites
+          setup_directories
+          dump_database
+          create_lockfile
+          create_metadata
+          create_archive
+          encrypt_archive(password)
+          cleanup_old_snapshots
+          move_to_public
+          display_download_link
+        ensure
+          cleanup_work_dir
         end
 
         private
@@ -43,10 +41,9 @@ module Decidim
           FileUtils.rm_rf(work_dir)
         end
 
-
         def check_prerequisites
           checker = PrerequisitesChecker.new
-          checker.check_binaries!(%w[pg_dump tar])
+          checker.check_binaries!(%w(pg_dump tar))
           checker.check_pg_dump_version_compatibility!
         end
 
@@ -84,9 +81,9 @@ module Decidim
           return unless defined?(Decidim::Organization)
 
           hosts = Decidim::Organization.pluck(:host).compact.uniq
-          metadata = { hosts: hosts }
+          metadata = { hosts: }
           metadata_path = work_dir.join("metadata.json")
-          File.write(metadata_path, JSON.generate(metadata))
+          File.write(metadata_path, JSON.generate(metadata), encoding: "UTF-8")
         end
 
         def create_archive
@@ -186,15 +183,14 @@ module Decidim
           uuid = snapshot_name.gsub(/^snapshot-|\.vocasnap$/, "")
           url = "/vocasnap/#{snapshot_name}"
 
-          puts "\n" + "=" * 60
-          puts "Snapshot created successfully!"
-          puts "=" * 60
-          puts "UUID: #{uuid}"
-          puts "Download URL: #{url}"
-          puts "=" * 60
+          Rails.logger.debug { "\n#{("=" * 60)}" }
+          Rails.logger.debug "Snapshot created successfully!"
+          Rails.logger.debug "=" * 60
+          Rails.logger.debug { "UUID: #{uuid}" }
+          Rails.logger.debug { "Download URL: #{url}" }
+          Rails.logger.debug "=" * 60
         end
       end
     end
   end
 end
-
