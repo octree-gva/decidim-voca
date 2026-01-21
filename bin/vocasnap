@@ -58,7 +58,17 @@ module Decidim
         checker.check_binaries!(%w(pg_dump tar))
         checker.check_pg_dump_version_compatibility!
 
-        password = ask_password("Enter password to encrypt snapshot: ")
+        password = nil
+        loop do
+          password = ask_password("Enter password to encrypt snapshot: ")
+          errors = validate_password(password)
+          unless errors.empty?
+            say "Error: #{errors.join(", ")}", :red
+            next
+          end
+          break
+        end
+
         loop do
           password_confirm = ask_password("Confirm password: ")
           break if password == password_confirm
@@ -66,10 +76,14 @@ module Decidim
           say "Passwords do not match!", :red
         end
 
-        Snapshot::Dump.new.execute(password:)
-      rescue RuntimeError => e
-        say e.message, :red
-        exit 1
+        begin
+          snapshot_path = Snapshot::Dump.new.execute(password:)
+          say "#{snapshot_path} created!", :green
+        rescue StandardError => e
+          say "Error: #{e.message}", :red
+          say e.backtrace.join("\n") if ENV["DEBUG"]
+          exit 1
+        end
       end
 
       desc "restore SNAPSHOT_PATH", "Restore an instance from a snapshot"
@@ -94,7 +108,9 @@ module Decidim
 
         is_test = yes?("Is this a test instance? (y/N): ", :yellow)
 
-        Snapshot::Restore.new(snapshot_path).execute(
+        restore = Snapshot::Restore.new(snapshot_path)
+        restore.logger = ->(message, color = :green) { say(" [x] #{message}", color) }
+        restore.execute(
           password:,
           is_test_instance: is_test
         )
@@ -159,6 +175,17 @@ module Decidim
       def ask_password(prompt)
         print prompt
         $stdin.noecho(&:gets).chomp.tap { puts }
+      end
+
+      def validate_password(password)
+        errors = []
+        errors << "Password must be over 12 characters" if password.length <= 12
+        errors << "Password must have at least 9 unique characters" if password.chars.uniq.length < 9
+        errors << "Password must contain at least 1 uppercase letter" unless password.match?(/[A-Z]/)
+        errors << "Password must contain at least 1 lowercase letter" unless password.match?(/[a-z]/)
+        errors << "Password must contain at least 1 number" unless password.match?(/[0-9]/)
+        errors << "Password must contain at least 1 symbol" unless password.match?(/[^A-Za-z0-9]/)
+        errors
       end
 
       def validate_password_with_retry(snapshot_path)

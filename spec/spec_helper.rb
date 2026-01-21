@@ -19,6 +19,7 @@ Decidim::Dev.dummy_app_path = File.expand_path(File.join(__dir__, "decidim_dummy
 
 require "decidim/dev/test/base_spec_helper"
 require "active_storage/engine"
+
 require "decidim/core/test/factories"
 require "decidim/proposals/test/factories"
 

@@ -27,8 +27,12 @@ module Decidim
           create_archive
           encrypt_archive(password)
           cleanup_old_snapshots
-          move_to_public
+          snapshot_path = move_to_public
           display_download_link
+          snapshot_path
+        rescue StandardError
+          cleanup_work_dir
+          raise
         ensure
           cleanup_work_dir
         end
@@ -86,6 +90,7 @@ module Decidim
           File.write(metadata_path, JSON.generate(metadata), encoding: "UTF-8")
         end
 
+        # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
         def create_archive
           archive_path = work_dir.join("#{snapshot_name}.tar.gz")
           root = Rails.root
@@ -112,12 +117,15 @@ module Decidim
             copy_migrations
             files_to_archive << "migrations" if Dir.exist?("migrations")
 
-            system("tar", "-czf", archive_path.to_s, *files_to_archive) ||
-              raise("Archive creation failed")
+            success = system("tar", "-czf", archive_path.to_s, *files_to_archive)
+            raise "Archive creation failed: tar command returned non-zero exit status" unless success
           end
+
+          raise "Archive creation failed: file was not created at #{archive_path}" unless File.exist?(archive_path.to_s)
 
           archive_path
         end
+        # rubocop:enable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
         def has_s3_attachments?
           return false unless defined?(ActiveStorage)
@@ -142,7 +150,7 @@ module Decidim
 
             File.binwrite(blob_path, blob.download)
           end
-        rescue StandardError => e
+        rescue StandardError
           raise("Failed to download S3 attachments: #{e.message}")
         end
 
@@ -163,7 +171,14 @@ module Decidim
           archive_path = work_dir.join("#{snapshot_name}.tar.gz")
           encrypted_path = work_dir.join(snapshot_name)
 
+          raise "Archive file not found: #{archive_path}. Snapshot creation may have failed earlier." unless File.exist?(archive_path.to_s)
+
+          raise "Password cannot be empty" if password.blank?
+
           Encryption.encrypt_file(archive_path.to_s, encrypted_path.to_s, password)
+
+          raise "Encryption failed: encrypted file was not created at #{encrypted_path}" unless File.exist?(encrypted_path.to_s)
+
           FileUtils.rm(archive_path.to_s)
         end
 
@@ -176,7 +191,13 @@ module Decidim
         def move_to_public
           source = work_dir.join(snapshot_name)
           destination = public_dir.join("vocasnap", snapshot_name)
+
+          raise "Encrypted snapshot file not found: #{source}. Encryption may have failed." unless File.exist?(source.to_s)
+
           FileUtils.mv(source, destination)
+          raise "Failed to move snapshot to public directory" unless File.exist?(destination.to_s)
+
+          destination.to_s
         end
 
         def display_download_link

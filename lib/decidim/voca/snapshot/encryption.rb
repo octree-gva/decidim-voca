@@ -7,6 +7,9 @@ module Decidim
         ALGORITHM = "AES-256-CBC"
 
         def self.encrypt_file(input_path, output_path, password)
+          raise "Input file does not exist: #{input_path}" unless File.exist?(input_path)
+          raise "Password cannot be empty" if password.blank?
+
           cipher = OpenSSL::Cipher.new(ALGORITHM)
           cipher.encrypt
           cipher.key = derive_key(password)
@@ -22,6 +25,10 @@ module Decidim
               out.write(cipher.final)
             end
           end
+        rescue Errno::ENOENT => e
+          raise "File operation failed: #{e.message}"
+        rescue OpenSSL::Cipher::CipherError => e
+          raise "Encryption failed: #{e.message}"
         end
 
         def self.decrypt_file(input_path, output_path, password)

@@ -179,28 +179,13 @@ module Decidim
         describe "#migrate_active_storage_to_local" do
           let(:where_relation) { double("where_relation") }
           let(:not_relation) { double("not_relation") }
-          let(:blob_class) { Class.new }
-          let(:original_blob) { defined?(ActiveStorage::Blob) ? ActiveStorage::Blob : nil }
 
           before do
             allow(restore).to receive(:reconnect_active_record)
-            # Create a stub class that responds to where
-            allow(blob_class).to receive(:where).and_return(where_relation)
-            allow(where_relation).to receive(:not).and_return(not_relation)
-            # Replace ActiveStorage::Blob constant before the method runs
-            if defined?(ActiveStorage)
-              ActiveStorage.send(:remove_const, :Blob) if ActiveStorage.const_defined?(:Blob)
-              ActiveStorage.const_set(:Blob, blob_class)
-            end
-          end
-
-          after do
-            # Restore original ActiveStorage::Blob to avoid side effects
-            if defined?(ActiveStorage) && original_blob
-              ActiveStorage.send(:remove_const, :Blob) if ActiveStorage.const_defined?(:Blob)
-              ActiveStorage.const_set(:Blob, original_blob)
-            elsif defined?(ActiveStorage) && !original_blob
-              ActiveStorage.send(:remove_const, :Blob) if ActiveStorage.const_defined?(:Blob)
+            # Stub ActiveStorage::Blob methods without replacing the constant
+            if defined?(ActiveStorage::Blob)
+              allow(ActiveStorage::Blob).to receive(:where).and_return(where_relation)
+              allow(where_relation).to receive(:not).and_return(not_relation)
             end
           end
 
@@ -208,6 +193,7 @@ module Decidim
             allow(not_relation).to receive(:update_all).and_return(5)
             restore.send(:migrate_active_storage_to_local)
             expect(restore).to have_received(:reconnect_active_record)
+            expect(ActiveStorage::Blob).to have_received(:where)
             expect(where_relation).to have_received(:not).with(service_name: "local")
             expect(not_relation).to have_received(:update_all).with(service_name: "local")
           end

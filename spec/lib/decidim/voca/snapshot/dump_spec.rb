@@ -111,6 +111,10 @@ module Decidim
             allow(Dir).to receive(:exist?).with(storage_path.to_s).and_return(false)
             allow(FileUtils).to receive(:cd).and_yield
             allow(dump).to receive(:system).and_return(true)
+            allow(File).to receive(:exist?).and_call_original
+            allow(File).to receive(:exist?).with(anything).and_wrap_original do |method, path|
+              path.to_s.end_with?(".tar.gz") ? true : method.call(path)
+            end
           end
 
           it "creates tar archive with database dump and lockfile" do

@@ -92,6 +92,9 @@ ruby::rspec:
     - echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
     - apt-get update && apt-get install -y -qq nodejs
     - npm install -g yarn --force
+    - curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg
+    - echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
+    - apt-get update && apt-get install -y postgresql-client-16
     - gem install bundler
     - bundle config set path 'vendor'
     - RAILS_ENV=development bundle install -j $(nproc)

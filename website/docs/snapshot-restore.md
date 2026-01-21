@@ -106,6 +106,10 @@ Snapshots are stored in `public/vocasnap/` directory:
 ## Client: vocasnap Binary
 
 The `vocasnap` binary is a Ruby CLI tool accessible via bundle binstub.
+To add the binary, run 
+```bash
+bundle binstub decidim-voca
+```
 
 ### Installation
 

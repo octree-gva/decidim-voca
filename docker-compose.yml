@@ -1,8 +1,14 @@
 services:
   voca:
-    command: bash -c "sleep infinity"
+    command: ""
     image: octree/decidim-dev:0.29
-    entrypoint: ""
+    entrypoint: |
+      bash -c " \
+        curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /usr/share/keyrings/postgresql.gpg && \
+        echo \"deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt \$(grep VERSION_CODENAME /etc/os-release | cut -d= -f2 | tr -d '\"')-pgdg main\" | tee /etc/apt/sources.list.d/pgdg.list && \
+        apt-get update && apt-get install -y postgresql-client-16
+        sleep infinity
+      "
     volumes:
       - .:/home/module
       - bundle:/home/decidim/vendor

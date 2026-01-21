@@ -12,6 +12,7 @@ module Decidim
     module Snapshot
       class Restore
         attr_reader :snapshot_path, :work_dir
+        attr_writer :logger
 
         def initialize(snapshot_path, work_dir: nil)
           @snapshot_path = snapshot_path
@@ -20,26 +21,52 @@ module Decidim
           @work_dir = Pathname.new(work_dir)
         end
 
+        def log(message = nil, color: :green, &block)
+          msg = block ? block.call : message
+          @logger&.call(msg, color)
+        end
+
         def execute(password:, is_test_instance: false)
           root = Rails.root
           Dir.chdir(root) do
+            log("Loading Rails tasks")
             load_rails_tasks
+            log("Setting up directories")
             setup_directories
-            download_snapshot if remote_path?
+            if remote_path?
+              log("Downloading snapshot")
+              download_snapshot
+            end
+            log("Decrypting snapshot")
             decrypt_snapshot(password)
+            log("Extracting archive")
             extract_archive
+            log("Validating lockfile")
             validate_lockfile
             check_gitignore
+            log("Checking prerequisites")
             check_prerequisites
+            log("Confirming database drop")
             confirm_database_drop
+            log("Restoring migrations")
             restore_migrations
+            log("Restoring database")
             restore_database
+            log("Migrating Active Storage to local")
             migrate_active_storage_to_local
+            log("Restoring storage")
             restore_storage
+            log("Running migrations")
             run_migrations
+            if is_test_instance
+              log("Anonymizing test instance")
+            end
             anonymize_if_test(is_test_instance)
+            log("Installing dependencies")
             install_dependencies
+            log("Precompiling assets")
             precompile_assets
+            log("Cleaning up")
             cleanup
             display_completion_message
           end
@@ -148,7 +175,7 @@ module Decidim
 
         def confirm_database_drop
           loop do
-            Rails.logger.debug "This will drop the current database. Continue? (yes/no): "
+            log("This will drop the current database. Continue? (yes/no): ", color: :yellow)
             response = $stdin.gets.chomp.downcase
             if response == "yes"
               break
@@ -188,7 +215,7 @@ module Decidim
           content = File.read(sql_dump_path)
 
           hosts.each do |old_host|
-            Rails.logger.debug { "Enter new host for #{old_host} (or press Enter to keep original): " }
+            log("Enter new host for #{old_host} (or press Enter to keep original): ", color: :yellow)
             new_host = $stdin.gets.chomp
             next if new_host.empty?
 
