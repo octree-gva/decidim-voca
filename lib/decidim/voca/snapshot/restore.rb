@@ -58,9 +58,7 @@ module Decidim
             restore_storage
             log("Running migrations")
             run_migrations
-            if is_test_instance
-              log("Anonymizing test instance")
-            end
+            log("Anonymizing test instance") if is_test_instance
             anonymize_if_test(is_test_instance)
             log("Installing dependencies")
             install_dependencies

@@ -119,25 +119,6 @@ module Decidim
         exit 1
       end
 
-      desc "mirror-assets", "Mirror assets from S3 to local storage"
-      method_option :from, type: :string, default: "s3", desc: "Source for assets"
-      method_option :to, type: :string, default: "local", desc: "Target for assets"
-      def mirror_assets
-        rails_root = find_rails_root
-        unless rails_root
-          say "Error: Could not find Rails application (config/environment.rb)", :red
-          exit 1
-        end
-        require File.join(rails_root, "config", "environment")
-
-        unless options[:from] == "s3" && options[:to] == "local"
-          say "Error: Only --from=s3 --to=local is supported", :red
-          exit 1
-        end
-
-        mirror_assets_from_s3
-      end
-
       desc "lint", "Check prerequisites and system compatibility"
       def lint
         rails_root = find_rails_root
