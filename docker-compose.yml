@@ -4,11 +4,11 @@ services:
     image: octree/decidim-dev:0.29
     entrypoint: ""
     volumes:
-      - .:/home/decidim/module
+      - .:/home/module
       - bundle:/home/decidim/app/vendor
       - node_modules:/home/decidim/app/node_modules
     environment:
-      - DECIDIM_VERSION=0.29.4
+      - DECIDIM_VERSION=0.29.7
       - PORT=3000
       - MAPS_PROVIDER=osm
       - MAPS_STATIC_PROVIDER=osm
@@ -23,6 +23,7 @@ services:
       - DATABASE_HOST=voca-pg
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
+      - DECIDIM_FORCE_SSL=false
       - DISABLE_SPRING=1
       - DEV_MODULE=decidim-voca
       - RAILS_ENV=development
