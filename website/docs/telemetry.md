@@ -76,7 +76,7 @@ Or add it in your Gemfile:
 # Gemfile
 gem "decidim-telemetry", 
   git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry", 
-  tag: "v0.0.3" # check decidim-voca.gemspec to know which version is compatible with your install
+  tag: "v0.0.4" # check decidim-voca.gemspec to know which version is compatible with your install
 ```
 
 Once installed, [follow the installation guidances](https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry).

@@ -255,7 +255,7 @@ module Decidim
       initializer "decidim.voca.open_telemetry", after: :load_config_initializers do
         if Decidim::Voca.opentelemetry_enabled?
           Rails.logger.info("[OpenTelemetry] Enabled - setting up initializer")
-          
+
           # Configure SDK synchronously to avoid middleware stack conflicts
           result = Decidim::Voca::OpenTelemetryConfigurator.call
           if result.has_key?(:ok)

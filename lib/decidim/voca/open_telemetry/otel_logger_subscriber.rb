@@ -9,16 +9,16 @@ module Decidim
           # Extract message before calling super (block might have side effects)
           # If message is nil, try to get it from the block
           log_message = if message.nil? && block
-            block.call
-          else
-            message
-          end
-          
+                          block.call
+                        else
+                          message
+                        end
+
           # If still nil, use progname as fallback
           log_message ||= progname
-          
+
           result = super
-          send_to_otel(severity, Time.now, progname, log_message) if log_message
+          send_to_otel(severity, Time.zone.now, progname, log_message) if log_message
           result
         end
 
@@ -26,79 +26,76 @@ module Decidim
 
         def send_to_otel(severity, timestamp, progname, msg)
           return unless defined?(::OpenTelemetry::Logs)
-          
-          # Only send WARN, ERROR, and FATAL to OpenTelemetry
-          return if severity == 0 || severity == 1 || severity == "DEBUG" || severity == "debug" || severity == "INFO" || severity == "info"
-          
-          # Try to get logger provider - Ruby OpenTelemetry logs SDK is incomplete
-          # so we store it ourselves in Decidim::Voca
-          logger_provider = begin
-            if ::OpenTelemetry::Logs.respond_to?(:logger_provider)
-              ::OpenTelemetry::Logs.logger_provider
-            else
-              Decidim::Voca.opentelemetry_logger_provider
-            end
-          end
-          
+          return if low_severity?(severity)
+
+          logger_provider = resolve_logger_provider
           return unless logger_provider
 
-          # Skip if message is nil or empty
-          return if msg.nil?
-          
-          # Convert message to string, but handle nil properly
-          message = if msg.is_a?(String)
+          message = message_to_string(msg)
+          return if message.blank?
+
+          emit_log(logger_provider, severity, timestamp, message, progname)
+        rescue StandardError => e
+          warn("[OpenTelemetry] Failed to emit log: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
+          warn("[OpenTelemetry] Backtrace: #{e.backtrace.first(3).join("\n")}") if ENV["OTEL_DEBUG"]
+        end
+
+        LOW_SEVERITY = [0, 1, "DEBUG", "debug", "INFO", "info"].freeze
+        def low_severity?(severity)
+          LOW_SEVERITY.include?(severity)
+        end
+
+        def resolve_logger_provider
+          if ::OpenTelemetry::Logs.respond_to?(:logger_provider)
+            ::OpenTelemetry::Logs.logger_provider
+          else
+            Decidim::Voca.opentelemetry_logger_provider
+          end
+        end
+
+        def message_to_string(msg)
+          return nil if msg.nil?
+
+          if msg.is_a?(String)
             msg
           elsif msg.respond_to?(:to_s)
             msg.to_s
           else
             msg.inspect
           end
-          
-          # Skip empty messages
-          return if message.empty?
-
-          begin
-            logger = logger_provider.logger(name: "decidim-voca")
-            return unless logger
-            
-            attributes = extract_attributes(progname)
-            
-            # Use on_emit method (not emit) - this is the correct API per source code
-            logger.on_emit(
-              timestamp: timestamp,
-              severity_number: severity_to_number(severity),
-              severity_text: severity_to_text(severity),
-              body: message,
-              attributes: attributes
-            )
-          rescue StandardError => e
-            # Don't break logging if OpenTelemetry fails
-            # Use stderr to avoid recursion
-            $stderr.puts("[OpenTelemetry] Failed to emit log: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
-            $stderr.puts("[OpenTelemetry] Backtrace: #{e.backtrace.first(3).join("\n")}") if ENV["OTEL_DEBUG"]
-          end
         end
 
+        def emit_log(logger_provider, severity, timestamp, message, progname)
+          logger = logger_provider.logger(name: "decidim-voca")
+          return unless logger
+
+          attributes = extract_attributes(progname)
+          logger.on_emit(
+            timestamp:,
+            severity_number: severity_to_number(severity),
+            severity_text: severity_to_text(severity),
+            body: message,
+            attributes:
+          )
+        end
+
+        # OTel severity: [number, text] for DEBUG, INFO, WARN, ERROR, FATAL (index 0..4)
+        OTEL_SEVERITIES = [[5, "DEBUG"], [9, "INFO"], [13, "WARN"], [17, "ERROR"], [21, "FATAL"]].freeze
+        SEVERITY_NAMES = %w(DEBUG INFO WARN ERROR FATAL).freeze
+
         def severity_to_number(severity)
-          case severity
-          when 0, "DEBUG", "debug" then 5
-          when 1, "INFO", "info" then 9
-          when 2, "WARN", "warn" then 13
-          when 3, "ERROR", "error" then 17
-          when 4, "FATAL", "fatal" then 21
-          else 9
-          end
+          pair = otel_severity_pair(severity)
+          pair ? pair.first : 9
         end
 
         def severity_to_text(severity)
-          case severity
-          when 0, "DEBUG", "debug" then "DEBUG"
-          when 1, "INFO", "info" then "INFO"
-          when 2, "WARN", "warn" then "WARN"
-          when 3, "ERROR", "error" then "ERROR"
-          when 4, "FATAL", "fatal" then "FATAL"
-          else "INFO"
-          end
+          pair = otel_severity_pair(severity)
+          pair ? pair.last : "INFO"
+        end
+
+        def otel_severity_pair(severity)
+          idx = severity.is_a?(Integer) ? severity : SEVERITY_NAMES.index(severity.to_s.upcase)
+          idx && idx.between?(0, 4) ? OTEL_SEVERITIES[idx] : nil
         end
 
         def extract_attributes(progname)
@@ -116,37 +113,29 @@ module Decidim
 
           # Add trace context if available
           span = ::OpenTelemetry::Trace.current_span
-          if span&.context&.valid?
-            trace_id = span.context.trace_id
-            span_id = span.context.span_id
-            attrs["trace_id"] = trace_id.unpack1("H*")
-            attrs["span_id"] = span_id.unpack1("H*")
-          end
+          return attrs unless span&.context&.valid?
 
+          trace_id = span.context.trace_id
+          span_id = span.context.span_id
+          attrs["trace_id"] = trace_id.unpack1("H*")
+          attrs["span_id"] = span_id.unpack1("H*")
           attrs
         end
 
         def extract_env
-          # Try to get current request from ActionDispatch::Request.current
-          if defined?(ActionDispatch::Request)
-            begin
-              request = ActionDispatch::Request.current
-              return request.env if request&.respond_to?(:env)
-            rescue StandardError
-              # ActionDispatch::Request.current might not be available
-            end
+          begin
+            request = ActionDispatch::Request.current
+            return request.env if request.respond_to?(:env)
+          rescue StandardError
+            # ActionDispatch::Request.current might not be available
           end
 
-          # Try to get request from Thread.current (Rails pattern)
-          if (request = Thread.current[:request])&.respond_to?(:env)
-            return request.env
-          end
+          request = Thread.current[:request]
+          return request.env if request.respond_to?(:env)
 
           nil
         end
-
       end
     end
   end
 end
-

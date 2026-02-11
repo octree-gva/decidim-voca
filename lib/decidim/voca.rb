@@ -119,7 +119,7 @@ module Decidim
       begin
         processors = opentelemetry_logger_provider.instance_variable_get(:@log_record_processors) || []
         processors.each do |processor|
-          processor.force_flush(timeout: timeout) if processor.respond_to?(:force_flush)
+          processor.force_flush(timeout:) if processor.respond_to?(:force_flush)
         end
         true
       rescue StandardError => e

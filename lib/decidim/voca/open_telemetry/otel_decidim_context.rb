@@ -12,30 +12,25 @@ module Decidim
         def call(env)
           begin
             span = ::OpenTelemetry::Trace.current_span
-
             if span&.recording?
               set_user_attributes(env, span)
               set_organization_attributes(env, span)
               set_participatory_space_attributes(env, span)
               set_component_attributes(env, span)
             else
-              Rails.logger.debug("[OpenTelemetry] No active span for request: #{env['PATH_INFO']}")
+              Rails.logger.debug { "[OpenTelemetry] No active span for request: #{env["PATH_INFO"]}" }
             end
           rescue StandardError => e
             # Don't break request processing if OpenTelemetry fails
-            $stderr.puts("[OpenTelemetry] Failed to set context attributes: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
+            warn("[OpenTelemetry] Failed to set context attributes: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
           end
 
           @app.call(env)
         rescue StandardError => e
-          if defined?(Rails.error)
-            Rails.error.report(e, handled: false, severity: :error, context: { request: ActionDispatch::Request.new(env), source: "middleware" })
-          end
+          Rails.error.report(e, handled: false, severity: :error, context: { request: ActionDispatch::Request.new(env), source: "middleware" })
           raise
         end
-
       end
     end
   end
 end
-

@@ -5,114 +5,119 @@ module Decidim
     module OpenTelemetry
       class OtelErrorSubscriber
         include DecidimContextAttributes
+
         def report(error, handled:, severity:, context:, source: nil)
-          return unless defined?(::OpenTelemetry)
+          span, created_span = span_for_report
+          return unless span
 
           begin
-            current_span = ::OpenTelemetry::Trace.current_span
-            
-            # Create a span if none exists (e.g., background jobs, rake tasks)
-            if current_span.nil? || !current_span.recording?
-              tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-error")
-              span = tracer.start_span("error.report")
-              created_span = true
-            else
-              span = current_span
-              created_span = false
-            end
-
-            begin
-              span.record_exception(error)
-              span.set_attribute("error.handled", handled)
-              span.set_attribute("error.severity", severity.to_s)
-              
-              # Extract source from context or parameter
-              error_source = source || (context.is_a?(Hash) ? context[:source] : nil)
-              span.set_attribute("error.source", error_source.to_s) if error_source
-
-              env = extract_env(context)
-              if env
-                set_user_attributes(env, span)
-                set_organization_attributes(env, span)
-                set_participatory_space_attributes(env, span)
-                set_component_attributes(env, span)
-              else
-                # Try to extract from controller context if available
-                extract_from_controller_context(context, span)
-              end
-
-              span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
-            ensure
-              span.finish if created_span
-            end
+            record_error_on_span(span, error, report_options(error, handled:, severity:, context:, source:))
+            set_context_attributes(span, context)
+            span.status = ::OpenTelemetry::Trace::Status.error(error.to_s) unless handled
           rescue StandardError => e
-            # Don't break error reporting if OpenTelemetry fails
-            $stderr.puts("[OpenTelemetry] Failed to report error: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
+            warn("[OpenTelemetry] Failed to report error: #{e.class} - #{e.message}") if ENV["OTEL_DEBUG"]
+          ensure
+            span.finish if created_span
           end
         end
 
         private
 
+        def span_for_report
+          current_span = ::OpenTelemetry::Trace.current_span
+          if current_span.nil? || !current_span.recording?
+            tracer = ::OpenTelemetry.tracer_provider.tracer("decidim-voca-error")
+            [tracer.start_span("error.report"), true]
+          else
+            [current_span, false]
+          end
+        end
+
+        def report_options(error, handled:, severity:, context:, source:)
+          { error:, handled:, severity:, context:, source: }
+        end
+
+        def record_error_on_span(span, error, opts)
+          span.record_exception(error)
+          span.set_attribute("error.handled", opts[:handled])
+          span.set_attribute("error.severity", opts[:severity].to_s)
+          error_source = opts[:source] || (opts[:context].is_a?(Hash) ? opts[:context][:source] : nil)
+          span.set_attribute("error.source", error_source.to_s) if error_source
+        end
+
+        def set_context_attributes(span, context)
+          env = extract_env(context)
+          if env
+            set_user_attributes(env, span)
+            set_organization_attributes(env, span)
+            set_participatory_space_attributes(env, span)
+            set_component_attributes(env, span)
+          else
+            extract_from_controller_context(context, span)
+          end
+        end
+
         def extract_env(context)
           # Try to get env from context[:request]
-          if context.is_a?(Hash) && context[:request]&.respond_to?(:env)
-            return context[:request].env
-          end
+          return context[:request].env if context.is_a?(Hash) && context[:request].respond_to?(:env)
 
           # Try to get env from context[:env] directly
-          if context.is_a?(Hash) && context[:env].is_a?(Hash)
-            return context[:env]
-          end
+          return context[:env] if context.is_a?(Hash) && context[:env].is_a?(Hash)
 
           # Try to get current request from ActionDispatch::Request.current
-          if defined?(ActionDispatch::Request)
-            begin
-              request = ActionDispatch::Request.current
-              return request.env if request&.respond_to?(:env)
-            rescue StandardError
-              # ActionDispatch::Request.current might not be available
-            end
+          begin
+            request = ActionDispatch::Request.current
+            return request.env if request.respond_to?(:env)
+          rescue StandardError
+            # ActionDispatch::Request.current might not be available
           end
 
           # Try to get request from Thread.current (Rails pattern)
-          if (request = Thread.current[:request])&.respond_to?(:env)
-            return request.env
-          end
+          request = Thread.current[:request]
+          return request.env if request.respond_to?(:env)
 
           nil
         end
 
-
         def extract_from_controller_context(context, span)
           return unless context.is_a?(Hash)
 
-          # Try to get request from controller
+          return if set_attributes_from_controller_request(context, span)
+
+          set_user_from_context(context, span)
+          set_organization_from_context(context, span)
+        end
+
+        def set_attributes_from_controller_request(context, span)
           controller = context[:controller] || context[:controller_class]
-          if controller&.respond_to?(:request)
-            request = controller.request
-            env = request.env if request&.respond_to?(:env)
-            if env
-              set_user_attributes(env, span)
-              set_organization_attributes(env, span)
-              set_participatory_space_attributes(env, span)
-              set_component_attributes(env, span)
-              return
-            end
-          end
+          return false unless controller.respond_to?(:request)
 
-          # Try to get user directly from context
-          if (user = context[:user] || context[:current_user])
-            span.set_attribute("enduser.id", user.id.to_s) if user.respond_to?(:id)
-          end
+          request = controller.request
+          env = request.respond_to?(:env) ? request.env : nil
+          return false unless env
 
-          # Try to get organization directly from context
-          if (org = context[:organization] || context[:current_organization])
-            span.set_attribute("decidim.organization.id", org.id.to_s) if org.respond_to?(:id)
-            span.set_attribute("decidim.organization.slug", org.slug.to_s) if org.respond_to?(:slug)
-          end
+          set_user_attributes(env, span)
+          set_organization_attributes(env, span)
+          set_participatory_space_attributes(env, span)
+          set_component_attributes(env, span)
+          true
+        end
+
+        def set_user_from_context(context, span)
+          user = context[:user] || context[:current_user]
+          return unless user.respond_to?(:id)
+
+          span.set_attribute("enduser.id", user.id.to_s)
+        end
+
+        def set_organization_from_context(context, span)
+          org = context[:organization] || context[:current_organization]
+          return unless org
+
+          span.set_attribute("decidim.organization.id", org.id.to_s) if org.respond_to?(:id)
+          span.set_attribute("decidim.organization.slug", org.slug.to_s) if org.respond_to?(:slug)
         end
       end
     end
   end
 end
-
