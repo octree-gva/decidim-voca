@@ -43,6 +43,7 @@ module Decidim
         require "opentelemetry/exporter/otlp"
         require "opentelemetry/instrumentation/all"
         begin
+          require "opentelemetry-logs-api"
           require "opentelemetry/sdk/logs"
         rescue LoadError => e
           # Logs SDK may not be available in all OpenTelemetry SDK versions
