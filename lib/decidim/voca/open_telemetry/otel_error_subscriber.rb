@@ -46,7 +46,7 @@ module Decidim
         end
 
         def set_context_attributes(span, context)
-          env = extract_env(context)
+          env = RequestEnv.from_context(context)
           if env
             set_user_attributes(env, span)
             set_organization_attributes(env, span)
@@ -55,28 +55,6 @@ module Decidim
           else
             extract_from_controller_context(context, span)
           end
-        end
-
-        def extract_env(context)
-          # Try to get env from context[:request]
-          return context[:request].env if context.is_a?(Hash) && context[:request].respond_to?(:env)
-
-          # Try to get env from context[:env] directly
-          return context[:env] if context.is_a?(Hash) && context[:env].is_a?(Hash)
-
-          # Try to get current request from ActionDispatch::Request.current
-          begin
-            request = ActionDispatch::Request.current
-            return request.env if request.respond_to?(:env)
-          rescue StandardError
-            # ActionDispatch::Request.current might not be available
-          end
-
-          # Try to get request from Thread.current (Rails pattern)
-          request = Thread.current[:request]
-          return request.env if request.respond_to?(:env)
-
-          nil
         end
 
         def extract_from_controller_context(context, span)

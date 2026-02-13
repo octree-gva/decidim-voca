@@ -46,11 +46,7 @@ module Decidim
         end
 
         def resolve_logger_provider
-          if ::OpenTelemetry::Logs.respond_to?(:logger_provider)
-            ::OpenTelemetry::Logs.logger_provider
-          else
-            Decidim::Voca.opentelemetry_logger_provider
-          end
+          LoggerProviderResolver.current
         end
 
         def message_to_string(msg)
@@ -103,7 +99,7 @@ module Decidim
           attrs["logger.name"] = progname if progname
 
           # Try to extract Decidim context from current request
-          env = extract_env
+          env = RequestEnv.from_current
           if env
             set_user_attributes(env, attrs)
             set_organization_attributes(env, attrs)
@@ -122,19 +118,6 @@ module Decidim
           attrs
         end
 
-        def extract_env
-          begin
-            request = ActionDispatch::Request.current
-            return request.env if request.respond_to?(:env)
-          rescue StandardError
-            # ActionDispatch::Request.current might not be available
-          end
-
-          request = Thread.current[:request]
-          return request.env if request.respond_to?(:env)
-
-          nil
-        end
       end
     end
   end

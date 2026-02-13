@@ -123,29 +123,10 @@ namespace :decidim do
             puts "  Add 'opentelemetry-logs-sdk' to Gemfile"
           end
 
-          # Check logger provider - try both OpenTelemetry::Logs and our stored version
-          logger_provider = nil
-          if defined?(OpenTelemetry::Logs)
-            begin
-              if OpenTelemetry::Logs.respond_to?(:logger_provider)
-                logger_provider = OpenTelemetry::Logs.logger_provider
-                puts "✓ Logger provider configured (via OpenTelemetry::Logs): #{logger_provider.class}" if logger_provider
-              else
-                puts "⚠ OpenTelemetry::Logs.logger_provider getter not available (Ruby logs SDK limitation)"
-              end
-            rescue NoMethodError => e
-              puts "⚠ Cannot access logger_provider via OpenTelemetry::Logs: #{e.message}"
-            end
+          logger_provider = Decidim::Voca.opentelemetry_logger_provider
+          if logger_provider
+            puts "✓ Logger provider: #{logger_provider.class}"
           else
-            puts "⚠ OpenTelemetry::Logs not available"
-          end
-
-          # Check our stored logger provider
-          stored_provider = Decidim::Voca.opentelemetry_logger_provider
-          if stored_provider
-            puts "✓ Logger provider configured (stored in Decidim::Voca): #{stored_provider.class}"
-            logger_provider ||= stored_provider
-          elsif !logger_provider
             puts "⚠ Logger provider not configured"
             puts "  Check that setup_logging! was called in the initializer"
             puts "  Check application logs for '[OpenTelemetry]' messages"
@@ -168,13 +149,11 @@ namespace :decidim do
             end
           end
 
-          # Test sending a log record
-          test_logger_provider = logger_provider || Decidim::Voca.opentelemetry_logger_provider
-          if test_logger_provider
+          if logger_provider
             puts
             puts "Sending test log record..."
             begin
-              logger = test_logger_provider.logger(name: "decidim-voca-test")
+              logger = logger_provider.logger(name: "decidim-voca-test")
 
               # Use on_emit method (not emit) - this is the correct API per source code
               logger.on_emit(
@@ -203,8 +182,7 @@ namespace :decidim do
             end
           end
 
-          # Test Rails logger integration
-          if test_logger_provider
+          if logger_provider
             puts
             puts "Testing Rails logger integration..."
             begin
@@ -277,15 +255,7 @@ namespace :decidim do
         puts "  SDK loaded: #{defined?(OpenTelemetry::SDK)}"
         puts "  Logs SDK loaded: #{defined?(OpenTelemetry::SDK::Logs)}"
         stored_provider = Decidim::Voca.opentelemetry_logger_provider
-        otel_provider = (OpenTelemetry::Logs.logger_provider if defined?(OpenTelemetry::Logs) && OpenTelemetry::Logs.respond_to?(:logger_provider))
-        logger_provider_status = if stored_provider || otel_provider
-                                   "configured"
-                                 elsif defined?(OpenTelemetry::Logs) && !OpenTelemetry::Logs.respond_to?(:logger_provider)
-                                   "method not available (Ruby SDK limitation)"
-                                 else
-                                   "not configured"
-                                 end
-        puts "  Logger provider: #{logger_provider_status}"
+        puts "  Logger provider: #{stored_provider ? 'configured' : 'not configured'}"
         puts
         puts "Environment variables:"
         puts "  OTEL_EXPORTER_OTLP_ENDPOINT: #{ENV["OTEL_EXPORTER_OTLP_ENDPOINT"] || "(not set)"}"
