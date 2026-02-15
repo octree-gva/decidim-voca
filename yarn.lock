@@ -1174,15 +1174,15 @@
   resolved "https://registry.npmjs.org/@csstools/utilities/-/utilities-1.0.0.tgz"
   integrity sha512-tAgvZQe/t2mlvpNosA4+CkMiZ2azISW5WPAcdSalZlEjQvUfghHxfQcrCiK/7/CrfAWVxyM88kGFYO82heIGDg==
 
-"@decidim/browserslist-config@^0.29.4":
-  version "0.29.4"
-  resolved "https://registry.npmjs.org/@decidim/browserslist-config/-/browserslist-config-0.29.4.tgz"
-  integrity sha512-doro7Qms9ziYPg/wegUT4FE+285AUlWYeYPt5Ot8+awV1HIayZUQvCtUVRxarLil+Jjidc7kRgDB0KuOwrL2hQ==
+"@decidim/browserslist-config@^0.29.7":
+  version "0.29.7"
+  resolved "https://registry.npmjs.org/@decidim/browserslist-config/-/browserslist-config-0.29.7.tgz"
+  integrity sha512-NadsvkmDAnV+o39n5ppqynRUf8Qc7PBvEhR1zxC4EYW7LFy5IpSit5t6XHhZJSYGLSNPMjZ37X2RAj4hYbuZrg==
 
-"@decidim/core@^0.29.4":
-  version "0.29.4"
-  resolved "https://registry.npmjs.org/@decidim/core/-/core-0.29.4.tgz"
-  integrity sha512-hgPYHyqjeOcvgT7EnWbjJPYW0g/8GiRUICv8AIdVfHZAH+VAo1t2AYJCiumq2MKoJqGqpIoT/bxc1Rel9wfyOg==
+"@decidim/core@^0.29.7":
+  version "0.29.7"
+  resolved "https://registry.npmjs.org/@decidim/core/-/core-0.29.7.tgz"
+  integrity sha512-dgkkyPCGLSi06sj+tiTUBgejhlEdpuGQIi2ZTybbvYj6co+07NMX273a4isE3uE+JGwpuXnz1CsMYcahcK/SPA==
   dependencies:
     "@emoji-mart/data" "^1.1.2"
     "@rails/activestorage" "^7.0.8"
@@ -1227,7 +1227,7 @@
     emojibase "^6.1.0"
     foundation-sites "^6.7.0"
     graphiql "^3.0.10"
-    graphql-ws ">= 4.5.0"
+    graphql-ws "^5.16.2"
     html5sortable "0.10.0"
     identity-obj-proxy "^3.0.0"
     jquery "^3.2.1"
@@ -1247,34 +1247,34 @@
     tom-select "2.2.2"
     wc-datepicker "^0.5.2"
 
-"@decidim/dev@^0.29.4":
-  version "0.29.4"
-  resolved "https://registry.npmjs.org/@decidim/dev/-/dev-0.29.4.tgz"
-  integrity sha512-JI5DX1SAjT9enDrV/JI30yVoOuolX/y5TYwKNHfN9Ott+ews3hCkOd65ncTtFOhaLP48oXqxBeJqyOT808wBmg==
+"@decidim/dev@^0.29.7":
+  version "0.29.7"
+  resolved "https://registry.npmjs.org/@decidim/dev/-/dev-0.29.7.tgz"
+  integrity sha512-qHc/+PCYS1ocf5nEjxiIWrTIFqn82owm+PtilOJamfkbOBtpvyKn2OI7TL5ERJIpC6ne+T7Y8tM4SsllcsyhdA==
   dependencies:
     "@linthtml/linthtml" "^0.9.6"
     axe-core "^4.7.2"
     markdownlint-cli "^0.35.0"
 
-"@decidim/eslint-config@^0.29.4":
-  version "0.29.4"
-  resolved "https://registry.npmjs.org/@decidim/eslint-config/-/eslint-config-0.29.4.tgz"
-  integrity sha512-zgTHOcxGgxj3IEDK2jtcXBoT08mCh1dVe1RLlWepZBGxjWQOF8OJRG90tOy8GUhpEZ9JpU6crkxRiN2CVbZISg==
+"@decidim/eslint-config@^0.29.7":
+  version "0.29.7"
+  resolved "https://registry.npmjs.org/@decidim/eslint-config/-/eslint-config-0.29.7.tgz"
+  integrity sha512-miUTWj47ObVJKmhj5wT8IVLyCa7OL09JtPXYwOD6tQ2bQXbOjhooiS4U3mO5IEDczsoiN7klfsrqUqoSYWXZfA==
 
-"@decidim/prettier-config@^0.29.4":
-  version "0.29.4"
-  resolved "https://registry.npmjs.org/@decidim/prettier-config/-/prettier-config-0.29.4.tgz"
-  integrity sha512-/f0Gj7Pj4zbIzaJPjryRveUep3spG0dNoqeL3JwmYRU0dkZqNafxgnT0ToWnk4xyNjTHIljVORcFIr6tcLpGJg==
+"@decidim/prettier-config@^0.29.7":
+  version "0.29.7"
+  resolved "https://registry.npmjs.org/@decidim/prettier-config/-/prettier-config-0.29.7.tgz"
+  integrity sha512-VaoGC/M/u6ITWbbRZmMcWIbFm3UCxwvwq13VvBQTwjTzg96Ftn7iap/0mdgxakqrJMGHyo4F4aPoRHBfz06Fvg==
 
-"@decidim/stylelint-config@^0.29.4":
-  version "0.29.4"
-  resolved "https://registry.npmjs.org/@decidim/stylelint-config/-/stylelint-config-0.29.4.tgz"
-  integrity sha512-KZUlITIOcpzyljypKe3e4yTXz/NW+VuIw/AFnteZWeQPc8sdW+6YxHg22tLr/BkGXtC6sAaUb4sVkpBs/sqyGg==
+"@decidim/stylelint-config@^0.29.7":
+  version "0.29.7"
+  resolved "https://registry.npmjs.org/@decidim/stylelint-config/-/stylelint-config-0.29.7.tgz"
+  integrity sha512-szR7HYICTH+Tim30cXqXbadzamQO8BsvUUVoHFofTdH9NJ1kBANy3XLCOOvOoGt5qNsoYgyd3zoWjKsdOrUcjw==
 
-"@decidim/webpacker@^0.29.4":
-  version "0.29.4"
-  resolved "https://registry.npmjs.org/@decidim/webpacker/-/webpacker-0.29.4.tgz"
-  integrity sha512-2xBMNwvd6iKTLURudOz7lYusfvRWyL46UFmPzYYzIENWJ7D+o9edigj/Pe9iWKj8ANuSxv5bQQgbUTnXeSLNFQ==
+"@decidim/webpacker@^0.29.7":
+  version "0.29.7"
+  resolved "https://registry.npmjs.org/@decidim/webpacker/-/webpacker-0.29.7.tgz"
+  integrity sha512-n9NWj4soteqHkto9J7PQoo8e5h6c55oA9d1C0TrIyyB0AT6WVpnM5E3EaibEsxbfyzHiXgZ2r92hgkDzshFsnw==
   dependencies:
     "@rails/ujs" "^6.1.7"
     "@tailwindcss/typography" "^0.5.2"
@@ -5816,7 +5816,7 @@ graphql-language-service@^5.3.1, graphql-language-service@5.5.0:
     nullthrows "^1.0.0"
     vscode-languageserver-types "^3.17.1"
 
-"graphql-ws@>= 4.5.0":
+graphql-ws@^5.16.2, "graphql-ws@>= 4.5.0":
   version "5.16.2"
   resolved "https://registry.npmjs.org/graphql-ws/-/graphql-ws-5.16.2.tgz"
   integrity sha512-E1uccsZxt/96jH/OwmLPuXMACILs76pKF2i3W861LpKBCYtGIyPQGtWLuBLkND4ox1KHns70e83PS4te50nvPQ==

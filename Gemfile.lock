@@ -8,18 +8,18 @@ GIT
 
 GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry
-  revision: 065651a511f0a6b914eb7449717dba230553c0a0
-  tag: v0.0.3
+  revision: 220a31a5408844d3a824b63775a1581bd3167344
+  tag: v0.0.4
   specs:
-    decidim-telemetry (0.0.3)
+    decidim-telemetry (0.0.4)
       decidim-admin (>= 0.29.4)
       decidim-comments (>= 0.29.4)
-      yabeda
-      yabeda-activejob
-      yabeda-activerecord
-      yabeda-prometheus
-      yabeda-puma-plugin
-      yabeda-rails
+      yabeda (>= 0.14.0)
+      yabeda-activejob (>= 0.6.0)
+      yabeda-activerecord (>= 0.1.1)
+      yabeda-prometheus (>= 0.9.1)
+      yabeda-puma-plugin (>= 0.8.0)
+      yabeda-rails (>= 0.10.0)
 
 GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields
@@ -43,11 +43,11 @@ GIT
 PATH
   remote: .
   specs:
-    decidim-voca (0.0.16)
+    decidim-voca (0.0.17)
       decidim-admin (>= 0.29, < 0.30)
       decidim-decidim_awesome (~> 0.12.6)
       decidim-ephemeral_participation (~> 0.0.6)
-      decidim-telemetry (~> 0.0.3)
+      decidim-telemetry (~> 0.0.4)
       decidim-user_fields (~> 0.1.4)
       deepl-rb (~> 3.2.0)
       deface (~> 1.9)
