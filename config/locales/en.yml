@@ -5,6 +5,12 @@ en:
         decidim_title: "Your platform"
         help_title: "Help"
   decidim:
+    core:
+      actions:
+        unauthorized: "You are not authorized to perform this action."
+    wizard_step_form:
+      wizard_aside:
+        back: "Back"
     authorization_handlers:
       code_census:
         name: "Code census"
@@ -15,6 +21,11 @@ en:
     events:
       proposals:
         proposal_state_changed_for_authors:
+          affected_user:
+            email_intro: 'The proposal "%{resource_title}" has changed its state to "%{state}". You can read the answer in this page:'
+            email_outro: You have received this notification because you are an author of "%{resource_title}".
+            email_subject: Your proposal has changed its state (%{state})
+            notification_title: Your proposal <a href="%{resource_path}">%{resource_title}</a> has changed its state to "%{state}".
           email_intro: 'The proposal "%{resource_title}" has changed its state to "%{state}". You can read the answer in this page:'
           email_outro: You have received this notification because you are an author of "%{resource_title}".
           email_subject: Your proposal has changed its state (%{state})
@@ -41,7 +52,19 @@ en:
             success: You are now authorized.
             error: The provided code is not valid.
       admin:
+        machine_translation_alert:
+          title: |
+            Switch language
+          description_html: |
+            <p>The language "%{current_locale}" is fully translated by machine, you need to switch to "%{default_locale}".</p>
+          button: Switch language
         code_census:
+          authorizations:
+            new:
+              title: Generate authorization codes
+              intro: Use this page to create authorization codes for your users.
+              info: Enter the user details below. The system will generate a unique access code that can be shared with the user for verification.
+              example: "Example: Enter user email or identifier"
           code_lists:
             edit:
               title: Code census (%{count})

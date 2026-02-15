@@ -251,6 +251,25 @@ module Decidim
         end
       end
 
+      # OpenTelemetry configuration
+      initializer "decidim.voca.open_telemetry", after: :load_config_initializers do
+        if Decidim::Voca.opentelemetry_enabled?
+          Rails.logger.info("[OpenTelemetry] Enabled - setting up initializer")
+
+          # Configure SDK synchronously to avoid middleware stack conflicts
+          result = Decidim::Voca::OpenTelemetryConfigurator.call
+          if result.has_key?(:ok)
+            Rails.logger.info("[OpenTelemetry] Configuration successful")
+            Rails.application.config.middleware.use ::Decidim::Voca::OpenTelemetry::OtelDecidimContext
+            Rails.logger.info("[OpenTelemetry] Middleware registered")
+          else
+            Rails.logger.error("[OpenTelemetry] Configuration failed: #{result.inspect}")
+          end
+        else
+          Rails.logger.debug("[OpenTelemetry] Disabled - skipping initialization")
+        end
+      end
+
       initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
         Decidim::Voca::UserFieldsConfigurator.call
       end
