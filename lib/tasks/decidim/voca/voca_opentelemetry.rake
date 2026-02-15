@@ -255,7 +255,7 @@ namespace :decidim do
         puts "  SDK loaded: #{defined?(OpenTelemetry::SDK)}"
         puts "  Logs SDK loaded: #{defined?(OpenTelemetry::SDK::Logs)}"
         stored_provider = Decidim::Voca.opentelemetry_logger_provider
-        puts "  Logger provider: #{stored_provider ? 'configured' : 'not configured'}"
+        puts "  Logger provider: #{stored_provider ? "configured" : "not configured"}"
         puts
         puts "Environment variables:"
         puts "  OTEL_EXPORTER_OTLP_ENDPOINT: #{ENV["OTEL_EXPORTER_OTLP_ENDPOINT"] || "(not set)"}"

@@ -117,7 +117,6 @@ module Decidim
           attrs["span_id"] = span_id.unpack1("H*")
           attrs
         end
-
       end
     end
   end

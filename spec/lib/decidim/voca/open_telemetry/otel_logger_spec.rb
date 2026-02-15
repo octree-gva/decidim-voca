@@ -13,7 +13,8 @@ module Decidim
             public :message_to_string, :severity_to_number, :severity_to_text, :low_severity?, :otel_severity_pair
           end
         end
-        let(:subject) { test_class.new }
+
+        subject { test_class.new }
 
         describe "#message_to_string" do
           it "returns the string when msg is a String" do

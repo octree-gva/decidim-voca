@@ -7,7 +7,8 @@ module Decidim
     module OpenTelemetry
       describe DecidimContextAttributes do
         let(:test_class) { Class.new { include DecidimContextAttributes } }
-        let(:subject) { test_class.new }
+
+        subject { test_class.new }
 
         describe "#set_attribute" do
           it "sets key on a Hash target" do

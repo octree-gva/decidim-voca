@@ -14,7 +14,11 @@ module Decidim
           end
 
           it "does not call configure_opentelemetry!" do
-            expect_any_instance_of(described_class).not_to receive(:configure_opentelemetry!)
+            allow(described_class).to receive(:new).and_wrap_original do |m, *args, **kwargs|
+              instance = m.call(*args, **kwargs)
+              expect(instance).not_to receive(:configure_opentelemetry!)
+              instance
+            end
             described_class.call
           end
         end
@@ -28,17 +32,23 @@ module Decidim
 
           it "broadcasts :ok when configuration succeeds" do
             # Stub SDK so we don't load real OpenTelemetry in test
-            allow_any_instance_of(described_class).to receive(:require_opentelemetry!)
-            allow_any_instance_of(described_class).to receive(:configure_sdk!)
-            allow_any_instance_of(described_class).to receive(:verify_configuration!)
-
+            allow(described_class).to receive(:new).and_wrap_original do |m, *args, **kwargs|
+              instance = m.call(*args, **kwargs)
+              allow(instance).to receive(:require_opentelemetry!)
+              allow(instance).to receive(:configure_sdk!)
+              allow(instance).to receive(:verify_configuration!)
+              instance
+            end
             expect { described_class.call }.to broadcast(:ok)
           end
 
           it "broadcasts :invalid when configuration raises" do
-            allow_any_instance_of(described_class).to receive(:require_opentelemetry!)
-            allow_any_instance_of(described_class).to receive(:configure_sdk!).and_raise(StandardError.new("config failed"))
-
+            allow(described_class).to receive(:new).and_wrap_original do |m, *args, **kwargs|
+              instance = m.call(*args, **kwargs)
+              allow(instance).to receive(:require_opentelemetry!)
+              allow(instance).to receive(:configure_sdk!).and_raise(StandardError.new("config failed"))
+              instance
+            end
             expect { described_class.call }.to broadcast(:invalid, "config failed")
           end
         end

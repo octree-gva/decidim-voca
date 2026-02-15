@@ -32,7 +32,7 @@ module Decidim
           schedule_flush(processor)
           extended = extend_rails_logger
           log_result(extended)
-          { extended: extended }
+          { extended: }
         rescue StandardError => e
           Rails.logger.error("[OpenTelemetry] Failed to configure logging: #{e.class} - #{e.message}")
           Rails.logger.error("[OpenTelemetry] Backtrace: #{e.backtrace.first(5).join("\n")}")
