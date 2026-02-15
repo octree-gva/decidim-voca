@@ -35,11 +35,19 @@ require_relative "voca/overrides/participatory_process_groups_controller_overrid
 require_relative "voca/overrides/mod_secure/conversation_uuid"
 require_relative "voca/overrides/mod_secure/conversation_controller_overrides"
 require_relative "voca/overrides/mod_secure/conversation_sanitize"
+require_relative "voca/open_telemetry/request_env"
+require_relative "voca/open_telemetry/logger_provider_resolver"
+require_relative "voca/open_telemetry/logs_setup"
+require_relative "voca/open_telemetry/decidim_context_attributes"
+require_relative "voca/open_telemetry/otel_decidim_context"
+require_relative "voca/open_telemetry/otel_error_subscriber"
+require_relative "voca/open_telemetry/otel_logger_subscriber"
 require "good_job/engine"
 
 module Decidim
   module Voca
     UUID_REGEXP = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/
+    autoload :OpenTelemetryConfigurator, "decidim/voca/open_telemetry_configurator"
     autoload :RackAttackConfigurator, "decidim/voca/rack_attack_configurator"
     autoload :UserFieldsConfigurator, "decidim/voca/user_fields_configurator"
     def self.configuration
@@ -69,6 +77,58 @@ module Decidim
 
     def self.deepl_enabled?
       ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+    end
+
+    def self.opentelemetry_traces_endpoint
+      @opentelemetry_traces_endpoint ||= begin
+        ENV.fetch(
+          "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+          "#{ENV.fetch("OTEL_EXPORTER_OTLP_ENDPOINT")}/v1/traces"
+        )
+      rescue KeyError
+        ""
+      end
+    end
+
+    def self.opentelemetry_logs_endpoint
+      @opentelemetry_logs_endpoint ||= begin
+        ENV.fetch(
+          "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+          "#{ENV.fetch("OTEL_EXPORTER_OTLP_ENDPOINT")}/v1/logs"
+        )
+      rescue KeyError
+        ""
+      end
+    end
+
+    def self.opentelemetry_enabled?
+      return false unless defined?(::OpenTelemetry)
+
+      endpoint = opentelemetry_traces_endpoint
+      endpoint.present? && endpoint.strip.present?
+    end
+
+    def self.opentelemetry_logger_provider
+      @opentelemetry_logger_provider
+    end
+
+    def self.opentelemetry_logger_provider=(provider)
+      @opentelemetry_logger_provider = provider
+    end
+
+    def self.opentelemetry_flush_logs(timeout: 5)
+      return unless opentelemetry_logger_provider
+
+      begin
+        processors = opentelemetry_logger_provider.instance_variable_get(:@log_record_processors) || []
+        processors.each do |processor|
+          processor.force_flush(timeout:) if processor.respond_to?(:force_flush)
+        end
+        true
+      rescue StandardError => e
+        Rails.logger.warn("[OpenTelemetry] Failed to flush logs: #{e.message}") if defined?(Rails)
+        false
+      end
     end
   end
 end

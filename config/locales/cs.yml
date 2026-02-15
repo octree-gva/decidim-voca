@@ -1,6 +1,19 @@
 ---
 cs:
   decidim:
+    core:
+      actions:
+        unauthorized: "Nejste oprávněni provést tuto akci."
+    wizard_step_form:
+      wizard_aside:
+        back: "Zpět"
+    authorization_handlers:
+      code_census:
+        name: "Kód sčítání"
+        explanation: "Ověřte svou identitu pomocí přístupového kódu poskytnutého organizací."
+    application:
+      geocoding:
+        unconfigured: "Geokódování není pro tuto organizaci nakonfigurováno."
     events:
       proposals:
         proposal_state_changed_for_authors:
@@ -14,7 +27,35 @@ cs:
           fields:
             votes_on_going: Hlasování (probíhá)
     voca:
+      code_census:
+        create:
+          success: "Váš přístupový kód byl vytvořen."
+        authorizations:
+          new:
+            title: Ověřit pomocí kódu sčítání
+            code: Přístupový kód
+            submit: Ověřit
+          create:
+            success: Nyní jste oprávněni.
+            error: Zadaný kód není platný.
       admin:
+        code_census:
+          authorizations:
+            new:
+              title: Generovat autorizační kódy
+              intro: Pomocí této stránky vytvořte autorizační kódy pro vaše uživatele.
+              info: Zadejte níže údaje o uživateli. Systém vygeneruje jedinečný přístupový kód, který lze sdílet s uživatelem pro ověření.
+              example: "Příklad: Zadejte email nebo identifikátor uživatele"
+          code_lists:
+            edit:
+              title: Kód sčítání (%{count})
+            form:
+              label: Kódy
+              help: Vložte nebo napište všechny povolené kódy, jeden na řádek.
+              submit: Uložit kódy
+            update:
+              success: Kódy uloženy.
+              error: Kódy se nepodařilo uložit.
         machine_translation_alert:
           button: Přepínání jazyka
           description_html: '<p>Jazyk "%{current_locale}" je plně přeložen strojově, je třeba přepnout na "%{default_locale}".</p>
@@ -23,11 +64,21 @@ cs:
           title: 'Přepínání jazyka
 
             '
+      editor_files:
+        create:
+          success: "Soubor byl úspěšně nahrán."
+          error: "Soubor se nepodařilo nahrát."
       footer_text: Demokratický prostor pro vaši komunitu
       proposals:
         find_my_location: Použijte mou polohu
         take_photo: Vyfotografujte se
       rack_attack:
+        machine_translation_alert:
+          title: |
+            Přepínání jazyka
+          description_html: |
+            <p>Jazyk "%{current_locale}" je plně přeložen strojově, je třeba přepnout na "%{default_locale}".</p>
+          button: Přepínání jazyka
         blocked:
           description: Zjištěno příliš mnoho požadavků. Počkejte prosím několik minut a zkuste to znovu. Pokud potřebujete pomoc, kontaktujte podporu.
           subtitle: Překročení limitu rychlosti
@@ -39,4 +90,5 @@ cs:
   layouts:
     decidim:
       footer:
+        decidim_title: Vaše platforma
         help_title: Nápověda

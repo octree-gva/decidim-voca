@@ -32,6 +32,12 @@ Gem::Specification.new do |s|
 
   s.add_dependency "image_processing", "~> 1.2"
   s.add_dependency "next_gen_images", "~> 1.1.1"
+  # OpenTelemetry: all required when OTEL is enabled; missing gems raise at config time
+  s.add_dependency "opentelemetry-exporter-otlp"
+  s.add_dependency "opentelemetry-exporter-otlp-logs"
+  s.add_dependency "opentelemetry-instrumentation-all"
+  s.add_dependency "opentelemetry-logs-sdk"
+  s.add_dependency "opentelemetry-sdk"
   s.add_dependency "ruby-vips", "~> 2.2.4"
   s.metadata["rubygems_mfa_required"] = "true"
 end
