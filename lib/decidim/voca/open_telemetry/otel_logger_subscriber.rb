@@ -96,7 +96,15 @@ module Decidim
 
         def extract_attributes(progname)
           attrs = {}
-          attrs["logger.name"] = progname if progname
+          service_name = Decidim::Voca::OpenTelemetryConfigurator.service_name
+          attrs["service.name"] = service_name
+          attrs["serviceName"] = service_name
+          
+          if progname.is_a?(String) && progname.include?("(")
+            attrs["logger.name"] = progname.split("(").first.strip
+          elsif progname.is_a?(String) && progname.match?(/^[A-Z][\w:]+/)
+            attrs["logger.name"] = progname
+          end
 
           # Try to extract Decidim context from current request
           env = RequestEnv.from_current
