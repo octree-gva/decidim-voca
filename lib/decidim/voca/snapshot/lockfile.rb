@@ -16,14 +16,39 @@ module Decidim
         end
 
         def self.validate(lockfile_path)
-          return false unless File.exist?(lockfile_path)
+          self.errors(lockfile_path).any?
+        end
+        def self.validate!(lockfile_path)
+          errors = self.errors(lockfile_path)
+          raise errors.join("\n") if errors.any?
+        end
+
+        def self.errors(lockfile_path)
+          return [] unless File.exist?(lockfile_path)
 
           snapshot_data = JSON.parse(File.read(lockfile_path))
           current_modules = extract_decidim_modules
           current_npm = read_npm_lock
 
-          normalize_hash(snapshot_data["decidim_modules"]) == normalize_hash(current_modules) &&
-            snapshot_data["npm_lock"] == current_npm
+          target_modules = normalize_hash(snapshot_data["decidim_modules"]) 
+          current_modules = normalize_hash(current_modules) 
+          
+          target_npm = normalize_hash(snapshot_data["npm_lock"])
+
+          errors = []
+          # Add in error all modules that are in target_modules but not in current_modules
+          target_modules.each do |module_name, module_version|
+            unless current_modules.key?(module_name)
+              errors.push("Missing module #{module_name}, ~>#{module_version}")
+            end
+          end
+          target_npm.each do |npm_name, npm_version|
+            unless current_npm.key?(npm_name)
+              errors.push("Missing npm package #{npm_name}, ~>#{npm_version}")
+            end
+          end
+          
+          errors
         end
 
         def self.normalize_hash(hash)

@@ -123,7 +123,7 @@ module Decidim
 
         def validate_lockfile
           lockfile_path = work_dir.join("vocasnap.lockfile")
-          return if Lockfile.validate(lockfile_path.to_s)
+          Lockfile.validate!(lockfile_path.to_s)
 
           snapshot_modules = extract_snapshot_modules(lockfile_path)
           current_modules = Lockfile.extract_decidim_modules

@@ -27,14 +27,15 @@ module Decidim
 
         def check_pg_dump_version_compatibility!
           server_version = postgresql_server_version
+          server_major_version = server_version.split(".").first.to_i
           client_version = pg_dump_version
-
+          server_version_i = server_version.gsub(".", "").to_i
+          client_version_i = client_version.gsub(".", "").to_i
           return unless server_version && client_version
 
-          return if client_version >= server_version
+          return if client_version_i >= server_version_i
 
-          server_major_int = server_version.split(".").first.to_i
-          hints = upgrade_pg_dump_hint(server_major_int)
+          hints = upgrade_pg_dump_hint(server_version)
           raise("Version mismatch: pg_dump #{client_version} is older than PostgreSQL server #{server_version}. " \
                 "Upgrade pg_dump to match or exceed server version.\n\n#{hints}")
         end
