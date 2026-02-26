@@ -58,7 +58,7 @@ You can use the gem `i18n-rasks" in your rails application to translate any miss
 To do so: 
 - add [`config/i18n-tasks.yml` (link to the file)](/i18n-tasks.yml)
 - run `bundle binstub i18n-tasks`
-- run `bin/i18n-tasks translate-missing --from=en -l=ru --backend=deepl` (for more option do a `bin/i18n-tasks translate-missing --help` )
+- run `bin/i18n-tasks translate-missing --from=en -l ru --backend=deepl` (for more option do a `bin/i18n-tasks translate-missing --help` )
 
 
 ### Use the Machine Translation without a minimalist approach

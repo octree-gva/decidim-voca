@@ -24,7 +24,7 @@ namespace :decidim do
         decidim_models = ActiveRecord::Base.descendants.map do |cls|
           next nil if cls.name.nil? # abstract classes registered during tests
           next nil if cls.abstract_class? || !cls.name.match?(/^Decidim::/)
-
+          next nil unless cls.table_exists?
           cls
         end.compact_blank
         translatable_models = decidim_models.filter { |cls| cls.include?(Decidim::TranslatableResource) }
@@ -38,19 +38,24 @@ namespace :decidim do
             # Find records that define the locale
             other_locales.each do |other_locale|
               cls.where.not(field => nil).where.not(field => { other_locale => nil }).each do |record|
-                organization = record.try(:organization)
-                # If can not get the organization, we can not be sure we are deleting the right thing
-                if organization.nil? || organization.id != current_organization.id
-                  warn_records << record
+                begin
+                  organization = record.try(:organization)
+                  # If can not get the organization, we can not be sure we are deleting the right thing
+                  if organization.nil? || organization.id != current_organization.id
+                    warn_records << record
+                    next
+                  end
+                  current_value = record.send(field)
+                  next if current_value.is_a?(String)
+                  # remove all the locale fields that are not default or machine translated
+                  current_value.delete_if do |key, _value|
+                    other_locales.include?(key)
+                  end
+                  record.send("#{field}=", current_value)
+                  record.save
+                rescue  => e
                   next
                 end
-                current_value = record.send(field)
-                # remove all the locale fields that are not default or machine translated
-                current_value.delete_if do |key, _value|
-                  other_locales.include?(key)
-                end
-                record.send("#{field}=", current_value)
-                record.save!
               end
             end
           end
