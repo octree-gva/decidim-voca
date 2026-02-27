@@ -124,17 +124,6 @@ module Decidim
         def validate_lockfile
           lockfile_path = work_dir.join("vocasnap.lockfile")
           Lockfile.validate!(lockfile_path.to_s)
-
-          snapshot_modules = extract_snapshot_modules(lockfile_path)
-          current_modules = Lockfile.extract_decidim_modules
-          missing_modules = find_missing_modules(snapshot_modules, current_modules)
-
-          error_message = "Lockfile validation failed. "
-          error_message += "Missing modules: #{missing_modules.join(", ")}. " if missing_modules.any?
-          error_message += "Module versions or dependencies do not match the snapshot. " \
-                           "Please install the required modules and versions before restoring."
-
-          raise error_message
         end
 
         def extract_snapshot_modules(lockfile_path)

@@ -9,7 +9,7 @@ module Decidim
         def self.generate(lockfile_path)
           lockfile_data = {
             "decidim_modules" => extract_decidim_modules,
-            "npm_lock" => read_npm_lock
+            "npm_lock" => extract_npm_packages(read_npm_lock)
           }
 
           File.write(lockfile_path, lockfile_data.to_json)
@@ -18,6 +18,7 @@ module Decidim
         def self.validate(lockfile_path)
           self.errors(lockfile_path).any?
         end
+
         def self.validate!(lockfile_path)
           errors = self.errors(lockfile_path)
           raise errors.join("\n") if errors.any?
@@ -28,27 +29,45 @@ module Decidim
 
           snapshot_data = JSON.parse(File.read(lockfile_path))
           current_modules = extract_decidim_modules
-          current_npm = read_npm_lock
+          current_npm = extract_npm_packages(read_npm_lock)
 
-          target_modules = normalize_hash(snapshot_data["decidim_modules"]) 
-          current_modules = normalize_hash(current_modules) 
-          
-          target_npm = normalize_hash(snapshot_data["npm_lock"])
+          target_modules = normalize_hash(snapshot_data["decidim_modules"])
+          current_modules = normalize_hash(current_modules)
+
+          target_npm = normalize_hash(snapshot_data["npm_lock"]) || {}
 
           errors = []
-          # Add in error all modules that are in target_modules but not in current_modules
           target_modules.each do |module_name, module_version|
             unless current_modules.key?(module_name)
               errors.push("Missing module #{module_name}, ~>#{module_version}")
+              next
+            end
+            target_ver = version_from_module_hash(module_version)
+            current_ver = version_from_module_hash(current_modules[module_name])
+            next if target_ver.nil? || current_ver.nil?
+            if Gem::Version.new(current_ver) != Gem::Version.new(target_ver)
+              errors.push("Version mismatch for #{module_name}: lockfile #{target_ver}, current #{current_ver}")
             end
           end
-          target_npm.each do |npm_name, npm_version|
+          target_npm.each do |npm_name, target_ver|
             unless current_npm.key?(npm_name)
-              errors.push("Missing npm package #{npm_name}, ~>#{npm_version}")
+              errors.push("Missing npm package #{npm_name}, ~>#{target_ver}")
+              next
+            end
+            current_ver = current_npm[npm_name].to_s
+            next if target_ver.to_s.empty? || current_ver.empty?
+            if Gem::Version.new(current_ver) != Gem::Version.new(target_ver.to_s)
+              errors.push("Version mismatch for npm package #{npm_name}: lockfile #{target_ver}, current #{current_ver}")
             end
           end
-          
+
           errors
+        end
+
+        def self.version_from_module_hash(h)
+          return nil unless h.is_a?(Hash)
+          v = h["version"] || h[:version]
+          v.to_s if v
         end
 
         def self.normalize_hash(hash)
@@ -87,6 +106,41 @@ module Decidim
           end
 
           File.read(npm_lock_path)
+        end
+
+        # Parses package-lock.json (v2/v3). Uses only packages[""]["dependencies"];
+        # file: deps are skipped. Resolved version taken from packages["node_modules/<name>"]
+        # when present (so we never enumerate node_modules, only look up root deps).
+        # @param content [String, nil] raw package-lock.json content
+        # @return [Hash<String,String>]
+        def self.extract_npm_packages(content)
+          return {} if content.nil? || content.to_s.strip.empty?
+
+          data = JSON.parse(content)
+          packages = data["packages"]
+          return {} unless packages.is_a?(Hash)
+
+          root = packages[""]
+          return {} unless root.is_a?(Hash)
+
+          deps = root["dependencies"] || {}
+          result = {}
+          deps.each do |name, spec|
+            spec = spec.to_s
+            next if spec.start_with?("file:") || spec.empty?
+
+            path = "node_modules/#{name}"
+            resolved = packages[path].is_a?(Hash) && packages[path]["version"]
+            # Use root spec when it's an exact version; else use resolved from node_modules
+            result[name] = if Gem::Version.correct?(spec)
+              spec
+            elsif resolved
+              packages[path]["version"].to_s
+            else
+              spec
+            end
+          end
+          normalize_hash(result)
         end
       end
     end
