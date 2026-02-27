@@ -193,12 +193,17 @@ module Decidim
         end
       end
 
-      # Decidim Awesome Proposal Override
-      initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
-        config.to_prepare do
-          Decidim::Proposals::ProposalSerializer.include(
-            Decidim::Voca::Overrides::ProposalSerializerOverrides
-          )
+      if Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+        # Decidim Awesome Proposal and EditorImagesController Override
+        initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
+          config.to_prepare do
+            Decidim::Proposals::ProposalSerializer.include(
+              Decidim::Voca::Overrides::ProposalSerializerOverrides
+            )
+            ActiveSupport.on_load(:action_controller) do
+              Decidim::EditorImagesController = Decidim::DecidimAwesome::EditorImagesController
+            end
+          end
         end
       end
 
