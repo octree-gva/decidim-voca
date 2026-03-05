@@ -16,7 +16,7 @@ module Decidim
 
           # Prepares the HTML content for the editors with the correct tags included
           # to identify the hashtags and mentions.
-          # Overrides it to include Decidim::ContentRenderers::BlobRenderer in the 
+          # Overrides it to include Decidim::ContentRenderers::BlobRenderer in the
           # renderer array to properly render files and images in the Meetings editor.
           def editor_locales(data, all_locales, extras: true)
             handle_locales(data, all_locales) do |content|
