@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "decidim/meetings"
-
 module Decidim
   module Voca
     module Overrides
@@ -19,18 +17,10 @@ module Decidim
           # Overrides it to include Decidim::ContentRenderers::BlobRenderer in the
           # renderer array to properly render files and images in the Meetings editor.
           def editor_locales(data, all_locales, extras: true)
+            data = original_editor_locales(data, all_locales, extras:)
             handle_locales(data, all_locales) do |content|
-              [
-                Decidim::ContentRenderers::HashtagRenderer,
-                Decidim::ContentRenderers::UserRenderer,
-                Decidim::ContentRenderers::UserGroupRenderer,
-                Decidim::ContentRenderers::BlobRenderer
-              ].each do |renderer_class|
-                renderer = renderer_class.new(content)
-                content = renderer.render(links: false, editor: true, extras:).html_safe
-              end
-
-              content
+              renderer = Decidim::ContentRenderers::BlobRenderer.new(content)
+              renderer.render(links: false, editor: true, extras:).html_safe
             end
           end
         end
