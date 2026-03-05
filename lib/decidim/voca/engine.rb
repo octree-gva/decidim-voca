@@ -162,6 +162,12 @@ module Decidim
         # Overrides ParticipatoryProcessGroupsController
         Decidim::ParticipatoryProcesses::Admin::ParticipatoryProcessGroupsController.include(Decidim::Voca::Overrides::ParticipatoryProcessGroupsControllerOverrides)
 
+        # Overrides ResourcePresenter
+        Decidim::ResourcePresenter.include(Decidim::Voca::Overrides::ResourcePresenterOverrides)
+
+        # Overrides SanitizeHelper
+        Decidim::SanitizeHelper.include(Decidim::Voca::Overrides::SanitizeHelperOverrides)
+
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
