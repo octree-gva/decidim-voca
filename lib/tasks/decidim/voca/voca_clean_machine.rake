@@ -17,6 +17,7 @@ namespace :decidim do
       # And then loop for each language on records that define locales that are not the default locale
 
       Decidim::Organization.all.each do |current_organization|
+        next unless current_organization.enable_machine_translations
         # SKIP if not machine translation
         warn_records = []
         locale = current_organization.default_locale
@@ -53,6 +54,7 @@ namespace :decidim do
                   end
                   record.send("#{field}=", current_value)
                   record.save
+                  Decidim::MachineTranslationResourceJob.perform_later(record, {field => record.send(field)}, other_locale)
                 rescue  => e
                   next
                 end
