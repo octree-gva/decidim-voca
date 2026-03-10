@@ -1,0 +1,29 @@
+<ul>
+  <li class="mb-4">
+    <div class="address__container">
+      <%= icon "map-pin-line" %>
+      <div class="address">
+        <% if has_location? %>
+          <p class="address__location"><%= location %></p>
+        <% end %>
+
+        <p class="address__address"><%= address %></p>
+
+        <% if has_location_hints? %>
+          <p class="address__hints"><%= location_hints %></p>
+        <% end %>
+      </div>
+    </div>
+  </li>
+  <% if display_start_and_end_time? %>
+    <li>
+      <div class="address__container">
+        <%= icon "time-line" %>
+        <div class="address">
+          <div class="address__location">
+            <%= start_and_end_time(t("time.formats.12h_24h")) %>
+          </div>
+        </div>
+    </li>
+  <% end %>
+</ul>
