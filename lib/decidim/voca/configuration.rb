@@ -33,10 +33,10 @@ module Decidim
           fail2ban_paths: ::Decidim::Env.new(
             "RACK_ATTACK_FAIL2BAN_PATHS",
             "/etc/passwd,/wp-admin,/wp-login,/wp-content,/wp-includes,.ht,.git,.log,.lock,.env,.php,.conf,/mifs," \
-            "LogService,/.well-known/*,ecp/Current/exporttool/microsoft.exchange.ediscovery.exporttool.application," \
+            "LogService,/.well-known,ecp/Current/exporttool/microsoft.exchange.ediscovery.exporttool.application," \
             ".DS_Store,cat.,/server-status,/server,/console,/Ctrl-,/Cmd-,/login.action,/telescope/requests," \
-            "/config.json,*/META-INF*,/graphql,/ads*,*/security.txt,/wordpress,/report,app-ads.txt,llms.txt," \
-            "AGENTS.md,AGENT.txt,*phpinfo,/sellers.json,/wp-json/*,/.vscode/sftp.json,/sftp-config.json,/ftpsync.settings"
+            "/config.json,/META-INF,/graphql,/ads,/security.txt,/wordpress,/report,app-ads.txt,llms.txt," \
+            "AGENTS.md,AGENT.txt,*phpinfo,/sellers.json,/wp-json/,/.vscode/sftp.json,/sftp-config.json,/ftpsync.settings"
           ).to_s.split(",").map(&:strip).compact_blank,
           get_conversations_per_minute: ::Decidim::Env.new("RACK_ATTACK_GET_CONVERSATIONS_PER_MINUTE", "100").to_i,
           post_conversations_per_minute: ::Decidim::Env.new("RACK_ATTACK_POST_CONVERSATIONS_PER_MINUTE", "20").to_i,
