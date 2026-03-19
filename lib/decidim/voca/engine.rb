@@ -168,6 +168,12 @@ module Decidim
         # Overrides SanitizeHelper
         Decidim::SanitizeHelper.include(Decidim::Voca::Overrides::SanitizeHelperOverrides)
 
+        # Overrides AddressCell
+        Decidim::AddressCell.include(Decidim::Voca::Overrides::AddressCellOverrides)
+
+        # Overrides CardMetadataCell
+        Decidim::CardMetadataCell.include(Decidim::Voca::Overrides::CardMetadataCellOverrides)
+
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
