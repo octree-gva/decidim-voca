@@ -313,7 +313,7 @@ module Decidim
           end
 
           # Insert Deepl Context in ActiveJob::Base
-          # ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
+          ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
           if Decidim::Voca.minimalistic_deepl?
             Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation")
             config.to_prepare do
