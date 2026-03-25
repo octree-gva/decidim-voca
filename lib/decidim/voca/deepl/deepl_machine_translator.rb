@@ -32,7 +32,6 @@ module Decidim
         text.gsub!(%r{<img src="data:image/png;base64,.*>}, "")
 
         translation = segmented_translate
-        byebug if translation.empty?
         Decidim::MachineTranslationSaveJob.perform_later(
           resource,
           field_name,
@@ -101,7 +100,6 @@ module Decidim
               context: deepl_context,
               **deepl_kwargs(html:)
             )
-            byebug if result.text.blank?
 
             result.text
           rescue StandardError => e
