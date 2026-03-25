@@ -10,6 +10,13 @@ module Decidim
 
       include Decidim::TranslatableAttributes
 
+      # `deepl-rb` ultimately uses `net-http`/OpenSSL. We observed a `FrozenError`
+      # when multiple `DeepL.translate` calls happen concurrently in the same process,
+      # so we use a mutex to avoid concurrent calls.
+      def self.deepl_translate_mutex
+        @_voca_deepl_translate_mutex ||= Mutex.new
+      end
+
       def initialize(resource, field_name, text, target_locale, source_locale)
         @resource = resource
         @field_name = field_name
@@ -25,7 +32,7 @@ module Decidim
         text.gsub!(%r{<img src="data:image/png;base64,.*>}, "")
 
         translation = segmented_translate
-
+        byebug if translation.empty?
         Decidim::MachineTranslationSaveJob.perform_later(
           resource,
           field_name,
@@ -42,26 +49,28 @@ module Decidim
 
       def segmented_translate
         # Use nokogiri parser, that will create
-        # a ensure valid HTML construct,
+        # a valid HTML construct.
         html = Nokogiri::HTML.fragment(text)
 
         html.children.each do |node|
           if node.inner_html.present?
             node.inner_html = deepl_translate(node.inner_html, html: true)
           else
-            node.content = deepl_translate(node.text, html: false)
+            node.content = deepl_translate(node.content, html: false)
           end
         end
         html.to_s
       end
 
+      def supports_formality?
+        target_language? && target_language.supports_formality?
+      rescue DeepL::Exceptions::NotSupported
+        false
+      end
+
       def deepl_kwargs(html:)
         deepl_kwargs = {}
-        begin
-          deepl_kwargs[:formality] = "prefer_more" if target_language? && target_language.supports_formality?
-        rescue StandardError => e
-          Rails.logger.error("Formality no supported by #{target_locale}: #{e.message}")
-        end
+        deepl_kwargs[:formality] = "prefer_more" if supports_formality?
         deepl_kwargs[:tag_handling] = "html" if html
 
         deepl_kwargs
@@ -83,27 +92,33 @@ module Decidim
 
         return text unless translatable?(text)
 
-        result = DeepL.translate(
-          text,
-          source_locale,
-          target_locale,
-          context: deepl_context,
-          **deepl_kwargs(html:)
-        )
-        result.text
-      rescue StandardError => e
-        Rails.logger.error("Error translating text: #{e.message}")
-        Rails.logger.error("Text: #{text}")
-        Rails.logger.error("Source locale: #{source_locale}")
-        Rails.logger.error("Target locale: #{target_locale}")
-        Rails.logger.error("Context: #{deepl_context}")
-        Rails.logger.error("Error: #{e.message}")
-        Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
-        ""
+        self.class.deepl_translate_mutex.synchronize do
+          begin
+            result = DeepL.translate(
+              text,
+              source_locale,
+              target_locale,
+              context: deepl_context,
+              **deepl_kwargs(html:)
+            )
+            byebug if result.text.blank?
+
+            result.text
+          rescue StandardError => e
+            Rails.logger.error("Error translating text: #{e.message}")
+            Rails.logger.error("Text: #{text}")
+            Rails.logger.error("Source locale: #{source_locale}")
+            Rails.logger.error("Target locale: #{target_locale}")
+            Rails.logger.error("Context: #{deepl_context}")
+            Rails.logger.error("Error: #{e.message}")
+            Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
+            raise e
+          end
+        end
       end
 
       def target_language
-        @target_language ||= DeepL.languages.find { |locale| locale.code == target_locale.to_s.upcase }
+        DeepL.languages.find { |locale| locale.code == target_locale.to_s.upcase }
       end
 
       def target_language?

@@ -10,6 +10,7 @@ services:
     environment:
       - DECIDIM_VERSION=0.29.7
       - PORT=3000
+      - DECIDIM_DEEPL_API_KEY=effd6135-2dc8-41db-a8a9-4812091afc2a
       - MAPS_PROVIDER=osm
       - MAPS_STATIC_PROVIDER=osm
       - MAPS_STATIC_URL=https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png
@@ -23,6 +24,7 @@ services:
       - DATABASE_HOST=voca-pg
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
+      - DECIDIM_AVAILABLE_LOCALES=en,fr,uk
       - DECIDIM_FORCE_SSL=false
       - DISABLE_SPRING=1
       - DEV_MODULE=decidim-voca
