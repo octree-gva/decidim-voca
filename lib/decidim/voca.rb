@@ -64,6 +64,10 @@ module Decidim
       configuration.enable_next_gen_images
     end
 
+    def self.decidim_awesome?
+      Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+    end
+
     def self.weglot?
       # Prefer deepl over weglot
       configuration.enable_weglot && !deepl_enabled?

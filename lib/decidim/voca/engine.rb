@@ -93,7 +93,12 @@ module Decidim
 
       # Fixes for geolocated proposals at creation
       config.to_prepare do
-        Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        if Decidim::Voca.decidim_awesome?
+          Decidim::DecidimAwesome::Proposals::CreateProposalOverride.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        else
+          Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        end
+
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
