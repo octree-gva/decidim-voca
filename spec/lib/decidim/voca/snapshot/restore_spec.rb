@@ -119,25 +119,27 @@ module Decidim
 
         describe "#validate_lockfile" do
           let(:lockfile_path) { File.join(work_dir, "vocasnap.lockfile") }
+          let(:lockfile_validator) { instance_double(Decidim::Voca::Snapshot::Lockfile::Validator) }
 
           before do
             allow(File).to receive(:exist?).and_call_original
             allow(File).to receive(:exist?).with(lockfile_path).and_return(true)
-            allow(Lockfile).to receive(:validate).and_return(true)
-            allow(Lockfile).to receive(:extract_decidim_modules).and_return({})
+            allow(Lockfile).to receive(:validator).and_return(lockfile_validator)
+            allow(lockfile_validator).to receive(:validate).and_return(true)
+            allow(lockfile_validator).to receive(:extract_decidim_modules).and_return({})
             allow(restore).to receive(:extract_snapshot_modules).and_return({})
             allow(restore).to receive(:find_missing_modules).and_return([])
           end
 
           it "validates the lockfile" do
             restore.send(:validate_lockfile)
-            expect(Lockfile).to have_received(:validate).with(lockfile_path)
+            expect(lockfile_validator).to have_received(:validate).with(lockfile_path)
           end
 
           context "when validation fails" do
             before do
-              allow(Lockfile).to receive(:validate).and_return(false)
-              allow(Lockfile).to receive(:extract_decidim_modules).and_return({})
+              allow(lockfile_validator).to receive(:validate).and_return(false)
+              allow(lockfile_validator).to receive(:extract_decidim_modules).and_return({})
               allow(restore).to receive(:extract_snapshot_modules).and_return({})
               allow(restore).to receive(:find_missing_modules).and_return([])
             end

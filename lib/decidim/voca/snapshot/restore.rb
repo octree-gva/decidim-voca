@@ -19,6 +19,7 @@ module Decidim
           root = Rails.root
           work_dir ||= root.join("tmp", "vocasnap-restore")
           @work_dir = Pathname.new(work_dir)
+          ensure_active_storage_config!
         end
 
         def log(message = nil, color: :green, &block)
@@ -123,7 +124,21 @@ module Decidim
 
         def validate_lockfile
           lockfile_path = work_dir.join("vocasnap.lockfile")
-          Lockfile.validate!(lockfile_path.to_s)
+          lockfile_path_s = lockfile_path.to_s
+          raise "Lockfile not found at #{lockfile_path_s}" unless File.exist?(lockfile_path_s)
+
+          lockfile_validator = Lockfile.validator
+          errs = lockfile_validator.errors(lockfile_path_s)
+          return if errs.empty?
+
+          snapshot_modules = extract_snapshot_modules(lockfile_path_s)
+          current_modules = lockfile_validator.extract_decidim_modules
+          missing_modules = find_missing_modules(snapshot_modules, current_modules)
+
+          msg = +"Lockfile validation failed"
+          msg << "\n\nMissing modules:\n- #{missing_modules.join("\n- ")}" if missing_modules.any?
+          msg << "\n\nDetails:\n- #{errs.join("\n- ")}"
+          raise msg
         end
 
         def extract_snapshot_modules(lockfile_path)
@@ -147,8 +162,8 @@ module Decidim
           gitignore_content = File.read(gitignore_path)
           return if gitignore_content.include?("*.vocasnap") || gitignore_content.include?("*.vocasnapshot")
 
-          Rails.logger.debug "Warning: .gitignore does not exclude *.vocasnap files"
-          Rails.logger.debug "Add *.vocasnap to .gitignore? (y/N): "
+          $stdout.puts "Warning: .gitignore does not exclude *.vocasnap files"
+          $stdout.puts "Add *.vocasnap to .gitignore? (y/N): "
           response = $stdin.gets.chomp.downcase
           if response == "y"
             File.open(gitignore_path, "a") { |f| f.puts("\n*.vocasnap") }
@@ -309,6 +324,7 @@ module Decidim
 
         def migrate_active_storage_to_local
           reconnect_active_record
+          ensure_active_storage_config!
 
           # Update all blobs that are not already using local service
           # rubocop:disable Rails/SkipsModelValidations
@@ -316,6 +332,38 @@ module Decidim
           # rubocop:enable Rails/SkipsModelValidations
 
           Rails.logger.debug { "Migrated #{updated_count} Active Storage blob(s) to local service" } if updated_count.positive?
+        end
+
+        def ensure_active_storage_config!
+          storage_yml = Rails.root.join("config/storage.yml")
+          return if File.exist?(storage_yml)
+
+          _mkdir_p(storage_yml.dirname.to_s)
+          File.write(storage_yml, <<~YAML)
+            test:
+              service: Disk
+              root: <%= Rails.root.join("tmp/storage") %>
+
+            local:
+              service: Disk
+              root: <%= Rails.root.join("storage") %>
+          YAML
+        end
+
+        def _mkdir_p(path)
+          parts = path.split(File::SEPARATOR)
+          current = path.start_with?(File::SEPARATOR) ? File::SEPARATOR : ""
+
+          parts.each do |part|
+            next if part.empty?
+
+            current = File.join(current, part)
+            begin
+              Dir.mkdir(current)
+            rescue Errno::EEXIST
+              # ok
+            end
+          end
         end
 
         def restore_storage

@@ -44,7 +44,7 @@ end
 gem "concurrent-ruby", "= 1.3.4"
 gem "decidim-telemetry",
     git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry",
-    tag: "v0.0.3"
+    tag: "v0.0.4"
 
 gem "decidim-ephemeral_participation",
     git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-ephemeral_participation",
@@ -53,3 +53,9 @@ gem "decidim-ephemeral_participation",
 gem "decidim-user_fields",
     git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields",
     tag: "v0.1.4"
+
+gem "opentelemetry-exporter-otlp"
+gem "opentelemetry-exporter-otlp-logs"
+gem "opentelemetry-instrumentation-all"
+gem "opentelemetry-logs-sdk"
+gem "opentelemetry-sdk"

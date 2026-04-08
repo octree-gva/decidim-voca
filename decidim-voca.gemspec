@@ -23,7 +23,7 @@ Gem::Specification.new do |s|
   s.add_dependency "decidim-admin", Decidim::Voca.decidim_version
   s.add_dependency "decidim-decidim_awesome", Decidim::Voca.compat_decidim_awesome_version
   s.add_dependency "decidim-ephemeral_participation", "~> 0.0.6"
-  s.add_dependency "decidim-telemetry", "~> 0.0.3"
+  s.add_dependency "decidim-telemetry", "~> 0.0.4"
   s.add_dependency "decidim-user_fields", "~> 0.1.4"
 
   s.add_dependency "deepl-rb", "~> 3.2.0"
@@ -33,6 +33,12 @@ Gem::Specification.new do |s|
 
   s.add_dependency "image_processing", "~> 1.2"
   s.add_dependency "next_gen_images", "~> 1.1.1"
+  # OpenTelemetry: all required when OTEL is enabled; missing gems raise at config time
+  s.add_dependency "opentelemetry-exporter-otlp"
+  s.add_dependency "opentelemetry-exporter-otlp-logs"
+  s.add_dependency "opentelemetry-instrumentation-all"
+  s.add_dependency "opentelemetry-logs-sdk"
+  s.add_dependency "opentelemetry-sdk"
   s.add_dependency "ruby-vips", "~> 2.2.4"
   s.add_dependency "thor", "~> 1.0"
   s.metadata["rubygems_mfa_required"] = "true"

@@ -27,7 +27,7 @@ module Decidim
 
         def check_pg_dump_version_compatibility!
           server_version = postgresql_server_version
-          server_major_version = server_version.split(".").first.to_i
+          server_version.split(".").first.to_i
           client_version = pg_dump_version
           server_version_i = server_version.gsub(".", "").to_i
           client_version_i = client_version.gsub(".", "").to_i

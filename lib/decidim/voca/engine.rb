@@ -93,7 +93,12 @@ module Decidim
 
       # Fixes for geolocated proposals at creation
       config.to_prepare do
-        Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        if Decidim::Voca.decidim_awesome?
+          Decidim::DecidimAwesome::Proposals::CreateProposalOverride.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        else
+          Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        end
+
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
@@ -162,6 +167,18 @@ module Decidim
         # Overrides ParticipatoryProcessGroupsController
         Decidim::ParticipatoryProcesses::Admin::ParticipatoryProcessGroupsController.include(Decidim::Voca::Overrides::ParticipatoryProcessGroupsControllerOverrides)
 
+        # Overrides ResourcePresenter
+        Decidim::ResourcePresenter.include(Decidim::Voca::Overrides::ResourcePresenterOverrides)
+
+        # Overrides SanitizeHelper
+        Decidim::SanitizeHelper.include(Decidim::Voca::Overrides::SanitizeHelperOverrides)
+
+        # Overrides AddressCell
+        Decidim::AddressCell.include(Decidim::Voca::Overrides::AddressCellOverrides)
+
+        # Overrides CardMetadataCell
+        Decidim::CardMetadataCell.include(Decidim::Voca::Overrides::CardMetadataCellOverrides)
+
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
@@ -193,12 +210,17 @@ module Decidim
         end
       end
 
-      # Decidim Awesome Proposal Override
-      initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
-        config.to_prepare do
-          Decidim::Proposals::ProposalSerializer.include(
-            Decidim::Voca::Overrides::ProposalSerializerOverrides
-          )
+      if Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+        # Decidim Awesome Proposal and EditorImagesController Override
+        initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
+          config.to_prepare do
+            Decidim::Proposals::ProposalSerializer.include(
+              Decidim::Voca::Overrides::ProposalSerializerOverrides
+            )
+            ActiveSupport.on_load(:action_controller) do
+              Decidim::EditorImagesController = Decidim::DecidimAwesome::EditorImagesController
+            end
+          end
         end
       end
 
@@ -248,6 +270,25 @@ module Decidim
         end
         ActiveSupport::Reloader.to_prepare do
           Decidim::Voca::RackAttackConfigurator.call
+        end
+      end
+
+      # OpenTelemetry configuration
+      initializer "decidim.voca.open_telemetry", after: :load_config_initializers do
+        if Decidim::Voca.opentelemetry_enabled?
+          Rails.logger.info("[OpenTelemetry] Enabled - setting up initializer")
+
+          # Configure SDK synchronously to avoid middleware stack conflicts
+          result = Decidim::Voca::OpenTelemetryConfigurator.call
+          if result.has_key?(:ok)
+            Rails.logger.info("[OpenTelemetry] Configuration successful")
+            Rails.application.config.middleware.use ::Decidim::Voca::OpenTelemetry::OtelDecidimContext
+            Rails.logger.info("[OpenTelemetry] Middleware registered")
+          else
+            Rails.logger.error("[OpenTelemetry] Configuration failed: #{result.inspect}")
+          end
+        else
+          Rails.logger.debug("[OpenTelemetry] Disabled - skipping initialization")
         end
       end
 

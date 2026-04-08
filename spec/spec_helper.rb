@@ -9,10 +9,6 @@ ENV["DECIDIM_AVAILABLE_LOCALES"] = "en,fr,es,ca"
 ENV["DECIDIM_DEFAULT_LOCALE"] = "en"
 
 require "i18n"
-available_locales = ENV["DECIDIM_AVAILABLE_LOCALES"].split(",").map { |locale| locale.strip.to_sym }
-I18n.available_locales = available_locales
-I18n.default_locale = ENV["DECIDIM_DEFAULT_LOCALE"].to_sym
-
 require "decidim/dev"
 
 Decidim::Dev.dummy_app_path = File.expand_path(File.join(__dir__, "decidim_dummy_app"))
@@ -20,8 +16,14 @@ Decidim::Dev.dummy_app_path = File.expand_path(File.join(__dir__, "decidim_dummy
 require "decidim/dev/test/base_spec_helper"
 require "active_storage/engine"
 
+available_locales = ENV["DECIDIM_AVAILABLE_LOCALES"].split(",").map { |locale| locale.strip.to_sym }
+I18n.available_locales = available_locales
+I18n.default_locale = ENV["DECIDIM_DEFAULT_LOCALE"].to_sym
+I18n.enforce_available_locales = false
+
 require "decidim/core/test/factories"
 require "decidim/proposals/test/factories"
+require "decidim/decidim_awesome/test/factories"
 
 RSpec.configure do |config|
   config.before do

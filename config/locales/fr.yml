@@ -1,6 +1,19 @@
 ---
 fr:
   decidim:
+    core:
+      actions:
+        unauthorized: "Vous n'êtes pas autorisé à effectuer cette action."
+    wizard_step_form:
+      wizard_aside:
+        back: "Retour"
+    authorization_handlers:
+      code_census:
+        name: "Code"
+        explanation: "Vérifiez votre identité en utilisant un code d'accès fourni par l'organisation."
+    application:
+      geocoding:
+        unconfigured: "La géocodification n'est pas configurée pour cette organisation."
     events:
       proposals:
         proposal_state_changed_for_authors:
@@ -19,7 +32,35 @@ fr:
           fields:
             votes_on_going: Votes (en cours)
     voca:
+      code_census:
+        create:
+          success: "Votre code d'accès a été créé."
+        authorizations:
+          new:
+            title: Vérifier avec le code
+            code: Code d'accès
+            submit: Vérifier
+          create:
+            success: Vous êtes maintenant autorisé.
+            error: Le code fourni n'est pas valide.
       admin:
+        code_census:
+          authorizations:
+            new:
+              title: Générer des codes d'autorisation
+              intro: Utilisez cette page pour créer des codes d'autorisation pour vos utilisateurs.
+              info: Entrez les détails de l'utilisateur ci-dessous. Le système générera un code d'accès unique qui peut être partagé avec l'utilisateur pour vérification.
+              example: "Exemple : Entrez l'email ou l'identifiant de l'utilisateur"
+          code_lists:
+            edit:
+              title: Code (%{count})
+            form:
+              label: Codes
+              help: Collez ou tapez tous les codes autorisés, un par ligne.
+              submit: Enregistrer les codes
+            update:
+              success: Codes enregistrés.
+              error: Les codes n'ont pas pu être enregistrés.
         machine_translation_alert:
           button: Change de langue
           description_html: '<p>La langue "%{current_locale}" est entièrement traduite par la machine, tu dois passer à "%{default_locale}".</p>
@@ -32,11 +73,21 @@ fr:
       proposals:
         find_my_location: Ma position
         take_photo: Prendre une photo
+      editor_files:
+        create:
+          success: "Fichier téléchargé avec succès."
+          error: "Le fichier n'a pas pu être téléchargé."
       rack_attack:
         blocked:
           description: Trop de requêtes détectées. Veuillez patienter quelques minutes avant de réessayer. Contactez le support si vous avez besoin d'aide.
           subtitle: Limite de taux dépassée
           title: Accès Temporairement Restreint
+        machine_translation_alert:
+          title: |
+            Changer de langue
+          description_html: |
+            <p>La langue "%{current_locale}" est entièrement traduite par la machine, vous devez passer à "%{default_locale}".</p>
+          button: Changer de langue
   devise:
     mailer:
       confirmation_instructions:

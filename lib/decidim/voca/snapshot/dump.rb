@@ -78,7 +78,7 @@ module Decidim
 
         def create_lockfile
           lockfile_path = work_dir.join("vocasnap.lockfile")
-          Lockfile.generate(lockfile_path.to_s)
+          Lockfile.validator.generate(lockfile_path.to_s)
         end
 
         def create_metadata

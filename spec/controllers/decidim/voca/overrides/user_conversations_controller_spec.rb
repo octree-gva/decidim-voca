@@ -82,7 +82,7 @@ module Decidim
         end
 
         it "redirects to previous 2 participant created conversation" do
-          expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation)
+          expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.id)
         end
       end
 
@@ -151,7 +151,7 @@ module Decidim
 
             expect(flash[:alert]).not_to be_empty
             expect(response).to have_http_status(:found)
-            expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.uuid)
+            expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.id)
           end
         end
       end

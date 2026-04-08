@@ -28,6 +28,7 @@ services:
       - DATABASE_HOST=voca-pg
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
+      - DECIDIM_FORCE_SSL=false
       - DISABLE_SPRING=1
       - DEV_MODULE=decidim-voca
       - RAILS_ENV=development
