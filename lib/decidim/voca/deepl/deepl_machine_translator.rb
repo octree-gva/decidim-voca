@@ -92,26 +92,24 @@ module Decidim
         return text unless translatable?(text)
 
         self.class.deepl_translate_mutex.synchronize do
-          begin
-            result = DeepL.translate(
-              text,
-              source_locale,
-              target_locale,
-              context: deepl_context,
-              **deepl_kwargs(html:)
-            )
+          result = DeepL.translate(
+            text,
+            source_locale,
+            target_locale,
+            context: deepl_context,
+            **deepl_kwargs(html:)
+          )
 
-            result.text
-          rescue StandardError => e
-            Rails.logger.error("Error translating text: #{e.message}")
-            Rails.logger.error("Text: #{text}")
-            Rails.logger.error("Source locale: #{source_locale}")
-            Rails.logger.error("Target locale: #{target_locale}")
-            Rails.logger.error("Context: #{deepl_context}")
-            Rails.logger.error("Error: #{e.message}")
-            Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
-            raise e
-          end
+          result.text
+        rescue StandardError => e
+          Rails.logger.error("Error translating text: #{e.message}")
+          Rails.logger.error("Text: #{text}")
+          Rails.logger.error("Source locale: #{source_locale}")
+          Rails.logger.error("Target locale: #{target_locale}")
+          Rails.logger.error("Context: #{deepl_context}")
+          Rails.logger.error("Error: #{e.message}")
+          Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
+          raise e
         end
       end
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "csv"
 require "faker"
 require "decidim/core"
 namespace :decidim do
@@ -8,9 +9,17 @@ namespace :decidim do
       Remove all translation strings that are not in default locale and#{" "}
       not in machine translation.
       Will loop over every ActiveRecord availables
+
+      Set DRY_RUN=1 to perform no writes and print a semicolon-separated CSV to stdout:
+      model;field;value (field JSON before alteration). Redirect, e.g. DRY_RUN=1 bin/rake ... > tmp/out.csv
     DESC
     task clean_machine_translations: :environment do
       Rails.application.eager_load!
+
+      dry_run = ENV["DRY_RUN"].to_s == "1"
+      if dry_run
+        $stdout.puts CSV.generate_line(%w[model field value], col_sep: ";")
+      end
 
       # For each active record class that includes Decidim::TranslatableResource
       # check their @translatable_fields (class instance variable)
@@ -45,6 +54,11 @@ namespace :decidim do
                   next
                 end
                 current_value = record.send(field)
+                if dry_run
+                  value_json = current_value.respond_to?(:as_json) ? current_value.as_json.to_json : current_value.to_json
+                  $stdout.puts CSV.generate_line([cls.name, field.to_s, value_json], col_sep: ";")
+                  next
+                end
                 # remove all the locale fields that are not default or machine translated
                 current_value.delete_if do |key, _value|
                   other_locales.include?(key)

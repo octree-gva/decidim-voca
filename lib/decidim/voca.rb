@@ -134,5 +134,16 @@ module Decidim
         false
       end
     end
+
+    # Decidim::TranslatableResource.translatable_fields replaces the entire list.
+    # Append VOCA field names without dropping fields registered elsewhere.
+    def self.merge_translatable_fields(klass, *fields)
+      existing = klass.translatable_fields_list
+      existing = existing ? existing.map(&:to_s) : []
+      additions = fields.flatten.map(&:to_s).reject { |f| existing.include?(f) }
+      return if additions.empty?
+
+      klass.translatable_fields(*(existing + additions))
+    end
   end
 end

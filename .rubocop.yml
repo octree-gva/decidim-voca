@@ -1,2 +1,11 @@
 inherit_gem:
   decidim-dev: rubocop-decidim.yml
+
+# Machine-translation integration specs describe full command flows, not a single method name or path suffix.
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - spec/commands/**/*machine_translation*_spec.rb
+
+RSpec/DescribeMethod:
+  Exclude:
+    - spec/commands/**/*machine_translation*_spec.rb

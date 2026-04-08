@@ -97,6 +97,42 @@ module Decidim
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
+      # Machine translation: register JSONB i18n columns on models so Decidim enqueues
+      # MachineTranslationResourceJob on create/update (no opt-out in VOCA). Field names are merged
+      # onto existing lists so other engines can add columns too. Deepl service/UI stays in
+      # initializer `decidim.voca.deepl`.
+      config.to_prepare do
+        Decidim::Component.include(Decidim::TranslatableResource) unless Decidim::Component.included_modules.include?(Decidim::TranslatableResource)
+        Decidim::Voca.merge_translatable_fields(Decidim::Component, "name")
+
+        if defined?(Decidim::Budgets::Budget)
+          Decidim::Budgets::Budget.include(Decidim::TranslatableResource) unless Decidim::Budgets::Budget.included_modules.include?(Decidim::TranslatableResource)
+          Decidim::Voca.merge_translatable_fields(Decidim::Budgets::Budget, "title", "description")
+        end
+
+        if defined?(Decidim::Proposals::ProposalState)
+          Decidim::Voca.merge_translatable_fields(
+            Decidim::Proposals::ProposalState,
+            "title",
+            "announcement_title"
+          )
+        end
+
+        if defined?(Decidim::Templates::Template)
+          Decidim::Templates::Template.include(Decidim::TranslatableResource) unless Decidim::Templates::Template.included_modules.include?(Decidim::TranslatableResource)
+          Decidim::Voca.merge_translatable_fields(Decidim::Templates::Template, "name", "description")
+        end
+
+        if Decidim::Voca.deepl_enabled? && Decidim::Voca.minimalistic_deepl?
+          unless ::Decidim::TranslationBarCell.included_modules.include?(Decidim::Voca::Deepl::TranslationBarOverrides)
+            ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
+          end
+          unless ::Decidim::FormBuilder.included_modules.include?(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
+            ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
+          end
+        end
+      end
+
       # Setup upload variants
       config.to_prepare do
         upload_variants = {
@@ -314,13 +350,7 @@ module Decidim
 
           # Insert Deepl Context in ActiveJob::Base
           ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
-          if Decidim::Voca.minimalistic_deepl?
-            Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation")
-            config.to_prepare do
-              ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
-              ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
-            end
-          end
+          Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
         end
       end
 

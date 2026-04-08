@@ -51,7 +51,7 @@ Once you have done this, restart the server.
 | `DECIDIM_DEEPL_API_KEY` | DeepL API key | `` |
 | `DECIDIM_DEEPL_HOST` | DeepL hosts, for on-premise install | `https://api.deepl.com` |
 | `DECIDIM_DEEPL_VERSION` | DeepL API version | `v2` |
-| `VOCA_DUMMY_TRANSLATE` | For testing purpose, avoids calling DeepL and renders debug text | `false` (not explicitly stated) |
+| `VOCA_DUMMY_TRANSLATE` | For testing purpose, avoids calling DeepL and renders debug text | `false` |
 
 ## Translate missing .yml with machine translations
 You can use the gem `i18n-rasks" in your rails application to translate any missing I18n values. 
