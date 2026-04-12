@@ -1,0 +1,18 @@
+# i18n-tasks for voca Deface partials (English + voca locale files only).
+# Cross-locale gaps in cs/fr/it packs are out of scope here; use Crowdin / full-app config for that.
+# Run: ./bin/i18n-tasks missing --config config/i18n-tasks.yml
+# https://github.com/glebm/i18n-tasks
+base_locale: en
+locales: [en]
+
+data:
+  read:
+    - "config/locales/en.yml"
+  write:
+    - "config/locales/en.yml"
+
+search:
+  paths:
+    - "app/views/decidim/voca/deface_partials"
+  relative_roots:
+    - "app/views"

@@ -1,0 +1,109 @@
+# frozen_string_literal: true
+
+require "spec_helper"
+
+describe "Admin creates a component with machine-translated name" do
+  let(:organization) do
+    create(
+      :organization,
+      available_locales: %w(en fr),
+      default_locale: "en",
+      enable_machine_translations: true,
+      machine_translation_display_priority: "translation"
+    )
+  end
+
+  let!(:user) { create(:user, :admin, :confirmed, organization:) }
+
+  let!(:participatory_process) do
+    create(
+      :participatory_process,
+      :with_steps,
+      organization:,
+      title: { "en" => "MT Test", "fr" => "MT Test" }
+    )
+  end
+
+  let(:step_id) { participatory_process.steps.first.id }
+
+  around do |example|
+    previous_minimalistic = Decidim::Voca.configuration.enable_minimalistic_deepl
+    Decidim::Voca.configure { |c| c.enable_minimalistic_deepl = true }
+    example.run
+    Decidim::Voca.configure { |c| c.enable_minimalistic_deepl = previous_minimalistic }
+  end
+
+  before do
+    @previous_deepl_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", nil)
+    ENV["DECIDIM_DEEPL_API_KEY"] = "test-key"
+    stub_dummy_machine_translator
+    clear_enqueued_jobs
+    I18n.locale = organization.default_locale.to_sym
+    switch_to_host(organization.host)
+    login_as user, scope: :user
+  end
+
+  after do
+    I18n.locale = I18n.default_locale
+    if @previous_deepl_key
+      ENV["DECIDIM_DEEPL_API_KEY"] = @previous_deepl_key
+    else
+      ENV.delete("DECIDIM_DEEPL_API_KEY")
+    end
+  end
+
+  it "persists machine translations for the default-locale name" do
+    perform_enqueued_jobs do
+      visit decidim_admin_participatory_processes.components_path(participatory_process)
+
+      find("button[data-toggle=add-component-dropdown]").click
+
+      within "#add-component-dropdown" do
+        find(".dummy").click
+      end
+
+      expect(page).to have_no_content("Share tokens")
+
+      within ".item__edit-form .new_component" do
+        # VOCA hides .tabs under [data-machine-translated]; Decidim helpers click those tabs — reveal them in test only.
+        page.execute_script(<<~JS)
+          document.querySelectorAll('[data-machine-translated="true"] .tabs.tabs--lang').forEach(function(el) {
+            el.style.setProperty("display", "block", "important");
+          });
+        JS
+
+        fill_in_i18n(
+          :component_name,
+          "#component-name-tabs",
+          en: "Bonjour"
+        )
+
+        within ".global-settings" do
+          fill_in_i18n_editor(
+            :component_settings_dummy_global_translatable_text,
+            "#global-settings-dummy_global_translatable_text-tabs",
+            en: "Dummy Text"
+          )
+          all("input[type=checkbox]").last.click
+        end
+
+        within "#panel-step_settings" do
+          fill_in_i18n_editor(
+            "component_step_settings_#{step_id}_dummy_step_translatable_text",
+            "#step-#{step_id}-settings-dummy_step_translatable_text-tabs",
+            en: "Dummy Text for Step"
+          )
+          all("input[type=checkbox]").first.click
+        end
+
+        click_on "Add component"
+      end
+
+      expect(page).to have_admin_callout("successfully")
+    end
+
+    component = participatory_process.reload.components.order(:id).last
+    expect(component).to be_present
+    expect_dummy_machine_translation_for_field(component, :name, "fr", "Bonjour")
+  end
+end

@@ -20,8 +20,11 @@ services:
       - MAPS_DYNAMIC_API_KEY=my_insecure_api_key
       - MAPS_GEOCODING_HOST=nominatim.openstreetmap.org
       - MAPS_ATTRIBUTION=<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap</a> contributors
-      - DATABASE_URL=postgis://decidim:pleaseChangeMe@voca-pg:5432/decidim
+      # Omit DATABASE_URL so Rails uses spec/decidim_dummy_app/config/database.yml (e.g. module_test_app).
+      # A single URL to the shared "decidim" DB breaks db:test:prepare / purge when that DB is in use.
       - DATABASE_HOST=voca-pg
+      # Cache gems for dummy-app bundle (also set BUNDLE_GEMFILE when invoking rspec from /home/module).
+      - BUNDLE_PATH=/home/decidim/app/vendor/bundle
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
       - DECIDIM_AVAILABLE_LOCALES=en,fr,uk
@@ -40,7 +43,8 @@ services:
       - TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL=10s
       - TRAEFIK_SERVICE_HEALTHCHECK_TIMEOUT=10s
     depends_on:
-      - voca-pg
+      voca-pg:
+        condition: service_healthy
     ports:
       - 3000:3000
     links:

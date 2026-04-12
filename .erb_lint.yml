@@ -1,0 +1,9 @@
+# Lint ERB for this engine (Deface partials and voca views). From repo root:
+#   ./bin/erblint --lint-all
+glob: "app/views/decidim/voca/deface_partials/**/*.erb"
+exclude:
+  - "**/vendor/**/*"
+EnableDefaultLinters: true
+linters:
+  Rubocop:
+    enabled: false

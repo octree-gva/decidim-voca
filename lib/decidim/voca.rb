@@ -24,9 +24,14 @@ require_relative "voca/overrides/footer/footer_menu_presenter"
 require_relative "voca/deepl/translation_bar_overrides"
 require_relative "voca/deepl/deepl_context"
 require_relative "voca/deepl/deepl_middleware"
+require_relative "voca/machine_translation/translate_string"
+require_relative "voca/component_setting_manifest"
+require_relative "voca/component_setting_pending_locales"
+require_relative "voca/component_translated_settings_machine_translation"
 require_relative "voca/deepl/deepl_machine_translator"
 require_relative "voca/deepl/deepl_active_job_context"
 require_relative "voca/deepl/deepl_form_builder_overrides"
+require_relative "voca/sync_locales"
 require_relative "voca/overrides/system/system_organization_update_form"
 require_relative "voca/overrides/extra_data_cell_overrides"
 require_relative "voca/overrides/check_boxes_tree_helper_overrides"
@@ -62,6 +67,26 @@ module Decidim
       yield configuration
     end
 
+    def self.decidim_awesome_installed?
+      @decidim_awesome_installed ||= Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+    end
+
+    def self.decidim_conferences_installed?
+      @decidim_conferences_installed ||= Gem.loaded_specs.has_key?("decidim-conferences")
+    end
+
+    def self.decidim_initiatives_installed?
+      @decidim_initiatives_installed ||= Gem.loaded_specs.has_key?("decidim-initiatives")
+    end
+
+    def self.decidim_templates_installed?
+      @decidim_templates_installed ||= Gem.loaded_specs.has_key?("decidim-templates")
+    end
+
+    def self.deepl_installed?
+      @deepl_installed ||= Gem.loaded_specs.has_key?("deepl-rb")
+    end
+
     def self.next_gen_images?
       configuration.enable_next_gen_images
     end
@@ -80,7 +105,7 @@ module Decidim
     end
 
     def self.deepl_enabled?
-      ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+      deepl_installed? && ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
     end
 
     def self.opentelemetry_traces_endpoint
@@ -143,6 +168,7 @@ module Decidim
       additions = fields.flatten.map(&:to_s).reject { |f| existing.include?(f) }
       return if additions.empty?
 
+      # Open class and set the translatable fields
       klass.translatable_fields(*(existing + additions))
     end
   end

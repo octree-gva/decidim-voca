@@ -1,0 +1,13 @@
+<%# Minimalistic Deepl: warn when admin UI locale is not the organization default. %>
+<% if Decidim::Voca.minimalistic_deepl? && current_organization.enable_machine_translations? && current_organization.default_locale.to_s != I18n.locale.to_s %>
+  <% locale = current_organization.default_locale %>
+  <div class="voca__machine_translation_alert">
+    <div class="voca__machine_translation_alert__content">
+      <h2 class="h2"><%= t("decidim.voca.admin.machine_translation_alert.title", current_locale: I18n.locale, default_locale: current_organization.default_locale) %></h2>
+      <p class="prose text-lg">
+        <%= t("decidim.voca.admin.machine_translation_alert.description_html", current_locale: I18n.locale, default_locale: current_organization.default_locale) %>
+        <%= link_to t("decidim.voca.admin.machine_translation_alert.button"), decidim.locale_path(locale:), method: :post, lang: locale, class: "button button__sm button__secondary" %>
+      </p>
+    </div>
+  </div>
+<% end %>

@@ -4,12 +4,6 @@ module Decidim
   module Voca
     # Helpers for specs that assert Decidim machine translation (DummyTranslator + job chain).
     module MachineTranslationSpecHelpers
-      extend ActiveSupport::Concern
-
-      included do
-        include ActiveJob::TestHelper
-      end
-
       # Runs the block inside ActiveJob's test adapter with recursive job execution so
       # MachineTranslationResourceJob → MachineTranslationFieldsJob → MachineTranslationSaveJob
       # all complete (same as a single top-level perform_enqueued_jobs after save would not).
@@ -32,5 +26,6 @@ module Decidim
 end
 
 RSpec.configure do |config|
+  config.include ActiveJob::TestHelper
   config.include Decidim::Voca::MachineTranslationSpecHelpers
 end

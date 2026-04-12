@@ -1,137 +1,61 @@
 # frozen_string_literal: true
 
-require "deepl"
-require "active_support"
+# Use +Gem.loaded_specs+ here: this file is required from +decidim/voca.rb+ before +module Decidim::Voca+
+# defines +deepl_installed?+.
+if Gem.loaded_specs.has_key?("deepl-rb")
+  require "deepl"
+  require "active_support"
+  require_relative "../machine_translation/translate_string"
 
-module Decidim
-  module Voca
-    class DeeplMachineTranslator
-      attr_reader :text, :source_locale, :target_locale, :resource, :field_name
+  module Decidim
+    module Voca
+      class DeeplMachineTranslator
+        attr_reader :text, :source_locale, :target_locale, :resource, :field_name
 
-      include Decidim::TranslatableAttributes
+        include Decidim::TranslatableAttributes
 
-      # `deepl-rb` ultimately uses `net-http`/OpenSSL. We observed a `FrozenError`
-      # when multiple `DeepL.translate` calls happen concurrently in the same process,
-      # so we use a mutex to avoid concurrent calls.
-      def self.deepl_translate_mutex
-        @_voca_deepl_translate_mutex ||= Mutex.new
-      end
-
-      def initialize(resource, field_name, text, target_locale, source_locale)
-        @resource = resource
-        @field_name = field_name
-        @text = text
-        @target_locale = target_locale
-        @source_locale = source_locale
-      end
-
-      def translate
-        return if text.blank?
-
-        # remove base64 encoded images if they exist
-        text.gsub!(%r{<img src="data:image/png;base64,.*>}, "")
-
-        translation = segmented_translate
-        Decidim::MachineTranslationSaveJob.perform_later(
-          resource,
-          field_name,
-          target_locale,
-          translation
-        )
-      end
-
-      private
-
-      def dummy_translate?
-        %w(1 true enabled).include?(ENV.fetch("VOCA_DUMMY_TRANSLATE", "false"))
-      end
-
-      def segmented_translate
-        # Use nokogiri parser, that will create
-        # a valid HTML construct.
-        html = Nokogiri::HTML.fragment(text)
-
-        html.children.each do |node|
-          if node.inner_html.present?
-            node.inner_html = deepl_translate(node.inner_html, html: true)
-          else
-            node.content = deepl_translate(node.content, html: false)
-          end
-        end
-        html.to_s
-      end
-
-      def supports_formality?
-        target_language? && target_language.supports_formality?
-      rescue DeepL::Exceptions::NotSupported
-        false
-      end
-
-      def deepl_kwargs(html:)
-        deepl_kwargs = {}
-        deepl_kwargs[:formality] = "prefer_more" if supports_formality?
-        deepl_kwargs[:tag_handling] = "html" if html
-
-        deepl_kwargs
-      end
-
-      def translatable?(text)
-        # DeepL has a limit of 131_072 bytes per input
-        # https://developers.deepl.com/docs/resources/usage-limits
-        text.present? && text.bytesize < 131_000
-      end
-
-      def deepl_translate(text, html: false)
-        if dummy_translate?
-          context = deepl_context
-          str = "DUMMY TRANSLATION [date=#{Time.current.strftime("%d/%m/%Y %H:%M:%S")},mode=#{html ? "html" : "text"},text_to_translate=\"#{text}\",context=\"#{context}\"]"
-          str = "<p><strong>#{str}</strong></p>" if html
-          return str.html_safe
+        def initialize(resource, field_name, text, target_locale, source_locale)
+          @resource = resource
+          @field_name = field_name
+          @text = text
+          @target_locale = target_locale
+          @source_locale = source_locale
         end
 
-        return text unless translatable?(text)
+        def translate
+          return if text.blank?
 
-        self.class.deepl_translate_mutex.synchronize do
-          result = DeepL.translate(
-            text,
-            source_locale,
-            target_locale,
-            context: deepl_context,
-            **deepl_kwargs(html:)
+          translation = MachineTranslation::TranslateString.call(
+            text: text,
+            source_locale: source_locale,
+            target_locale: target_locale,
+            html: true,
+            context: deepl_context
           )
+          return if translation.nil?
 
-          result.text
-        rescue StandardError => e
-          Rails.logger.error("Error translating text: #{e.message}")
-          Rails.logger.error("Text: #{text}")
-          Rails.logger.error("Source locale: #{source_locale}")
-          Rails.logger.error("Target locale: #{target_locale}")
-          Rails.logger.error("Context: #{deepl_context}")
-          Rails.logger.error("Error: #{e.message}")
-          Rails.logger.error("Backtrace: #{e.backtrace.join("\n")}")
-          raise e
+          Decidim::MachineTranslationSaveJob.perform_later(
+            resource,
+            field_name,
+            target_locale,
+            translation
+          )
         end
-      end
 
-      def target_language
-        DeepL.languages.find { |locale| locale.code == target_locale.to_s.upcase }
-      end
+        private
 
-      def target_language?
-        target_language.present?
-      end
+        def deepl_context
+          base = Decidim::Voca::DeeplContext.deepl_context
+          "This is a text for a #{resource.class.name.demodulize.titleize} #{name_context}, field #{field_name}. #{base}"
+        end
 
-      def deepl_context
-        base = Decidim::Voca::DeeplContext.deepl_context
-        "This is a text for a #{resource.class.name.demodulize.titleize} #{name_context}, field #{field_name}. #{base}"
-      end
+        def name_context
+          return "" if field_name == "title"
+          return ", named #{translated_attribute(resource.title)}" if resource.respond_to?(:title)
+          return ", named #{translated_attribute(resource.name)}" if resource.respond_to?(:name)
 
-      def name_context
-        return "" if field_name == "title"
-        return ", named #{translated_attribute(resource.title)}" if resource.respond_to?(:title)
-        return ", named #{translated_attribute(resource.name)}" if resource.respond_to?(:name)
-
-        ""
+          ""
+        end
       end
     end
   end

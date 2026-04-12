@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "spec_helper"
+require_relative "../../../support/shared_examples/machine_translation_update_shared_examples"
 
 RSpec.describe Decidim::Admin::UpdateStaticPageTopic, "machine translations" do
   let(:organization) do
