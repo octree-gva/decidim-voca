@@ -6,7 +6,7 @@ module Decidim
   describe UserConversationsController do
     routes { Decidim::Core::Engine.routes }
 
-    let(:organization) { create(:organization) }
+    let(:organization) { create(:organization, host: "#{SecureRandom.hex(8)}.example.org") }
     let(:user) { create(:user, :confirmed, organization:) }
     let(:another_user) { create(:user, :confirmed, organization:) }
     let(:user_group) { create(:user_group, :confirmed, organization:, users: [user, another_user]) }
@@ -22,7 +22,7 @@ module Decidim
       )
       Messaging::Conversation.start!(
         originator: user_group,
-        interlocutors: [create(:user)],
+        interlocutors: [create(:user, organization:)],
         body: "Hi from group!"
       )
     end
@@ -82,7 +82,7 @@ module Decidim
         end
 
         it "redirects to previous 2 participant created conversation" do
-          expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation)
+          expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.to_param)
         end
       end
 
@@ -98,7 +98,7 @@ module Decidim
         end
 
         it "redirects to previous 2 participant created conversation" do
-          expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.id)
+          expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.to_param)
         end
       end
     end
@@ -151,7 +151,7 @@ module Decidim
 
             expect(flash[:alert]).not_to be_empty
             expect(response).to have_http_status(:found)
-            expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.uuid)
+            expect(subject).to redirect_to profile_conversation_path(nickname: profile.nickname, id: conversation.to_param)
           end
         end
       end

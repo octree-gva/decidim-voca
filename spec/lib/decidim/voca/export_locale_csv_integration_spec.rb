@@ -20,6 +20,7 @@ RSpec.describe Decidim::Voca::Export do
     let(:organization) do
       create(
         :organization,
+        host: "#{SecureRandom.hex(8)}.example.org",
         available_locales: %w(en fr es ar),
         default_locale: "en"
       )
@@ -55,6 +56,7 @@ RSpec.describe Decidim::Voca::Export do
     let(:organization) do
       create(
         :organization,
+        host: "#{SecureRandom.hex(8)}.example.org",
         available_locales: %w(en fr),
         default_locale: "en"
       )

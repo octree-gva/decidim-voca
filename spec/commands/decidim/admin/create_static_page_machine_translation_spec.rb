@@ -7,6 +7,7 @@ RSpec.describe Decidim::Admin::CreateStaticPage, "machine translations" do
   let(:organization) do
     create(
       :organization,
+      host: "#{SecureRandom.hex(4)}.lvh.me",
       available_locales: %w(en fr),
       default_locale: "en",
       enable_machine_translations: true
@@ -48,27 +49,5 @@ RSpec.describe Decidim::Admin::CreateStaticPage, "machine translations" do
     let(:perform_machine_translation_save) { -> { command.call } }
 
     it_behaves_like "persists dummy machine translations for field"
-
-    it "re-runs machine translation after UpdateStaticPage changes the default locale title" do
-      perform_with_machine_translation_jobs do
-        expect { command.call }.to broadcast(:ok)
-      end
-
-      static_page = Decidim::StaticPage.find_by!(organization:, slug:)
-      expect_dummy_machine_translation_for_field(static_page, :title, "fr", "Hello Page")
-
-      p = static_page.reload
-      update_form = Decidim::Admin::StaticPageForm.from_model(p).with_context(
-        current_user: user,
-        current_organization: organization
-      )
-      update_form.title_en = "Hello Page updated"
-
-      perform_with_machine_translation_jobs do
-        expect { Decidim::Admin::UpdateStaticPage.new(update_form, p).call }.to broadcast(:ok)
-      end
-
-      expect_dummy_machine_translation_for_field(static_page.reload, :title, "fr", "Hello Page updated")
-    end
   end
 end

@@ -3,7 +3,6 @@
 require "rails"
 require "socket"
 require "decidim/core"
-require_relative "machine_translation_resource_job_voca"
 require "deface"
 require "next_gen_images"
 require "decidim/verifications"
@@ -13,6 +12,7 @@ require_relative "export/proposal_serializer_localized_csv"
 require_relative "export/comment_serializer_localized_csv"
 require_relative "export/user_answers_serializer_localized_csv"
 require_relative "overrides/csv_export_serializers"
+require_relative "overrides/mod_secure/user_conversations_redirect_overrides"
 
 module Decidim
   module Voca
@@ -95,6 +95,7 @@ module Decidim
         Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
         Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
+        Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
       end
 
       # Fixes for geolocated proposals at creation
@@ -103,40 +104,9 @@ module Decidim
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
-      # Nested translated component settings (JSONB): enqueue after save regardless of Deepl toggle.
-      config.to_prepare do
-        Decidim::Component.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
-      end
-
-      # Machine translation: register JSONB i18n columns on models so Decidim enqueues
-      # MachineTranslationResourceJob on create/update (no opt-out in VOCA). Field names are merged
-      # onto existing lists so other engines can add columns too. Deepl service/UI stays in
-      # initializer `decidim.voca.deepl`.
-      config.to_prepare do
-        next unless Decidim::Voca.deepl_enabled?
-
-        Decidim::Component.include(Decidim::TranslatableResource)
-        Decidim::Voca.merge_translatable_fields(Decidim::Component, "name")
-
-        Decidim::Budgets::Budget.include(Decidim::TranslatableResource)
-        Decidim::Voca.merge_translatable_fields(Decidim::Budgets::Budget, "title", "description")
-        Decidim::Voca.merge_translatable_fields(
-          Decidim::Proposals::ProposalState,
-          "title",
-          "announcement_title"
-        )
-
-        if Decidim::Voca.decidim_templates_installed?
-          Decidim::Templates::Template.include(Decidim::TranslatableResource)
-          Decidim::Voca.merge_translatable_fields(Decidim::Templates::Template, "name", "description")
-        end
-
-        Decidim::MachineTranslationResourceJob.prepend(Decidim::Voca::MachineTranslationResourceJobVoca)
-
-        if Decidim::Voca.minimalistic_deepl?
-          ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
-          ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
-        end
+      if Decidim::Voca::Installation.deepl_installed? && ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+        Decidim::Voca::DeepL::EngineConfig.initialize!(self)
+        Decidim::Voca::DeepL::EngineConfig.configure!(self)
       end
 
       # Setup upload variants
@@ -335,31 +305,6 @@ module Decidim
 
       initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
         Decidim::Voca::UserFieldsConfigurator.call
-      end
-
-      initializer "decidim.voca.deepl", after: :load_config_initializers do
-        if Decidim::Voca.deepl_enabled?
-          require "deepl"
-          DeepL.configure do |config|
-            config.auth_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", "")
-            config.host = ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com")
-            config.version = ENV.fetch("DECIDIM_DEEPL_VERSION", "v2")
-          end
-
-          Rails.application.config.middleware.use ::Decidim::Voca::DeeplMiddleware
-          Decidim.configure do |decidim_config|
-            # Even enabled, this won't enable organizations to use machine translations
-            # You need to update programitacally the Organization:
-            # Decidim::Organization.last.update(enable_machine_translations: true, machine_translation_display_priority: "translation")
-            decidim_config.enable_machine_translations = true
-            decidim_config.machine_translation_service = "Decidim::Voca::DeeplMachineTranslator"
-            decidim_config.machine_translation_delay = 3.seconds
-          end
-
-          # Insert Deepl Context in ActiveJob::Base
-          ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
-          Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
-        end
       end
 
       initializer "decidim.voca.good_job", after: :load_config_initializers do

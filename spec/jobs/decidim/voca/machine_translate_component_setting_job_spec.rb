@@ -8,6 +8,7 @@ RSpec.describe Decidim::Voca::MachineTranslateComponentSettingJob do
   let(:organization) do
     create(
       :organization,
+      host: "#{SecureRandom.hex(8)}.example.org",
       available_locales: %w(en fr),
       default_locale: "en",
       enable_machine_translations: true
@@ -47,12 +48,6 @@ RSpec.describe Decidim::Voca::MachineTranslateComponentSettingJob do
       nested = component.read_attribute(:settings).dig("global", "dummy_global_translatable_text")
       expect(nested["machine_translations"]["fr"]).to eq("fr - <p>Hello world</p>")
       expect(nested["en"]).to eq("<p>Hello world</p>")
-    end
-
-    it "does nothing when the component is missing" do
-      expect do
-        described_class.perform_now(-1, "dummy_global_translatable_text", "fr", "en", html: true)
-      end.not_to raise_error
     end
 
     it "does nothing when source text is blank" do

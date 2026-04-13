@@ -6,7 +6,7 @@ module Decidim
   describe Messaging::ConversationsController do
     routes { Decidim::Core::Engine.routes }
 
-    let(:organization) { create(:organization) }
+    let(:organization) { create(:organization, host: "#{SecureRandom.hex(8)}.example.org") }
     let(:user) { create(:user, :confirmed, organization:) }
     let(:user1) { create(:user, organization:) }
     let(:user2) { create(:user, organization:) }
@@ -22,7 +22,7 @@ module Decidim
     let!(:conversation) do
       Messaging::Conversation.start!(
         originator: user,
-        interlocutors: [create(:user)],
+        interlocutors: [create(:user, organization:)],
         body: "Hi!"
       )
     end

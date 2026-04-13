@@ -2,7 +2,8 @@
 
 module Decidim
   module Voca
-    class DeeplContext < ActiveSupport::CurrentAttributes
+    module DeepL
+      class Context < ActiveSupport::CurrentAttributes
       attribute :organization
       attribute :participatory_space
       attribute :current_component
@@ -60,6 +61,7 @@ module Decidim
         [
           "- Component Name: #{translated_attribute(located_current_component.name) || "undefined"}"
         ]
+      end
       end
     end
   end

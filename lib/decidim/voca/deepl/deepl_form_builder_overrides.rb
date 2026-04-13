@@ -2,8 +2,8 @@
 
 module Decidim
   module Voca
-    module Deepl
-      module DeeplFormBuilderOverrides
+    module DeepL
+      module DeepLFormBuilderOverrides
         extend ActiveSupport::Concern
 
         included do
@@ -25,7 +25,7 @@ module Decidim
 
           def organization_context
             # deserialize the global id to get the organization
-            @organization_context ||= GlobalID::Locator.locate(Decidim::Voca::DeeplContext.organization)
+            @organization_context ||= GlobalID::Locator.locate(Decidim::Voca::DeepL::Context.organization)
           end
 
           def tabs_content_tag(type, name, options = {})

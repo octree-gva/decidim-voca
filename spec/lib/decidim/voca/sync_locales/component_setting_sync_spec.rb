@@ -8,6 +8,7 @@ RSpec.describe Decidim::Voca::SyncLocales::ComponentSettingSync do
   let(:organization) do
     create(
       :organization,
+      host: "#{SecureRandom.hex(8)}.example.org",
       available_locales: %w(en fr),
       default_locale: "en",
       enable_machine_translations: true

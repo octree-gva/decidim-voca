@@ -1,15 +1,13 @@
 # frozen_string_literal: true
 
-# Use +Gem.loaded_specs+ here: this file is required from +decidim/voca.rb+ before +module Decidim::Voca+
-# defines +deepl_installed?+.
-if Gem.loaded_specs.has_key?("deepl-rb")
-  require "deepl"
-  require "active_support"
-  require_relative "../machine_translation/translate_string"
+# DeepL is conditionally required from +decidim/voca.rb+ when enabled.
+require "active_support"
+require_relative "../machine_translation/translate_string"
 
-  module Decidim
-    module Voca
-      class DeeplMachineTranslator
+module Decidim
+  module Voca
+    module DeepL
+      class MachineTranslator
         attr_reader :text, :source_locale, :target_locale, :resource, :field_name
 
         include Decidim::TranslatableAttributes
@@ -45,7 +43,7 @@ if Gem.loaded_specs.has_key?("deepl-rb")
         private
 
         def deepl_context
-          base = Decidim::Voca::DeeplContext.deepl_context
+          base = Decidim::Voca::DeepL::Context.deepl_context
           "This is a text for a #{resource.class.name.demodulize.titleize} #{name_context}, field #{field_name}. #{base}"
         end
 

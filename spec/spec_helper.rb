@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "securerandom"
+
 ENV["RAILS_ENV"] = "test"
 ENV["NODE_ENV"] ||= "test"
 ENV["ENGINE_ROOT"] = File.dirname(__dir__)

@@ -4,7 +4,12 @@ require "spec_helper"
 
 RSpec.describe Decidim::Voca::MachineTranslationHumanSource do
   let(:organization) do
-    create(:organization, available_locales: %w(en fr es), default_locale: "en")
+    create(
+      :organization,
+      host: "#{SecureRandom.hex(8)}.example.org",
+      available_locales: %w(en fr es),
+      default_locale: "en"
+    )
   end
 
   describe ".authoring_locale" do

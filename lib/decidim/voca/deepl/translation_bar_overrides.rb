@@ -2,7 +2,7 @@
 
 module Decidim
   module Voca
-    module Deepl
+    module DeepL
       module TranslationBarOverrides
         extend ActiveSupport::Concern
 

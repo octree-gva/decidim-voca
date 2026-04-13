@@ -7,8 +7,8 @@ module Decidim
       # Runs the block inside ActiveJob's test adapter with recursive job execution so
       # MachineTranslationResourceJob → MachineTranslationFieldsJob → MachineTranslationSaveJob
       # all complete (same as a single top-level perform_enqueued_jobs after save would not).
-      def perform_with_machine_translation_jobs(&)
-        perform_enqueued_jobs(&)
+      def perform_with_machine_translation_jobs
+        perform_enqueued_jobs { yield }
       end
 
       def expect_dummy_machine_translation_for_field(record, field, target_locale, source_text)

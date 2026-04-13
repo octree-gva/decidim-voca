@@ -6,7 +6,13 @@ module Decidim::Voca::SyncLocales
   describe LocaleContext do
     describe ".for" do
       it "uses the organization when the record has one" do
-        organization = create(:organization, available_locales: %w(en fr), default_locale: "fr", enable_machine_translations: true)
+        organization = create(
+          :organization,
+          host: "#{SecureRandom.hex(4)}.lvh.me",
+          available_locales: %w(en fr),
+          default_locale: "fr",
+          enable_machine_translations: true
+        )
         process = create(:participatory_process, organization:)
         component = create(:component, participatory_space: process)
 
@@ -19,7 +25,13 @@ module Decidim::Voca::SyncLocales
       end
 
       it "uses the organization record itself for Decidim::Organization" do
-        organization = create(:organization, available_locales: %w(en fr uk), default_locale: "uk", enable_machine_translations: false)
+        organization = create(
+          :organization,
+          host: "#{SecureRandom.hex(4)}.lvh.me",
+          available_locales: %w(en fr uk),
+          default_locale: "uk",
+          enable_machine_translations: false
+        )
 
         context = described_class.for(organization)
 
@@ -30,7 +42,13 @@ module Decidim::Voca::SyncLocales
       end
 
       it "uses participatory_space.organization when record.organization is absent" do
-        organization = create(:organization, available_locales: %w(en fr), default_locale: "fr", enable_machine_translations: true)
+        organization = create(
+          :organization,
+          host: "#{SecureRandom.hex(4)}.lvh.me",
+          available_locales: %w(en fr),
+          default_locale: "fr",
+          enable_machine_translations: true
+        )
         process = create(:participatory_process, organization:)
         proposal_component = create(:component, participatory_space: process)
         allow(proposal_component).to receive(:organization).and_return(nil)
@@ -42,7 +60,13 @@ module Decidim::Voca::SyncLocales
       end
 
       it "uses component.organization when organization and participatory_space yield nothing" do
-        organization = create(:organization, available_locales: %w(en fr), default_locale: "fr", enable_machine_translations: true)
+        organization = create(
+          :organization,
+          host: "#{SecureRandom.hex(4)}.lvh.me",
+          available_locales: %w(en fr),
+          default_locale: "fr",
+          enable_machine_translations: true
+        )
         process = create(:participatory_process, organization:)
         component = create(:proposal_component, participatory_space: process)
         proposal = create(:proposal, component:)

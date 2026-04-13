@@ -1,0 +1,59 @@
+# frozen_string_literal: true
+
+require "spec_helper"
+
+RSpec.describe Decidim::Admin::UpdateStaticPage, "machine translations" do
+  let(:organization) do
+    create(
+      :organization,
+      host: "#{SecureRandom.hex(4)}.lvh.me",
+      available_locales: %w(en fr),
+      default_locale: "en",
+      enable_machine_translations: true
+    )
+  end
+
+  let(:user) { create(:user, :admin, :confirmed, organization:) }
+
+  before do
+    stub_dummy_machine_translator
+    clear_enqueued_jobs
+  end
+
+  it "refreshes dummy machine translation when the default-locale title changes" do
+    slug = "mt-static-page-update-#{SecureRandom.hex(4)}"
+
+    create_form = Decidim::Admin::StaticPageForm
+      .from_params(
+        {
+          static_page: {
+            slug:,
+            title: { en: "Hello Page" },
+            content: { en: "<p>#{SecureRandom.hex(32)}</p>" },
+            allow_public_access: false,
+            weight: 0
+          }
+        }
+      )
+      .with_context(current_user: user, current_organization: organization)
+
+    perform_with_machine_translation_jobs do
+      expect { Decidim::Admin::CreateStaticPage.new(create_form).call }.to broadcast(:ok)
+    end
+
+    static_page = Decidim::StaticPage.find_by!(organization:, slug:)
+    expect_dummy_machine_translation_for_field(static_page, :title, "fr", "Hello Page")
+
+    update_form = Decidim::Admin::StaticPageForm.from_model(static_page.reload).with_context(
+      current_user: user,
+      current_organization: organization
+    )
+    update_form.title_en = "Hello Page updated"
+
+    perform_with_machine_translation_jobs do
+      expect { Decidim::Admin::UpdateStaticPage.new(update_form, static_page).call }.to broadcast(:ok)
+    end
+
+    expect_dummy_machine_translation_for_field(static_page.reload, :title, "fr", "Hello Page updated")
+  end
+end

@@ -31,7 +31,7 @@ module Decidim
           end
 
           def deepl_service?(klass)
-            klass.to_s == "Decidim::Voca::DeeplMachineTranslator" && Decidim::Voca.deepl_enabled?
+            klass.to_s == "Decidim::Voca::DeepL::MachineTranslator" && Decidim::Voca.deepl_enabled?
           end
 
           def translatable?(text)
@@ -47,7 +47,7 @@ module Decidim
           end
 
           def dummy_deepl_style_translation(work, _target_locale, html)
-            ctx = Decidim::Voca::DeeplContext.deepl_context
+            ctx = deepl_context_base
             str = "DUMMY TRANSLATION [date=#{Time.current.strftime("%d/%m/%Y %H:%M:%S")},mode=#{html ? "html" : "text"},text_to_translate=\"#{work}\",context=\"#{ctx}\"]"
             str = "<p><strong>#{str}</strong></p>" if html
             str.html_safe
@@ -89,8 +89,14 @@ module Decidim
           end
 
           def full_context(context)
-            base = Decidim::Voca::DeeplContext.deepl_context
+            base = deepl_context_base
             [context, base].compact.join(" ")
+          end
+
+          def deepl_context_base
+            return "" unless Decidim::Voca.const_defined?(:DeepL)
+
+            Decidim::Voca::DeepL::Context.deepl_context
           end
 
           def deepl_kwargs(target_locale, html:)

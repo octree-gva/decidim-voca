@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
+require "securerandom"
 require "spec_helper"
 
 RSpec.describe Decidim::Component, :slow do
   let(:organization) do
     create(
       :organization,
+      host: "#{SecureRandom.hex(4)}.lvh.me",
       available_locales: %w(en fr),
       default_locale: "en",
       enable_machine_translations: true,
@@ -13,7 +15,7 @@ RSpec.describe Decidim::Component, :slow do
     )
   end
 
-  let!(:user) { create(:user, :admin, :confirmed, organization:) }
+  let(:user) { create(:user, :admin, :confirmed, organization:) }
 
   let!(:participatory_process) do
     create(
@@ -31,9 +33,8 @@ RSpec.describe Decidim::Component, :slow do
     previous_deepl_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", nil)
     Decidim::Voca.configure { |c| c.enable_minimalistic_deepl = true }
     ENV["DECIDIM_DEEPL_API_KEY"] = "test-key"
-    stub_dummy_machine_translator
     clear_enqueued_jobs
-    switch_to_host(organization.host)
+    user
     login_as user, scope: :user
 
     I18n.with_locale(organization.default_locale.to_sym) do
@@ -48,7 +49,11 @@ RSpec.describe Decidim::Component, :slow do
     end
   end
 
+  before { stub_dummy_machine_translator }
+
   it "persists machine translations for the default-locale name" do
+    switch_to_host(organization.host)
+
     perform_enqueued_jobs do
       visit decidim_admin_participatory_processes.components_path(participatory_process)
 

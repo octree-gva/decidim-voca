@@ -5,7 +5,13 @@ require "spec_helper"
 module Decidim::Voca::SyncLocales
   describe MachineTranslationEnqueuer do
     let(:organization) do
-      create(:organization, available_locales: %w(fr en), default_locale: "fr", enable_machine_translations: true)
+      create(
+        :organization,
+        host: "#{SecureRandom.hex(8)}.example.org",
+        available_locales: %w(fr en),
+        default_locale: "fr",
+        enable_machine_translations: true
+      )
     end
     let(:participatory_process) { create(:participatory_process, organization:) }
     let(:component) { create(:component, participatory_space: participatory_process) }

@@ -29,6 +29,6 @@ Deface::Override.new(
   virtual_path: "layouts/decidim/admin/_js_configuration",
   name: "admin_voca_force_only_default_locale",
   insert_after: "script",
-  partial: "decidim/voca/deface_partials/admin_machine_translation_alert",
+  partial: "decidim/voca/deepl/overrides/admin_machine_translation_alert",
   original: "387d0b7c5fc52d2ee5e5c6d4b276791d69b4432e"
 )

@@ -2,179 +2,208 @@
 sidebar_position: 5
 slug: /machine-translation
 title: Machine Translation
-description: Machine translation with DeepL on voca, component settings, and improved CSV exports for multilingual content
+description: DeepL-backed machine translation, minimalistic admin, CSV exports, locale management, and operations for decidim-voca
 ---
 
-# General overview
+# Machine translation (DeepL)
 
-[Decidim machine translation](https://docs.decidim.org/en/develop/develop/machine_translations.html) is normally pluggable: you can point `config.machine_translation_service` at any adapter. **decidim-voca changes that contract for anything that goes through voca’s MT pipeline:** once the module is installed and you want machine translation, **the supported service is voca’s DeepL-based translator** (`Decidim::Voca::DeeplMachineTranslator`). That is required in practice because voca also machine-translates **nested JSON** (for example **translated component settings**), which cannot use Decidim’s stock `MachineTranslationSaveJob` path that only persists top-level JSONB columns.
+[Decidim machine translation](https://docs.decidim.org/en/develop/develop/machine_translations.html) is normally pluggable: you point `config.machine_translation_service` at an adapter. **decidim-voca** extends that stack so the same DeepL pipeline can handle **top-level translatable columns** and **nested JSON** (for example **translated component settings**), which Decidim’s stock `MachineTranslationSaveJob` path alone does not cover.
 
-**What voca machine-translates (no product “exceptions” in this list)**  
-With voca enabled and DeepL configured, the same MT flow applies to everything voca registers, including for example:
+## Overview: what decidim-voca adds
 
-- **Component** `name` and **translated global component settings** (e.g. proposals templates, announcements, help texts defined as `translated: true` in the component manifest).
-- **Proposal states** (e.g. titles and announcement fields voca registers).
-- **Budgets** titles and descriptions, **templates** (when the templates module is present), and other models voca merges into `TranslatableResource` in code.
+1. **Fill multilingual content via machine translation** — For resources voca registers (components, budgets, proposal states, templates when present, nested component settings marked `translated: true`, etc.), missing locales are filled through the **same DeepL-backed** jobs and voca’s **component-setting** job where needed, so content is not left half-translated when MT is enabled.
+2. **Minimalistic administration (optional)** — When [minimalistic DeepL](#minimalistic-deepl-optional) is enabled, editors primarily work in the **organization default locale**; other locale slots are driven by machine translation and normalization rules, reducing parallel per-locale editing in admin.
+3. **Consistent CSV exports** — Proposal, comment, and survey answer exports use a **stable, locale-first column layout** (for example `en/title`, `fr/body`, `locale`) so spreadsheets and open data stay comparable across proposals and surveys. See [CSV exports](#csv-exports-for-admins-and-open-data).
+4. **Tasks for locale and content changes** — Rake tasks help after you change **default locale** or **available locales**, or when you need to **normalize** stored translation JSON and **re-enqueue** machine translation. See [Operation](#operation).
 
-So: **component name, component settings, proposal state names and announcements, etc.** are all intended to go through machine translation like the rest—not left out as optional exclusions.
+---
 
-**Tradeoffs we want to attend**
+## Install
 
-- If an admin specified a custom translation, it can get **fast** out of sync when the source string changes (there is no automatic notice).
-- Many languages mean more load on editors and on translation quality review.
-- Machine translation is not always ideal, especially for short strings that lack _context_.
+### Dependencies and API key
 
-**Voca solution (“minimalistic” DeepL)**  
-We call part of our approach “minimalistic” machine translation, because we simplify the admin experience more than we add new UI:
+1. **`deepl-rb`** — Declared by decidim-voca; ensure your application bundle installs it.
+2. **`DECIDIM_DEEPL_API_KEY`** — [Create a DeepL API key](https://www.deepl.com/pro-api) and set it in the environment (or your deployment secrets). Restart the application after changes.
 
-When minimalistic mode is enabled (optional, see below):
+Optional DeepL client settings (see also [Environment variables](#environment-variables-reference)):
 
-- Other languages are not edited as separate admin fields in the same way; the **organization `default_locale`** is the authoritative human input.
-- The admin experience can look like a single language; other locale slots are driven by machine translation where applicable.
-- Stray non-default locale values can be normalized so stored JSON matches that model.
+- `DECIDIM_DEEPL_HOST` — API host (default `https://api.deepl.com`; Pro includes `https://api-free.deepl.com` for Free API).
+- `DECIDIM_DEEPL_VERSION` — API version segment (default `v2`).
 
-**VOCA implementation (minimalistic, when enabled)**  
+### Minimalistic DeepL (optional) {#minimalistic-deepl-optional}
 
-- The machine-translation source locale is always the **organization `default_locale`**, even when the admin UI runs in another language (`I18n.locale`). That way `MachineTranslationResourceJob` (and related jobs) read the default slot for the string to translate.
-- For scheduling work, only the **default locale slot** is treated as “already filled by a human” in minimalistic mode; other locales may still receive machine translation even if stray text appeared in those keys (for example manifest defaults). Non-default keys may be cleared on component create/update when minimalistic mode is on so the stored JSON matches “single-locale edit”.
-
-# Enable DeepL machine translation (and voca syncing)
-
-For **decidim-voca** machine translation—including **component settings**—you must wire DeepL. Concretely:
-
-1. **Install `deepl-rb`**  
-   The voca gem already depends on it; ensure your application bundle resolves it (same as other decidim-voca dependencies).
-
-2. **Set `DECIDIM_DEEPL_API_KEY`**  
-   [Get a DeepL API key](https://www.deepl.com/en/your-account/keys) and export it in the environment (or your deployment secrets). A paid plan is required in most cases.
-
-3. **Optionally configure minimalistic DeepL**  
-   If the minimalistic behaviour above fits your project, enable it in an initializer:
-
-   ```rb
-   Decidim::Voca.configure do |config|
-     config.enable_minimalistic_deepl = true
-   end
-   ```
-
-   If it does **not** fit, set `config.enable_minimalistic_deepl = false` and restart.
-
-After `DECIDIM_DEEPL_API_KEY` is set, restart the application so the voca initializer can register DeepL and `Decidim::Voca::DeeplMachineTranslator` as `config.machine_translation_service`.
-
-**Development / tests**  
-Automated tests often stub `Decidim.machine_translation_service_klass` (for example with Decidim’s dummy translator) without calling DeepL. That does not change production expectations: **with voca, real MT is DeepL-backed as above.**
-
-# Setup (organization and display)
-
-First, set **`available_locales`** for your Decidim installation (environment variables or `config/initializers/decidim.rb`).
-
-```bash
-bundle exec rails c
-Decidim.available_locales # List of available languages
-```
-
-Create the organization under `/system`. You may not see machine translation toggles in the system UI yet; that can be normal depending on version.
-
-Then enable machine translation on the organization:
-
-```bash
-Decidim::Organization.last.update(
-  enable_machine_translations: true,
-  machine_translation_display_priority: "translation"
-)
-```
-
-Restart the server after changing DeepL or voca configuration.
-
-## Environment variables
-
-| Environment variable   | Description                                      | Default                    |
-|-------------------------|--------------------------------------------------|----------------------------|
-| `DECIDIM_DEEPL_API_KEY` | DeepL API key (required for voca MT in prod)   | _(empty)_                  |
-| `DECIDIM_DEEPL_HOST`    | DeepL API host (on-prem / regional endpoints) | `https://api.deepl.com`    |
-| `DECIDIM_DEEPL_VERSION` | DeepL API version                              | `v2`                       |
-| `VOCA_DUMMY_TRANSLATE`  | Debug: skip real DeepL calls and render dummy text | `false`                |
-
-## Translate missing `.yml` with machine translations
-
-You can use the gem `i18n-tasks` in your Rails application to translate missing I18n values.
-
-- add [`config/i18n-tasks.yml`](/i18n-tasks.yml) (see voca / project template)
-- run `bundle binstub i18n-tasks`
-- run `bin/i18n-tasks translate-missing --from=en -l=ru --backend=deepl` (see `bin/i18n-tasks translate-missing --help`)
-
-### Test translations without calling DeepL
-
-For local or CI testing, set `VOCA_DUMMY_TRANSLATE` to `true`. That avoids calling DeepL and renders debug text whenever the voca translation path runs. You can still set `DECIDIM_DEEPL_API_KEY` to a placeholder if something in boot expects it to be present.
-
-Example debug fragment:
-
-```
-DUMMY TRANSLATION [date=12/02/2025 14:05:16,mode=html,context="…"]
-```
-
-You can use it to check that updates change the timestamp, that `mode` matches text vs HTML, and that context strings look sensible.
-
-### Disable minimalistic DeepL
-
-If minimalistic mode does not fit your project:
+If the [minimalistic behaviour](#overview-what-decidim-voca-adds) fits your project:
 
 ```rb
+# config/initializers/decidim_voca.rb (or similar)
 Decidim::Voca.configure do |config|
-  config.enable_minimalistic_deepl = false
+  config.enable_minimalistic_deepl = true
 end
 ```
 
-Restart the server.
+If it does **not** fit, set `enable_minimalistic_deepl` to `false` and restart.
 
-## Clean translatable fields (rake)
+When DeepL is enabled, voca sets `Decidim::Voca::DeepL::MachineTranslator` as `config.machine_translation_service` and sets **`Decidim.config.machine_translation_delay` to 3 seconds** (see [FAQ — Developers](#faq--developers)).
 
-The task `decidim:voca:clean_machine_translations` walks models that use `TranslatableResource` and removes locale keys that are neither the organization default locale nor part of the intended machine-translation flow. It also handles **nested translated fields inside `Decidim::Component` settings** (global keys declared `translated: true` in the component manifest). It can be expensive on large databases.
+### Not compatible with Weglot for the same “stack”
 
-**Dry run (no writes):** set `DRY_RUN=1` to print a semicolon-separated CSV to stdout: `model;field;value`, where `value` is the JSON **before** any change. Component nested fields use a field name like `settings[attribute_name]`.
+decidim-voca can integrate **Weglot** for client-side / edge translation (see [Weglot](./weglot.md)), but **DeepL MT and Weglot are mutually exclusive in practice**: `Decidim::Voca.weglot?` is only true when Weglot is enabled **and** DeepL is **not** enabled (`deepl_enabled?` is false). If `DECIDIM_DEEPL_API_KEY` is set and DeepL loads, **Weglot UI integration is turned off** so DeepL-backed stored translations take precedence.
+
+Do **not** plan to run both DeepL-backed decidim-voca MT and Weglot on the same site for the same content strategy.
+
+### i18n-tasks
+
+decidim-voca ships a small **`config/i18n-tasks.yml`** in the gem focused on **English locale files and voca view paths** (see comments in that file).
+
+Typical workflow in **your host application** (extend or replace config as needed):
 
 ```bash
-DRY_RUN=1 bundle exec rake decidim:voca:clean_machine_translations > tmp/clean_machine_translations_preview.csv
+bundle binstub i18n-tasks
+bin/i18n-tasks missing --config config/i18n-tasks.yml
+bin/i18n-tasks translate-missing --from=en -l <locale> --backend=deepl
 ```
 
-Without `DRY_RUN`, records are updated (including `save!` for top-level translatable columns and `update_column` where used for settings JSON).
+Use `bin/i18n-tasks translate-missing --help` for backends and options. Ensure `DEEPL_TRANSLATE_API_KEY` or the backend you use is available in the environment when translating keys.
 
-## Sync locales (rake)
+---
 
-`decidim:voca:sync_locales` normalizes translatable JSON and enqueues missing machine translations. For components, it also normalizes **translated global settings** and enqueues voca’s **component-setting** translation job (not the stock field job), so settings stay aligned with the same DeepL stack.
+## Operation
 
-## Known pitfall
+### Enable machine translation on the organization
 
-- Decidim Awesome custom proposals use `jquery.formbuilder`, which does not support multilingual labels for that builder UI; those labels are not covered by Decidim’s usual translatable-field MT.
-- When a participant writes content in a locale that is normally machine-translated, UX may not always make it obvious that content was stored or displayed as if it were the default locale—plan communications and moderation accordingly.
+Machine translation must be allowed **installation-wide** and **per organization**.
+
+1. Configure **available locales** for the installation (`DECIDIM_AVAILABLE_LOCALES` / `config/initializers/decidim.rb` as in your app).
+2. In **System** or **Rails console**, set on the target organization, for example:
+
+```bash
+bundle exec rails c
+org = Decidim::Organization.find(<id>)
+org.update!(
+  enable_machine_translations: true,
+  machine_translation_display_priority: "translation" # or "original" — see Decidim docs
+)
+```
+
+`machine_translation_display_priority` controls whether users see **machine-translated** text or the **original** when both exist (Decidim core behaviour).
+
+Restart workers/web if you change DeepL or voca configuration.
+
+### Rake tasks
+
+| Task | Purpose |
+|------|---------|
+| `decidim:voca:sync_locales` | Normalizes translatable JSON (including nested component settings), enqueues missing machine translation jobs, and **rebuilds the search index** before and after. **Requires [minimalistic DeepL](#minimalistic-deepl-optional) to be enabled** (`Decidim::Voca.minimalistic_deepl?` must be true — default is `enable_minimalistic_deepl: true` when DeepL is enabled). |
+| `decidim:voca:clean_machine_translations` | Walks `TranslatableResource` models and removes locale keys that are not the org default and not part of the intended MT flow; can touch nested component settings. **Does not** enqueue `MachineTranslationFieldsJob`. Use `DRY_RUN=1` for a CSV preview to stdout. |
+
+Examples (run inside your app environment, e.g. Docker `voca` service: `docker compose exec voca bash -lc 'cd /home/module && bundle exec rake …'`):
+
+```bash
+# After changing default or available locales, or to re-normalize and enqueue MT
+# (fails fast if minimalistic DeepL is disabled — turn it on or use other maintenance paths)
+bundle exec rake decidim:voca:sync_locales
+
+# Preview cleanup without writes
+DRY_RUN=1 bundle exec rake decidim:voca:clean_machine_translations > tmp/clean_machine_translations_preview.csv
+
+# Apply cleanup (review code and backup DB first — can touch many rows)
+bundle exec rake decidim:voca:clean_machine_translations
+```
+
+### Environment variables (reference) {#environment-variables-reference}
+
+| Variable | Description | Typical default |
+|----------|-------------|-----------------|
+| `DECIDIM_DEEPL_API_KEY` | DeepL API key; required for voca DeepL MT in production | _(empty)_ |
+| `DECIDIM_DEEPL_HOST` | DeepL API base URL | `https://api.deepl.com` |
+| `DECIDIM_DEEPL_VERSION` | API version path segment | `v2` |
+| `VOCA_DUMMY_TRANSLATE` | If `1`/`true`/`enabled`, skips real DeepL in voca’s string translation path and returns dummy text (dev/CI) | `false` |
+
+---
+
+## FAQ
+
+### Does it work with Decidim Awesome?
+
+**Partially.** Awesome works alongside voca for many features, but **proposal custom fields** that use the **form builder** UI do not get the same multilingual label story as core translatable fields; those labels are **not** covered by Decidim’s usual translatable-field machine translation. Plan content structure accordingly.
+
+### When a participant writes in a non-default locale, do we see “translated from original”?
+
+Decidim’s UI depends on **`machine_translation_display_priority`** and what is stored in each locale slot and under `machine_translations`. Voca’s **minimalistic** mode treats the **organization default locale** as the primary human source for admin-driven content; participant-authored content still follows each resource’s stored locale hash. If you need a specific “original vs translation” label in the UI, verify against your Decidim version and the resource presenter — it is **not** a separate voca-only flag.
+
+### How is formality handled?
+
+For DeepL calls made through voca’s translation path, **formality is set to `prefer_more`** when the target language [supports formality in the DeepL API](https://developers.deepl.com/docs/api-reference/translate) (voca checks language metadata and omits the parameter when unsupported).
+
+### Are comments translated when the participant writes in another locale?
+
+**Yes**, comment bodies go through the same translatable/machine-translation pipeline as in Decidim, subject to organization MT settings. **Open data / CSV exports** can expose **per-locale columns** and use human text when present, otherwise machine-translated text where stored — see [CSV exports](#csv-exports-for-admins-and-open-data).
+
+---
+
+## FAQ — Developers
+
+### How do we make fields translatable?
+
+In Decidim, models include `Decidim::TranslatableResource` and declare translatable fields; voca **merges** extra fields for some classes in `Decidim::Voca::DeepL::EngineConfig` (for example component `name`, budgets, proposal states, templates when installed). For **component settings**, use the component manifest (`translated: true` on global settings).
+
+### How do we translate component settings?
+
+Nested global settings are JSON under `settings` → `global` → `<key>` with a hash of locale strings plus optional `machine_translations`. Voca enqueues **`Decidim::Voca::MachineTranslateComponentSettingJob`** when the default-locale source for a translated setting changes, and `decidim:voca:sync_locales` can normalize and enqueue pending locales.
+
+### How did CSV export change?
+
+Serializers under `lib/decidim/voca/export/` reshape rows to **locale-first columns** (`<locale>/<field>`) and add **`locale`** where inferable. Wiring is registered from the engine; tests live under `spec/lib/decidim/voca/export*_spec.rb`.
+
+### How do translatable fields look in the database?
+
+Conventionally, a translatable column is a JSONB hash:
+
+```json
+{
+  "en": "Hello from a human",
+  "machine_translations": { "fr": "Bonjour (MT)" }
+}
+```
+
+**Human-authored** text for a locale lives on the **top-level** key; **machine translations** live under `machine_translations` keyed by locale. When resolving text for export or display, **human values take priority** over machine-translated values for the same locale.
+
+### Can we use another service instead of DeepL?
+
+**Not realistically with this integration as shipped.** voca relies on DeepL for the stock MT pipeline **and** for **`TranslateString`** used by nested component-setting jobs. Swapping another provider would require a compatible adapter and reworking those paths — it is **not** a drop-in `config.machine_translation_service` change for all voca features.
+
+### How to test machine translation without a DeepL API key?
+
+- **RSpec**: stub `Decidim.machine_translation_service_klass` to `Decidim::Dev::DummyTranslator` (as in voca’s specs).
+- **Runtime / dev**: set `VOCA_DUMMY_TRANSLATE` to enable dummy output in voca’s DeepL string path without calling the API (you may still need a key present for boot if DeepL is loaded — see your initializer and env).
+
+### Why do DeepL-related tasks feel slow?
+
+- **Job delay**: voca sets **`machine_translation_delay` to 3 seconds** so jobs are spaced (Decidim schedules MT work with that delay).
+- **Concurrency**: string translation uses a **mutex** around DeepL API calls to avoid overlapping requests on the same process.
 
 ---
 
 ## CSV exports for admins and open data
 
-**What changed for you**
+- **Readable spreadsheets:** proposals, survey answers, and comments use **one column per language and field** (for example `en/title`, `fr/body`) plus a **`locale`** column when inferable.
+- **Human vs machine:** exports prefer **human** text for a locale; if missing, **machine_translated** content for that locale is used when present.
+- **Surveys:** answer text is repeated under each locale column so the grid stays rectangular; `locale` behaviour follows Decidim (often **default locale** for submission metadata — see limits in tests and core).
 
-- **Spreadsheets stay readable:** proposal, survey answer, and comment CSVs use **one column per language and field** (for example `en/title`, `fr/body`) instead of Decidim’s default `title/en`-style flattening, so filters, pivots, and BI tools see a predictable grid.
-- **Machine translation shows up where it matters:** for translatable fields (including stored `machine_translations`), the export picks the human text for a locale when present, otherwise the machine-translated string for that locale. Your **default locale** column can therefore contain useful text even when the participant only wrote in another language.
-- **You can see “which language they used”:** a **`locale`** column indicates the submission language when voca can infer it from stored data (see limits below).
+Implementation: `lib/decidim/voca/export/`, registration in `lib/decidim/voca/engine.rb`.
 
-**Survey exports** repeat the same answer text under each locale column (for example `en/q_12`, `fr/q_12`) so the sheet stays rectangular: answers are stored once; only question wording is multilingual.
+---
 
-### Limits worth knowing
+## Development / tests
 
-- **Proposals and comments:** `locale` is derived from the first non-blank human locale in the body hash (excluding `machine_translations`). If several locales contain text, order follows the stored hash—something to be aware of when analysing data.
-- **Surveys:** `locale` is the organization **default locale**; Decidim does not record which UI language was active when the participant submitted.
+Automated tests often use **`Decidim::Dev::DummyTranslator`** without calling DeepL. Production still expects **DeepL** when `DECIDIM_DEEPL_API_KEY` is set and voca DeepL is enabled.
 
-### For developers and analysts
+---
 
-| Area | Serializer | Notes |
-|------|------------|--------|
-| Proposal component export | `Decidim::Proposals::ProposalSerializer` | `title`, `body`, and `answer` expanded per organization `available_locales`. |
-| Proposal comments (open data) | `Decidim::Comments::CommentSerializer` | `body` per locale; **`locale`** when inferable from stored hash. |
-| Survey questionnaire export | `Decidim::Forms::UserAnswersSerializer` | Keys **`locale/q_<question_id>`**; **`locale`** is organization **`default_locale`**. |
+## Reference
 
-Implementation: `lib/decidim/voca/export/`, wiring in `lib/decidim/voca/engine.rb`. Automated tests: `spec/lib/decidim/voca/export*spec.rb` (run with `RAILS_ENV=test` in the `voca` service as in the root **README**).
-
-### Docker and Bundler tip
-
-If `docker compose run` fails on Bundler for this repo, prefer a **long-running** `voca` container (`docker compose up -d`) and **`docker compose exec voca …`** so gems (including git-sourced gems) stay on the mounted bundle volume.
+- [Decidim — Develop — Machine translations](https://docs.decidim.org/en/develop/develop/machine_translations.html)
+- [DeepL API — Supported languages](https://developers.deepl.com/docs/resources/supported-languages)
+- [DeepL API — Translate (formality and options)](https://developers.deepl.com/docs/api-reference/translate)
+- [DeepL — API key security (restricting keys)](https://support.deepl.com/hc/en-us/articles/360020805640-API-key-security)
+- [i18n-tasks (gem)](https://github.com/glebm/i18n-tasks)

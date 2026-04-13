@@ -8,6 +8,7 @@ RSpec.describe Decidim::Proposals::Admin::CreateProposalState, "machine translat
   let(:organization) do
     create(
       :organization,
+      host: "#{SecureRandom.hex(4)}.lvh.me",
       available_locales: %w(en fr),
       default_locale: "en",
       enable_machine_translations: true

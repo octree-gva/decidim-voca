@@ -1,5 +1,11 @@
 # frozen_string_literal: true
 
+require_relative "voca/installation"
+
+# Ensure DeepL constants exist before the engine class is evaluated (engine wiring
+# references DeepL components when enabled).
+require_relative "voca/deepl" if Decidim::Voca::Installation.deepl_installed? && ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+
 require_relative "voca/engine"
 require_relative "voca/configuration"
 require_relative "voca/overrides/organization/organization_model_overrides"
@@ -21,16 +27,10 @@ require_relative "voca/overrides/address_cell_overrides"
 require_relative "voca/overrides/card_metadata_cell_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
-require_relative "voca/deepl/translation_bar_overrides"
-require_relative "voca/deepl/deepl_context"
-require_relative "voca/deepl/deepl_middleware"
 require_relative "voca/machine_translation/translate_string"
 require_relative "voca/component_setting_manifest"
 require_relative "voca/component_setting_pending_locales"
 require_relative "voca/component_translated_settings_machine_translation"
-require_relative "voca/deepl/deepl_machine_translator"
-require_relative "voca/deepl/deepl_active_job_context"
-require_relative "voca/deepl/deepl_form_builder_overrides"
 require_relative "voca/sync_locales"
 require_relative "voca/overrides/system/system_organization_update_form"
 require_relative "voca/overrides/extra_data_cell_overrides"
@@ -68,7 +68,7 @@ module Decidim
     end
 
     def self.decidim_awesome_installed?
-      @decidim_awesome_installed ||= Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+      Installation.decidim_awesome_installed?
     end
 
     def self.decidim_conferences_installed?
@@ -80,11 +80,11 @@ module Decidim
     end
 
     def self.decidim_templates_installed?
-      @decidim_templates_installed ||= Gem.loaded_specs.has_key?("decidim-templates")
+      Installation.decidim_templates_installed?
     end
 
     def self.deepl_installed?
-      @deepl_installed ||= Gem.loaded_specs.has_key?("deepl-rb")
+      Installation.deepl_installed?
     end
 
     def self.next_gen_images?
