@@ -106,6 +106,7 @@ module Decidim
 
       config.to_prepare do
         next unless Decidim::Voca::Installation.deepl_enabled?
+
         Decidim::Voca::DeepL::EngineConfig.configure!
       end
 
