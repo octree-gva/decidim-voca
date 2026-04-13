@@ -9,8 +9,6 @@ module Decidim
           # @param config [Rails::Application] host app (+Rails.application+; first block arg of +initializer+)
           def initialize!(config)
             config.config.to_prepare do
-              require_relative "../machine_translation_resource_job_voca"
-
               Decidim::Component.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
 
               next unless Decidim::Voca::Installation.deepl_enabled?
