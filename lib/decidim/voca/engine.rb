@@ -104,12 +104,15 @@ module Decidim
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
-      # +middleware.use+ must run in an initializer: by +to_prepare+ the stack is already frozen (FrozenError).
+      config.to_prepare do
+        next unless Decidim::Voca::Installation.deepl_enabled?
+        Decidim::Voca::DeepL::EngineConfig.configure!
+      end
+
       initializer "decidim.voca.deepl", after: :load_config_initializers do |config|
-        return unless Decidim::Voca::Installation.deepl_enabled?
+        next unless Decidim::Voca::Installation.deepl_enabled?
 
         Decidim::Voca::DeepL::EngineConfig.initialize!(config)
-        Decidim::Voca::DeepL::EngineConfig.configure!
       end
 
       # Setup upload variants
