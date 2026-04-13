@@ -31,7 +31,7 @@ module Decidim
           end
 
           def deepl_service?(klass)
-            klass.to_s == "Decidim::Voca::DeepL::MachineTranslator" && Decidim::Voca.deepl_enabled?
+            klass.to_s == "Decidim::Voca::DeepL::MachineTranslator" && Decidim::Voca::Installation.deepl_enabled?
           end
 
           def translatable?(text)
@@ -71,7 +71,7 @@ module Decidim
             return text unless translatable?(text)
             return dummy_deepl_style_translation(text, target_locale, html) if dummy_translate?
 
-            return text unless defined?(DeepL) && Decidim::Voca.deepl_enabled?
+            return text unless defined?(DeepL) && Decidim::Voca::Installation.deepl_enabled?
 
             mutex.synchronize do
               result = DeepL.translate(

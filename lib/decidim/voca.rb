@@ -2,9 +2,7 @@
 
 require_relative "voca/installation"
 
-# Ensure DeepL constants exist before the engine class is evaluated (engine wiring
-# references DeepL components when enabled).
-require_relative "voca/deepl" if Decidim::Voca::Installation.deepl_installed? && ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+require_relative "voca/deepl" if Decidim::Voca::Installation.deepl_installed?
 
 require_relative "voca/engine"
 require_relative "voca/configuration"
@@ -67,33 +65,13 @@ module Decidim
       yield configuration
     end
 
-    def self.decidim_awesome_installed?
-      Installation.decidim_awesome_installed?
-    end
-
-    def self.decidim_conferences_installed?
-      @decidim_conferences_installed ||= Gem.loaded_specs.has_key?("decidim-conferences")
-    end
-
-    def self.decidim_initiatives_installed?
-      @decidim_initiatives_installed ||= Gem.loaded_specs.has_key?("decidim-initiatives")
-    end
-
-    def self.decidim_templates_installed?
-      Installation.decidim_templates_installed?
-    end
-
-    def self.deepl_installed?
-      Installation.deepl_installed?
-    end
-
     def self.next_gen_images?
       configuration.enable_next_gen_images
     end
 
     def self.weglot?
       # Prefer deepl over weglot
-      configuration.enable_weglot && !deepl_enabled?
+      configuration.enable_weglot && !Installation.deepl_enabled?
     end
 
     def self.weglot_cache?
@@ -101,11 +79,7 @@ module Decidim
     end
 
     def self.minimalistic_deepl?
-      deepl_enabled? && configuration.enable_minimalistic_deepl
-    end
-
-    def self.deepl_enabled?
-      deepl_installed? && ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+      Installation.deepl_enabled? && configuration.enable_minimalistic_deepl
     end
 
     def self.opentelemetry_traces_endpoint

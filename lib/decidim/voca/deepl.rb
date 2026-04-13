@@ -11,11 +11,11 @@ require_relative "deepl/engine_config"
 # Compatibility shim: older code referenced +Decidim::Voca::Deepl+.
 module Decidim
   module Voca
-    DeeplContext = DeepL::Context unless const_defined?(:DeeplContext)
-    DeeplMiddleware = DeepL::Middleware unless const_defined?(:DeeplMiddleware)
-    DeeplMachineTranslator = DeepL::MachineTranslator unless const_defined?(:DeeplMachineTranslator)
-    DeeplActiveJobContext = DeepL::ActiveJobContext unless const_defined?(:DeeplActiveJobContext)
-    DeeplFormBuilderOverrides = DeepL::DeepLFormBuilderOverrides unless const_defined?(:DeeplFormBuilderOverrides)
+    DeeplContext = DeepL::Context
+    DeeplMiddleware = DeepL::Middleware
+    DeeplMachineTranslator = DeepL::MachineTranslator
+    DeeplActiveJobContext = DeepL::ActiveJobContext
+    DeeplFormBuilderOverrides = DeepL::DeepLFormBuilderOverrides
 
     module Deepl
       def self.const_missing(name)

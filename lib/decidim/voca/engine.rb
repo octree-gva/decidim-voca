@@ -104,10 +104,14 @@ module Decidim
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
-      if Decidim::Voca::Installation.deepl_installed? && ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
-        Decidim::Voca::DeepL::EngineConfig.initialize!(self)
-        Decidim::Voca::DeepL::EngineConfig.configure!(self)
+      # +middleware.use+ must run in an initializer: by +to_prepare+ the stack is already frozen (FrozenError).
+      initializer "decidim.voca.deepl", after: :load_config_initializers do |config|
+        return unless Decidim::Voca::Installation.deepl_enabled?
+
+        Decidim::Voca::DeepL::EngineConfig.initialize!(config)
+        Decidim::Voca::DeepL::EngineConfig.configure!
       end
+
 
       # Setup upload variants
       config.to_prepare do
@@ -220,7 +224,7 @@ module Decidim
       # CSV serializers must load after Decidim Awesome's ProposalSerializer override, or Awesome's
       # +alias_method :decidim_original_serialize, :serialize+ aliases voca's prepended +serialize+ and causes
       # infinite recursion (see Overrides::CsvExportSerializers).
-      if Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+      if Decidim::Voca::Installation.decidim_awesome_installed?
         initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
           config.to_prepare do
             Decidim::Voca::Overrides::CsvExportSerializers.apply

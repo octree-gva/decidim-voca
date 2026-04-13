@@ -6,13 +6,14 @@ module Decidim
       class EngineConfig
         class << self
           # Wire model hooks and overrides that must be loaded after the app is initialized.
-          def initialize!(engine)
-            engine.config.to_prepare do
+          # @param config [Rails::Application] host app (+Rails.application+; first block arg of +initializer+)
+          def initialize!(config)
+            config.config.to_prepare do
               require_relative "../machine_translation_resource_job_voca"
 
               Decidim::Component.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
 
-              next unless Decidim::Voca.deepl_enabled?
+              next unless Decidim::Voca::Installation.deepl_enabled?
 
               Decidim::Component.include(Decidim::TranslatableResource)
               Decidim::Voca.merge_translatable_fields(Decidim::Component, "name")
@@ -39,28 +40,29 @@ module Decidim
             end
           end
 
-          # Configure the DeepL SDK + Decidim machine translation config.
-          def configure!(engine)
-            engine.initializer "decidim.voca.deepl", after: :load_config_initializers do
-              next unless Decidim::Voca.deepl_enabled?
+          # Configure the DeepL SDK + Decidim machine translation config (+middleware, ActiveJob hook).
+          # Called from {Decidim::Voca::Engine}'s +decidim.voca.deepl+ initializer (middleware stack not frozen yet).
+          def configure!
+            return unless Decidim::Voca::Installation.deepl_enabled?
 
-              require "deepl"
-              ::DeepL.configure do |config|
-                config.auth_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", "")
-                config.host = ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com")
-                config.version = ENV.fetch("DECIDIM_DEEPL_VERSION", "v2")
-              end
+            cfg = Rails.application.config
 
-              Rails.application.config.middleware.use ::Decidim::Voca::DeepL::Middleware
-              Decidim.configure do |decidim_config|
-                decidim_config.enable_machine_translations = true
-                decidim_config.machine_translation_service = "Decidim::Voca::DeepL::MachineTranslator"
-                decidim_config.machine_translation_delay = 3.seconds
-              end
-
-              ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeepL::ActiveJobContext }
-              Rails.logger.warn("DeepL is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
+            require "deepl"
+            ::DeepL.configure do |deepl|
+              deepl.auth_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", "")
+              deepl.host = ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com")
+              deepl.version = ENV.fetch("DECIDIM_DEEPL_VERSION", "v2")
             end
+
+            cfg.middleware.use ::Decidim::Voca::DeepL::Middleware
+            Decidim.configure do |decidim_config|
+              decidim_config.enable_machine_translations = true
+              decidim_config.machine_translation_service = "Decidim::Voca::DeepL::MachineTranslator"
+              decidim_config.machine_translation_delay = 3.seconds
+            end
+
+            ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeepL::ActiveJobContext }
+            Rails.logger.warn("DeepL is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
           end
         end
       end
