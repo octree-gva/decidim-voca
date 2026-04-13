@@ -24,18 +24,18 @@ RSpec.describe Decidim::Admin::UpdateStaticPage, "machine translations" do
     slug = "mt-static-page-update-#{SecureRandom.hex(4)}"
 
     create_form = Decidim::Admin::StaticPageForm
-      .from_params(
-        {
-          static_page: {
-            slug:,
-            title: { en: "Hello Page" },
-            content: { en: "<p>#{SecureRandom.hex(32)}</p>" },
-            allow_public_access: false,
-            weight: 0
-          }
-        }
-      )
-      .with_context(current_user: user, current_organization: organization)
+                  .from_params(
+                    {
+                      static_page: {
+                        slug:,
+                        title: { en: "Hello Page" },
+                        content: { en: "<p>#{SecureRandom.hex(32)}</p>" },
+                        allow_public_access: false,
+                        weight: 0
+                      }
+                    }
+                  )
+                  .with_context(current_user: user, current_organization: organization)
 
     perform_with_machine_translation_jobs do
       expect { Decidim::Admin::CreateStaticPage.new(create_form).call }.to broadcast(:ok)

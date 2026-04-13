@@ -17,9 +17,7 @@ module Decidim
 
             @conversation = new_conversation(@form.recipient)
 
-            if @conversation.id
-              return redirect_to profile_conversation_path(nickname: user.nickname, id: @conversation.uuid)
-            end
+            return redirect_to profile_conversation_path(nickname: user.nickname, id: @conversation.uuid) if @conversation.id
 
             enforce_permission_to :create, :conversation, interlocutor: user, conversation: @conversation
 

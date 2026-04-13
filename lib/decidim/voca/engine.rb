@@ -112,7 +112,6 @@ module Decidim
         Decidim::Voca::DeepL::EngineConfig.configure!
       end
 
-
       # Setup upload variants
       config.to_prepare do
         upload_variants = {
