@@ -45,24 +45,31 @@ module Decidim
           def configure!
             return unless Decidim::Voca::Installation.deepl_enabled?
 
-            cfg = Rails.application.config
+            configure_deepl!
+            Rails.application.config.middleware.use ::Decidim::Voca::DeepL::Middleware
+            configure_machine_translation!
 
+            ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeepL::ActiveJobContext }
+            Rails.logger.warn("DeepL is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
+          end
+
+          private
+
+          def configure_deepl!
             require "deepl"
             ::DeepL.configure do |deepl|
               deepl.auth_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", "")
               deepl.host = ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com")
               deepl.version = ENV.fetch("DECIDIM_DEEPL_VERSION", "v2")
             end
+          end
 
-            cfg.middleware.use ::Decidim::Voca::DeepL::Middleware
+          def configure_machine_translation!
             Decidim.configure do |decidim_config|
               decidim_config.enable_machine_translations = true
               decidim_config.machine_translation_service = "Decidim::Voca::DeepL::MachineTranslator"
               decidim_config.machine_translation_delay = 3.seconds
             end
-
-            ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeepL::ActiveJobContext }
-            Rails.logger.warn("DeepL is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
           end
         end
       end

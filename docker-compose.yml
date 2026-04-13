@@ -10,7 +10,7 @@ services:
     environment:
       - DECIDIM_VERSION=0.29.7
       - PORT=3000
-      - DECIDIM_DEEPL_API_KEY=effd6135-2dc8-41db-a8a9-4812091afc2a
+      - DECIDIM_DEEPL_API_KEY=insecure_key
       - MAPS_PROVIDER=osm
       - MAPS_STATIC_PROVIDER=osm
       - MAPS_STATIC_URL=https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png
