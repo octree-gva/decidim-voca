@@ -14,31 +14,36 @@ module Decidim
       end
 
       def enqueue_component_translated_settings_machine_translation
-        return unless saved_change_to_settings?
-        return unless Decidim.machine_translation_service_klass
-
-        org = organization
-        return unless org&.enable_machine_translations?
+        return unless enqueue_component_translated_settings_mt_prerequisites?
 
         change = saved_changes["settings"] || saved_changes[:settings]
         return if change.blank?
 
-        old_s, new_s = change
-        old_g = extract_global(old_s)
-        new_g = extract_global(new_s)
+        old_g = extract_global(change[0])
+        new_g = extract_global(change[1])
+        org = organization
 
         ComponentSettingManifest.translated_global_keys(manifest).each do |key|
-          old_h = old_g[key]
-          new_h = new_g[key]
-          next unless new_h.is_a?(Hash)
-
-          next unless setting_default_locale_changed?(old_h, new_h, org.default_locale.to_s)
-
-          schedule_setting_jobs(key, new_h, org)
+          enqueue_setting_if_default_locale_changed(key, old_g, new_g, org)
         end
       end
 
       private
+
+      def enqueue_component_translated_settings_mt_prerequisites?
+        saved_change_to_settings? &&
+          Decidim.machine_translation_service_klass &&
+          organization&.enable_machine_translations?
+      end
+
+      def enqueue_setting_if_default_locale_changed(key, old_g, new_g, org)
+        old_h = old_g[key]
+        new_h = new_g[key]
+        return unless new_h.is_a?(Hash)
+        return unless setting_default_locale_changed?(old_h, new_h, org.default_locale.to_s)
+
+        schedule_setting_jobs(key, new_h, org)
+      end
 
       def extract_global(settings)
         return {} if settings.blank?
@@ -62,7 +67,7 @@ module Decidim
         pending.each do |target|
           MachineTranslateComponentSettingJob
             .set(wait: Decidim.config.machine_translation_delay)
-            .perform_later(id, key, target, default, html: html)
+            .perform_later(id, key, target, default, html:)
         end
       end
 
@@ -71,7 +76,7 @@ module Decidim
         return true unless attr
         return false unless attr.type == :text
 
-        ctx = { component: self, participatory_space: participatory_space }
+        ctx = { component: self, participatory_space: }
         attr.editor?(ctx) == true
       rescue StandardError
         true

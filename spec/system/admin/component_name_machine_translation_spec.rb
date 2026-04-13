@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-describe "Admin creates a component with machine-translated name" do
+RSpec.describe Decidim::Component, :slow do
   let(:organization) do
     create(
       :organization,
@@ -28,25 +28,21 @@ describe "Admin creates a component with machine-translated name" do
 
   around do |example|
     previous_minimalistic = Decidim::Voca.configuration.enable_minimalistic_deepl
+    previous_deepl_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", nil)
     Decidim::Voca.configure { |c| c.enable_minimalistic_deepl = true }
-    example.run
-    Decidim::Voca.configure { |c| c.enable_minimalistic_deepl = previous_minimalistic }
-  end
-
-  before do
-    @previous_deepl_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", nil)
     ENV["DECIDIM_DEEPL_API_KEY"] = "test-key"
     stub_dummy_machine_translator
     clear_enqueued_jobs
-    I18n.locale = organization.default_locale.to_sym
     switch_to_host(organization.host)
     login_as user, scope: :user
-  end
 
-  after do
-    I18n.locale = I18n.default_locale
-    if @previous_deepl_key
-      ENV["DECIDIM_DEEPL_API_KEY"] = @previous_deepl_key
+    I18n.with_locale(organization.default_locale.to_sym) do
+      example.run
+    end
+
+    Decidim::Voca.configure { |c| c.enable_minimalistic_deepl = previous_minimalistic }
+    if previous_deepl_key
+      ENV["DECIDIM_DEEPL_API_KEY"] = previous_deepl_key
     else
       ENV.delete("DECIDIM_DEEPL_API_KEY")
     end

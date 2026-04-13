@@ -54,7 +54,7 @@ module Decidim
             html = rich_text_component_setting?(key)
             Decidim::Voca::MachineTranslateComponentSettingJob
               .set(wait: Decidim.config.machine_translation_delay)
-              .perform_later(@record.id, key, target_locale, default, html: html)
+              .perform_later(@record.id, key, target_locale, default, html:)
           end
         end
 

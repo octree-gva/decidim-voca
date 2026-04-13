@@ -1,10 +1,17 @@
 inherit_gem:
   decidim-dev: rubocop-decidim.yml
 
+# Gem entry file follows Decidim engine naming (+decidim-voca.rb+), not snake_case of the gem name alone.
+Naming/FileName:
+  Exclude:
+    - lib/decidim-voca.rb
+
 # Machine-translation integration specs describe full command flows, not a single method name or path suffix.
 RSpec/SpecFilePathFormat:
   Exclude:
     - spec/commands/**/*machine_translation*_spec.rb
+    # System smoke for admin component + MT; path is stable under admin/.
+    - spec/system/admin/component_name_machine_translation_spec.rb
 
 RSpec/DescribeMethod:
   Exclude:

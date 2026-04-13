@@ -45,6 +45,13 @@ RSpec.describe Decidim::Voca::MachineTranslationResourceJobVoca do
         job.instance_variable_set(:@resource, component)
         expect(job.resource_field_value(previous_changes, "name", "fr")).to eq("Hello")
       end
+
+      it "reads the participant UI locale when the default slot is empty" do
+        fr_only = { "fr" => "Bonjour" }
+        changes = { "name" => [nil, fr_only] }
+        job.instance_variable_set(:@resource, component)
+        expect(job.resource_field_value(changes, "name", "fr")).to eq("Bonjour")
+      end
     end
 
     context "when minimalistic Deepl is off" do
@@ -53,6 +60,12 @@ RSpec.describe Decidim::Voca::MachineTranslationResourceJobVoca do
       it "delegates to core and uses the passed source_locale for the hash lookup" do
         job.instance_variable_set(:@resource, component)
         expect(job.resource_field_value(previous_changes, "name", "fr")).to eq("")
+      end
+
+      it "uses the passed source_locale when only that locale is filled" do
+        changes = { "name" => [{}, { "fr" => "Salut", "en" => "" }] }
+        job.instance_variable_set(:@resource, component)
+        expect(job.resource_field_value(changes, "name", "fr")).to eq("Salut")
       end
     end
   end
@@ -63,6 +76,16 @@ RSpec.describe Decidim::Voca::MachineTranslationResourceJobVoca do
 
       it "treats only the default locale as blocking so other locales stay pending for MT" do
         expect(job.send(:translated_locales_list, "name")).to eq(["en"])
+      end
+
+      it "delegates to core when the default locale slot is blank so non-default human text is recognized" do
+        fr_component = create(
+          :component,
+          participatory_space: participatory_process,
+          name: { "fr" => "Bonjour" }
+        )
+        job.instance_variable_set(:@resource, fr_component)
+        expect(job.send(:translated_locales_list, "name")).to eq(["fr"])
       end
     end
 
@@ -102,6 +125,36 @@ RSpec.describe Decidim::Voca::MachineTranslationResourceJobVoca do
 
       component.reload
       expect(component.name.dig("machine_translations", "fr")).to eq("fr - Hello")
+    end
+
+    context "when only a non-default locale has human text (participant UI locale)" do
+      let(:fr_component) do
+        create(
+          :component,
+          participatory_space: participatory_process,
+          name: { "fr" => "Bonjour" }
+        )
+      end
+
+      let(:previous_changes) do
+        { "name" => [nil, { "fr" => "Bonjour" }] }
+      end
+
+      before do
+        stub_dummy_machine_translator
+        allow(Decidim::Voca).to receive(:minimalistic_deepl?).and_return(true)
+        allow(Decidim.config).to receive(:machine_translation_delay).and_return(0.seconds)
+        clear_enqueued_jobs
+      end
+
+      it "machine-translates into the default locale from the filled non-default slot" do
+        perform_enqueued_jobs do
+          Decidim::MachineTranslationResourceJob.perform_now(fr_component, previous_changes, "fr")
+        end
+
+        fr_component.reload
+        expect(fr_component.name.dig("machine_translations", "en")).to eq("en - Bonjour")
+      end
     end
   end
 end

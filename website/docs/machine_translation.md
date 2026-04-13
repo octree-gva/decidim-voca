@@ -2,7 +2,7 @@
 sidebar_position: 5
 slug: /machine-translation
 title: Machine Translation
-description: How machine translation with DeepL works on voca, including component settings
+description: Machine translation with DeepL on voca, component settings, and improved CSV exports for multilingual content
 ---
 
 # General overview
@@ -147,3 +147,34 @@ Without `DRY_RUN`, records are updated (including `save!` for top-level translat
 
 - Decidim Awesome custom proposals use `jquery.formbuilder`, which does not support multilingual labels for that builder UI; those labels are not covered by Decidim’s usual translatable-field MT.
 - When a participant writes content in a locale that is normally machine-translated, UX may not always make it obvious that content was stored or displayed as if it were the default locale—plan communications and moderation accordingly.
+
+---
+
+## CSV exports for admins and open data
+
+**What changed for you**
+
+- **Spreadsheets stay readable:** proposal, survey answer, and comment CSVs use **one column per language and field** (for example `en/title`, `fr/body`) instead of Decidim’s default `title/en`-style flattening, so filters, pivots, and BI tools see a predictable grid.
+- **Machine translation shows up where it matters:** for translatable fields (including stored `machine_translations`), the export picks the human text for a locale when present, otherwise the machine-translated string for that locale. Your **default locale** column can therefore contain useful text even when the participant only wrote in another language.
+- **You can see “which language they used”:** a **`locale`** column indicates the submission language when voca can infer it from stored data (see limits below).
+
+**Survey exports** repeat the same answer text under each locale column (for example `en/q_12`, `fr/q_12`) so the sheet stays rectangular: answers are stored once; only question wording is multilingual.
+
+### Limits worth knowing
+
+- **Proposals and comments:** `locale` is derived from the first non-blank human locale in the body hash (excluding `machine_translations`). If several locales contain text, order follows the stored hash—something to be aware of when analysing data.
+- **Surveys:** `locale` is the organization **default locale**; Decidim does not record which UI language was active when the participant submitted.
+
+### For developers and analysts
+
+| Area | Serializer | Notes |
+|------|------------|--------|
+| Proposal component export | `Decidim::Proposals::ProposalSerializer` | `title`, `body`, and `answer` expanded per organization `available_locales`. |
+| Proposal comments (open data) | `Decidim::Comments::CommentSerializer` | `body` per locale; **`locale`** when inferable from stored hash. |
+| Survey questionnaire export | `Decidim::Forms::UserAnswersSerializer` | Keys **`locale/q_<question_id>`**; **`locale`** is organization **`default_locale`**. |
+
+Implementation: `lib/decidim/voca/export/`, wiring in `lib/decidim/voca/engine.rb`. Automated tests: `spec/lib/decidim/voca/export*spec.rb` (run with `RAILS_ENV=test` in the `voca` service as in the root **README**).
+
+### Docker and Bundler tip
+
+If `docker compose run` fails on Bundler for this repo, prefer a **long-running** `voca` container (`docker compose up -d`) and **`docker compose exec voca …`** so gems (including git-sourced gems) stay on the mounted bundle volume.

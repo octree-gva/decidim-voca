@@ -14,7 +14,7 @@ module Decidim
         fh = field_hash.stringify_keys
 
         if minimalistic?(organization)
-          return [] unless fh[default].present?
+          return [] if fh[default].blank?
 
           allowed - [default]
         else

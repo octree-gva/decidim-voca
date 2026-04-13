@@ -46,7 +46,7 @@ module Decidim
             "#{target_locale} - #{work}"
           end
 
-          def dummy_deepl_style_translation(work, target_locale, html)
+          def dummy_deepl_style_translation(work, _target_locale, html)
             ctx = Decidim::Voca::DeeplContext.deepl_context
             str = "DUMMY TRANSLATION [date=#{Time.current.strftime("%d/%m/%Y %H:%M:%S")},mode=#{html ? "html" : "text"},text_to_translate=\"#{work}\",context=\"#{ctx}\"]"
             str = "<p><strong>#{str}</strong></p>" if html

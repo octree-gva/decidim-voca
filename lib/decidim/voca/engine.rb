@@ -8,6 +8,11 @@ require "deface"
 require "next_gen_images"
 require "decidim/verifications"
 require "decidim/voca/code_census"
+require_relative "export/csv_with_locale_transformer"
+require_relative "export/proposal_serializer_localized_csv"
+require_relative "export/comment_serializer_localized_csv"
+require_relative "export/user_answers_serializer_localized_csv"
+require_relative "overrides/csv_export_serializers"
 
 module Decidim
   module Voca
@@ -100,8 +105,7 @@ module Decidim
 
       # Nested translated component settings (JSONB): enqueue after save regardless of Deepl toggle.
       config.to_prepare do
-        Decidim::Component.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation) unless
-          Decidim::Component.included_modules.include?(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
+        Decidim::Component.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
       end
 
       # Machine translation: register JSONB i18n columns on models so Decidim enqueues
@@ -111,10 +115,10 @@ module Decidim
       config.to_prepare do
         next unless Decidim::Voca.deepl_enabled?
 
-        Decidim::Component.include(Decidim::TranslatableResource) unless Decidim::Component.included_modules.include?(Decidim::TranslatableResource)
+        Decidim::Component.include(Decidim::TranslatableResource)
         Decidim::Voca.merge_translatable_fields(Decidim::Component, "name")
 
-        Decidim::Budgets::Budget.include(Decidim::TranslatableResource) unless Decidim::Budgets::Budget.included_modules.include?(Decidim::TranslatableResource)
+        Decidim::Budgets::Budget.include(Decidim::TranslatableResource)
         Decidim::Voca.merge_translatable_fields(Decidim::Budgets::Budget, "title", "description")
         Decidim::Voca.merge_translatable_fields(
           Decidim::Proposals::ProposalState,
@@ -123,21 +127,15 @@ module Decidim
         )
 
         if Decidim::Voca.decidim_templates_installed?
-          Decidim::Templates::Template.include(Decidim::TranslatableResource) unless Decidim::Templates::Template.included_modules.include?(Decidim::TranslatableResource)
+          Decidim::Templates::Template.include(Decidim::TranslatableResource)
           Decidim::Voca.merge_translatable_fields(Decidim::Templates::Template, "name", "description")
         end
 
-        unless Decidim::MachineTranslationResourceJob.ancestors.include?(Decidim::Voca::MachineTranslationResourceJobVoca)
-          Decidim::MachineTranslationResourceJob.prepend(Decidim::Voca::MachineTranslationResourceJobVoca)
-        end
+        Decidim::MachineTranslationResourceJob.prepend(Decidim::Voca::MachineTranslationResourceJobVoca)
 
         if Decidim::Voca.minimalistic_deepl?
-          unless ::Decidim::TranslationBarCell.included_modules.include?(Decidim::Voca::Deepl::TranslationBarOverrides)
-            ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
-          end
-          unless ::Decidim::FormBuilder.included_modules.include?(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
-            ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
-          end
+          ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
+          ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
         end
       end
 
@@ -249,19 +247,21 @@ module Decidim
         end
       end
 
-      # Use Gem.loaded_specs here: this line runs while +voca/engine+ loads, before +decidim/voca.rb+
-      # finishes defining +Decidim::Voca.decidim_awesome_installed?+.
+      # CSV serializers must load after Decidim Awesome's ProposalSerializer override, or Awesome's
+      # +alias_method :decidim_original_serialize, :serialize+ aliases voca's prepended +serialize+ and causes
+      # infinite recursion (see Overrides::CsvExportSerializers).
       if Gem.loaded_specs.has_key?("decidim-decidim_awesome")
-        # Decidim Awesome Proposal and EditorImagesController Override
         initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
           config.to_prepare do
-            Decidim::Proposals::ProposalSerializer.include(
-              Decidim::Voca::Overrides::ProposalSerializerOverrides
-            )
+            Decidim::Voca::Overrides::CsvExportSerializers.apply
             ActiveSupport.on_load(:action_controller) do
               Decidim::EditorImagesController = Decidim::DecidimAwesome::EditorImagesController
             end
           end
+        end
+      else
+        config.to_prepare do
+          Decidim::Voca::Overrides::CsvExportSerializers.apply
         end
       end
 

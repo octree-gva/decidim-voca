@@ -13,32 +13,50 @@ module Decidim
         component = Decidim::Component.find_by(id: component_id)
         return unless component
 
+        source_text = extract_source_text(component, setting_key, source_locale)
+        return if source_text.blank?
+
+        persist_machine_translation(component, setting_key, target_locale, source_locale, source_text, html)
+      end
+
+      private
+
+      def extract_source_text(component, setting_key, source_locale)
         field = component.read_attribute(:settings).deep_dup.deep_stringify_keys.dig("global", setting_key.to_s)
         return unless field.is_a?(Hash)
 
-        source_text = field[source_locale.to_s].presence || field[source_locale.to_sym].presence
-        return if source_text.blank?
+        field[source_locale.to_s].presence || field[source_locale.to_sym].presence
+      end
 
-        context = "Decidim::Component id=#{component_id} setting=#{setting_key}"
+      # rubocop:disable Metrics/ParameterLists -- mirrors #perform arguments split for complexity
+      def persist_machine_translation(component, setting_key, target_locale, source_locale, source_text, html)
+        context = "Decidim::Component id=#{component.id} setting=#{setting_key}"
         translated = MachineTranslation::TranslateString.call(
           text: source_text,
-          source_locale: source_locale,
-          target_locale: target_locale,
-          html: html,
-          context: context
+          source_locale:,
+          target_locale:,
+          html:,
+          context:
         )
         return if translated.nil?
 
         component.with_lock do
-          fresh = component.reload.read_attribute(:settings).deep_dup.deep_stringify_keys
-          fg = fresh["global"] ||= {}
-          f = fg[setting_key.to_s]
-          if f.is_a?(Hash)
-            f["machine_translations"] ||= {}
-            f["machine_translations"][target_locale.to_s] = translated
-            component.update_column(:settings, fresh)
-          end
+          merge_translation_into_settings(component, setting_key, target_locale, translated)
         end
+      end
+      # rubocop:enable Metrics/ParameterLists
+
+      def merge_translation_into_settings(component, setting_key, target_locale, translated)
+        fresh = component.reload.read_attribute(:settings).deep_dup.deep_stringify_keys
+        fg = fresh["global"] ||= {}
+        f = fg[setting_key.to_s]
+        return unless f.is_a?(Hash)
+
+        f["machine_translations"] ||= {}
+        f["machine_translations"][target_locale.to_s] = translated
+        # rubocop:disable Rails/SkipsModelValidations -- nested JSONB merge must not re-run after_save MT callbacks
+        component.update_column(:settings, fresh)
+        # rubocop:enable Rails/SkipsModelValidations
       end
     end
   end

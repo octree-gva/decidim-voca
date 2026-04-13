@@ -26,9 +26,9 @@ if Gem.loaded_specs.has_key?("deepl-rb")
           return if text.blank?
 
           translation = MachineTranslation::TranslateString.call(
-            text: text,
-            source_locale: source_locale,
-            target_locale: target_locale,
+            text:,
+            source_locale:,
+            target_locale:,
             html: true,
             context: deepl_context
           )

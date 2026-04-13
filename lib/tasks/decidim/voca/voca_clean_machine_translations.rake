@@ -88,7 +88,7 @@ namespace :decidim do
 
             key_touched = false
             other_locales.each do |other_locale|
-              next unless current_value.key?(other_locale)
+              next unless current_value.has_key?(other_locale)
 
               if dry_run
                 value_json = current_value.respond_to?(:as_json) ? current_value.as_json.to_json : current_value.to_json

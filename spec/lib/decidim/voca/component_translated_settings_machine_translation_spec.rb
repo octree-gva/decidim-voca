@@ -24,7 +24,9 @@ RSpec.describe Decidim::Voca::ComponentTranslatedSettingsMachineTranslation do
   it "enqueues MachineTranslateComponentSettingJob when default locale of a translated setting changes" do
     inner = component.read_attribute(:settings)["global"].deep_dup.deep_stringify_keys
     inner["dummy_global_translatable_text"] = { "en" => "first" }
+    # rubocop:disable Rails/SkipsModelValidations -- bypass validations to set nested settings fixture
     component.update_column(:settings, { "global" => inner })
+    # rubocop:enable Rails/SkipsModelValidations
 
     inner2 = component.reload.read_attribute(:settings)["global"].deep_dup.deep_stringify_keys
     inner2["dummy_global_translatable_text"] = { "en" => "second" }
@@ -45,7 +47,9 @@ RSpec.describe Decidim::Voca::ComponentTranslatedSettingsMachineTranslation do
     allow(Decidim).to receive(:machine_translation_service_klass).and_return(nil)
     inner = component.read_attribute(:settings)["global"].deep_dup.deep_stringify_keys
     inner["dummy_global_translatable_text"] = { "en" => "first" }
+    # rubocop:disable Rails/SkipsModelValidations -- bypass validations to set nested settings fixture
     component.update_column(:settings, { "global" => inner })
+    # rubocop:enable Rails/SkipsModelValidations
 
     inner2 = component.reload.read_attribute(:settings)["global"].deep_dup.deep_stringify_keys
     inner2["dummy_global_translatable_text"] = { "en" => "second" }
