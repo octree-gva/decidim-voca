@@ -22,6 +22,7 @@ module Decidim
           # Called from {Decidim::Voca::Engine}'s +decidim.voca.deepl+ initializer (middleware stack not frozen yet).
           def configure!
             return unless Decidim::Voca::Installation.deepl_enabled?
+
             Decidim::Component.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
             Decidim::Component.include(Decidim::TranslatableResource)
             Decidim::Voca.merge_translatable_fields(Decidim::Component, "name")
@@ -45,7 +46,6 @@ module Decidim
               ::Decidim::TranslationBarCell.include(Decidim::Voca::DeepL::TranslationBarOverrides)
               ::Decidim::FormBuilder.include(Decidim::Voca::DeepL::DeepLFormBuilderOverrides)
             end
-
           end
 
           private

@@ -60,7 +60,12 @@ module Decidim
           def label_tabs_tag(name, options = {})
             tabs_id = sanitized_tabs_id(name, options)
 
-            content_tag(:div, class: "label--tabs", "data-machine-translated": current_organization.enable_machine_translations?, "data-minimalistic-deepl": Decidim::Voca.minimalistic_deepl?) do
+            content_tag(
+              :div,
+              class: "label--tabs",
+              "data-machine-translated": current_organization.enable_machine_translations?,
+              "data-minimalistic-deepl": Decidim::Voca.minimalistic_deepl?
+            ) do
               field_label = label_i18n(name, options[:label] || label_for(name), required: options[:required])
 
               language_selector = "".html_safe

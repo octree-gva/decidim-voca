@@ -108,7 +108,7 @@ module Decidim
         Decidim::Voca::DeepL::EngineConfig.configure!
       end
 
-      initializer "decidim.voca.deepl", after: :load_config_initializers do 
+      initializer "decidim.voca.deepl", after: :load_config_initializers do
         Decidim::Voca::DeepL::EngineConfig.initialize!
       end
 
