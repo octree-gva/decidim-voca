@@ -10,7 +10,8 @@ Deface::Override.new(
   name: "admin_voca_machine_translation_responsive_flag",
   set_attributes: ".title-bar",
   attributes: {
-    "data-machine-translated" => "<%= Decidim::Voca.minimalistic_deepl? && current_organization.enable_machine_translations? %>"
+    "data-machine-translated" => "<%= current_organization.enable_machine_translations? %>",
+    "data-minimalistic-deepl" => "<%= Decidim::Voca.minimalistic_deepl? %>"
   },
   original: "9e9359026457bb1a289c94b183011e814d64893d"
 )
@@ -19,7 +20,8 @@ Deface::Override.new(
   name: "admin_voca_machine_translation_desktop_flag",
   set_attributes: ".title-bar",
   attributes: {
-    "data-machine-translated" => "<%= Decidim::Voca.minimalistic_deepl? && current_organization.enable_machine_translations? %>"
+    "data-machine-translated" => "<%= current_organization.enable_machine_translations? %>",
+    "data-minimalistic-deepl" => "<%= Decidim::Voca.minimalistic_deepl? %>"
   },
   original: "978289390dedd19463db6ac36784ca94ae4a7d30"
 )
