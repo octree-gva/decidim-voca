@@ -21,13 +21,13 @@ module Decidim::Voca::SyncLocales
       allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Dev::DummyTranslator)
     end
 
-    it "enqueues MachineTranslationFieldsJob with the configured delay and locales" do
+    it "performs MachineTranslationFieldsJob with the configured delay and locales" do
       delay = 12.seconds
       allow(Decidim.config).to receive(:machine_translation_delay).and_return(delay)
 
       chain = instance_double(ActiveJob::ConfiguredJob)
       allow(Decidim::MachineTranslationFieldsJob).to receive(:set).with(wait: delay).and_return(chain)
-      expect(chain).to receive(:perform_later).with(
+      expect(chain).to receive(:perform_now).with(
         component,
         "name",
         "Bonjour",
