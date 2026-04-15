@@ -31,6 +31,8 @@ namespace :decidim do
         decidim_models = ActiveRecord::Base.descendants.map do |cls|
           next nil if cls.name.nil? # abstract classes registered during tests
           next nil if cls.abstract_class? || !cls.name.match?(/^Decidim::/)
+          next nil if cls.name.start_with?("Decidim::Dev::")
+          next nil unless cls.table_exists?
 
           cls
         end.compact_blank
