@@ -12,9 +12,9 @@ module Decidim
             klass = Decidim.machine_translation_service_klass
             return nil if klass.blank?
             return "" if text.blank?
-
+            
             work = text.dup
-            work.gsub!(%r{<img src="data:image/png;base64,.*>}, "")
+            work.gsub!(Regexp.new(%q(<img\s+src="data:image/png;base64,[^"]*"\s*/?>), Regexp::IGNORECASE), "")
 
             return dummy_dev_translation(work, target_locale) if klass == Decidim::Dev::DummyTranslator
 
