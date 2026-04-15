@@ -63,7 +63,7 @@ module Decidim
             content_tag(
               :div,
               class: "label--tabs",
-              "data-machine-translated": current_organization.enable_machine_translations?,
+              "data-machine-translated": organization_context&.enable_machine_translations?,
               "data-minimalistic-deepl": Decidim::Voca.minimalistic_deepl?
             ) do
               field_label = label_i18n(name, options[:label] || label_for(name), required: options[:required])
