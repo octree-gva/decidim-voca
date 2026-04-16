@@ -30,7 +30,63 @@ module Decidim
           try_organization(record) ||
             try_participatory_space_organization(record) ||
             try_component_organization(record) ||
+            try_comment_organization(record) ||
+            try_result(record) ||
+            try_meeting(record) ||
+            try_questionnaire(record) ||
+            try_question(record) ||
+            try_proposal(record) ||
+            try_collaborative_draft(record) ||
             raise_missing_organization!(record)
+        end
+
+        def self.try_meeting(record)
+          return unless record.respond_to?(:meeting)
+          record.meeting.component.organization
+        end
+
+        def self.try_questionnaire(record)
+          questionnaire = if record.is_a?(::Decidim::Forms::Questionnaire)
+                            record
+                          elsif record.respond_to?(:questionnaire)
+                            record.questionnaire
+                          end
+          return unless questionnaire
+
+          questionnaire_for = questionnaire.questionnaire_for
+          return questionnaire_for.component.organization if questionnaire_for.respond_to?(:component)
+          return questionnaire_for.organization if questionnaire_for.respond_to?(:organization)
+        end
+
+        def self.try_question(record)
+          return unless record.respond_to?(:question)
+          self.try_questionnaire(record.question)
+        end
+
+        def self.try_proposal(record)
+          return unless record.respond_to?(:proposal)
+          record.proposal.component.organization
+        end
+
+        def self.try_comment_organization(record)
+          return unless record.respond_to?(:commentable)
+
+          commentable = record.commentable
+          return if commentable.nil?
+
+          try_organization(commentable) ||
+            try_participatory_space_organization(commentable) ||
+            try_component_organization(commentable)
+        end
+
+        def self.try_collaborative_draft(record)
+          return unless record.respond_to?(:collaborative_draft)
+          record.collaborative_draft.component.organization
+        end
+
+        def self.try_result(record)
+          return unless record.respond_to?(:result)
+          record.result.component.organization
         end
 
         def self.try_organization(record)
