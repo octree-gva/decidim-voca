@@ -16,7 +16,7 @@ namespace :decidim do
     task clean_machine_translations: :environment do
       dry_run = ENV["DRY_RUN"].to_s == "1"
       $stdout.puts CSV.generate_line(%w(model field value), col_sep: ";") if dry_run
-      Decidim::Voca::SyncLocales::CleanMachineTranslationsRunner.new(dry_run: dry_run).call
+      Decidim::Voca::SyncLocales::CleanMachineTranslationsRunner.new(dry_run:).call
     end
   end
 end

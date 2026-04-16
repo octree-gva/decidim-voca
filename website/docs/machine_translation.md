@@ -92,7 +92,7 @@ Restart workers/web if you change DeepL or voca configuration.
 | Task | Purpose |
 |------|---------|
 | `decidim:voca:sync_locales` | Normalizes translatable JSON (including nested component settings), enqueues missing machine translation jobs, and **rebuilds the search index** before and after. **Requires [minimalistic DeepL](#minimalistic-deepl) to be enabled** (`Decidim::Voca.minimalistic_deepl?` must be true — default is `enable_minimalistic_deepl: true` when DeepL is enabled). |
-| `decidim:voca:clean_machine_translations` | Walks `TranslatableResource` models and removes locale keys that are not the org default and not part of the intended Machine Translation flow; can touch nested component settings. **Does not** enqueue `MachineTranslationFieldsJob`. Use `DRY_RUN=1` for a CSV preview to stdout. |
+| `decidim:voca:clean_machine_translations` | Walks `TranslatableResource` models and removes locale keys that are not the org default and not part of the intended Machine Translation flow; can touch nested component settings. In **minimalistic DeepL mode** for organizations with machine translation enabled, when the **default locale changes**, it promotes the previous machine-translated value for that new default locale into the human top-level slot before pruning. **Does not** enqueue `MachineTranslationFieldsJob`. Use `DRY_RUN=1` for a CSV preview to stdout. |
 
 Examples (run inside your app environment, e.g. Docker `voca` service: `docker compose exec voca bash -lc 'cd /home/module && bundle exec rake …'`):
 

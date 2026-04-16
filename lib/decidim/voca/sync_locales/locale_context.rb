@@ -27,21 +27,35 @@ module Decidim
         def self.resolve_organization!(record)
           return record if record.is_a?(::Decidim::Organization)
 
-          try_organization(record) ||
-            try_participatory_space_organization(record) ||
-            try_component_organization(record) ||
-            try_comment_organization(record) ||
-            try_result(record) ||
-            try_meeting(record) ||
-            try_questionnaire(record) ||
-            try_question(record) ||
-            try_proposal(record) ||
-            try_collaborative_draft(record) ||
-            raise_missing_organization!(record)
+          resolve_with_resolvers(record) || raise_missing_organization!(record)
+        end
+
+        def self.resolve_with_resolvers(record)
+          resolver_methods.each do |resolver|
+            organization = send(resolver, record)
+            return organization if organization.present?
+          end
+          nil
+        end
+
+        def self.resolver_methods
+          [
+            :try_organization,
+            :try_participatory_space_organization,
+            :try_component_organization,
+            :try_comment_organization,
+            :try_result,
+            :try_meeting,
+            :try_questionnaire,
+            :try_question,
+            :try_proposal,
+            :try_collaborative_draft
+          ]
         end
 
         def self.try_meeting(record)
           return unless record.respond_to?(:meeting)
+
           record.meeting.component.organization
         end
 
@@ -55,16 +69,19 @@ module Decidim
 
           questionnaire_for = questionnaire.questionnaire_for
           return questionnaire_for.component.organization if questionnaire_for.respond_to?(:component)
-          return questionnaire_for.organization if questionnaire_for.respond_to?(:organization)
+
+          questionnaire_for.organization if questionnaire_for.respond_to?(:organization)
         end
 
         def self.try_question(record)
           return unless record.respond_to?(:question)
-          self.try_questionnaire(record.question)
+
+          try_questionnaire(record.question)
         end
 
         def self.try_proposal(record)
           return unless record.respond_to?(:proposal)
+
           record.proposal.component.organization
         end
 
@@ -81,11 +98,13 @@ module Decidim
 
         def self.try_collaborative_draft(record)
           return unless record.respond_to?(:collaborative_draft)
+
           record.collaborative_draft.component.organization
         end
 
         def self.try_result(record)
           return unless record.respond_to?(:result)
+
           record.result.component.organization
         end
 

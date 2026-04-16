@@ -18,7 +18,7 @@ module Decidim::Voca::SyncLocales
     let(:context) { LocaleContext.for(component) }
 
     before do
-      allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Dev::DummyTranslator)
+      allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Voca::DeepL::MachineTranslator)
     end
 
     it "performs MachineTranslationFieldsJob with the configured delay and locales" do

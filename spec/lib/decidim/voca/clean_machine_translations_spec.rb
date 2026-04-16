@@ -3,6 +3,7 @@
 require "spec_helper"
 require "decidim/comments/test/factories"
 
+# rubocop:disable RSpec/DescribeClass
 RSpec.describe "decidim:voca:clean_machine_translations" do
   def invoke_cleanup!
     task = Rake::Task["decidim:voca:clean_machine_translations"]
@@ -59,7 +60,19 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
     expect(component.name.dig("machine_translations", "fr")).to eq("fr - Hello")
   end
 
+  it "promotes the translated value to the new default locale" do
+    organization.update!(default_locale: "fr")
+
+    invoke_cleanup!
+
+    value = component.reload.name
+    expect(value["fr"]).to eq("fr - Hello")
+    expect(value.dig("machine_translations", "fr")).to be_nil
+    expect(value["en"]).to be_nil
+  end
+
   it "removes stale locale keys from component settings (global)" do
+    # rubocop:disable Rails/SkipsModelValidations
     component.update_column(
       :settings,
       {
@@ -77,6 +90,7 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
         "process_step" => {}
       }
     )
+    # rubocop:enable Rails/SkipsModelValidations
 
     organization.update!(available_locales: %w(en fr it))
     invoke_cleanup!
@@ -88,6 +102,7 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
   end
 
   it "removes stale locale keys from component settings (process step)" do
+    # rubocop:disable Rails/SkipsModelValidations
     component.update_column(
       :settings,
       {
@@ -107,6 +122,7 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
         }
       }
     )
+    # rubocop:enable Rails/SkipsModelValidations
 
     organization.update!(available_locales: %w(en fr it))
     invoke_cleanup!
@@ -142,6 +158,7 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
       }
     )
 
+    # rubocop:disable Rails/SkipsModelValidations
     static_page.update_column(
       :title,
       {
@@ -154,6 +171,7 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
         }
       }
     )
+    # rubocop:enable Rails/SkipsModelValidations
 
     organization.update!(available_locales: %w(en fr it))
     invoke_cleanup!
@@ -191,4 +209,4 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
     expect(value.dig("machine_translations", "fr")).to eq("fr - Hello comment")
   end
 end
-
+# rubocop:enable RSpec/DescribeClass

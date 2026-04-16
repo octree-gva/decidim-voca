@@ -102,57 +102,15 @@ module Decidim
         end
 
         def clean_record(record, context, model_name, fields)
-          locale = context.default_locale
-          other_locales = context.allowed_locales - [locale]
-          minimalistic_cleanup = Decidim::Voca.minimalistic_deepl? && context.enable_machine_translations?
-
-          touched = false
-          updated_columns = {}
-
-          fields.each do |field|
-            current_value = record.send(field)
-            next unless current_value.is_a?(Hash)
-
-            original_value = current_value.deep_dup
-
-            if @dry_run
-              value_json = current_value.respond_to?(:as_json) ? current_value.as_json.to_json : current_value.to_json
-              $stdout.puts CSV.generate_line([model_name, field.to_s, value_json], col_sep: ";")
-              next
-            end
-
-            # In minimalistic Deepl mode, non-default locale roots are placeholders.
-            # Cleanup should remove them even when the locale is no longer part of `available_locales`,
-            # and also prune stale entries inside `machine_translations`.
-            if minimalistic_cleanup
-              current_value.delete_if do |key, _value|
-                key_str = key.to_s
-                key_str != locale && key_str != "machine_translations"
-              end
-
-              mt_hash = current_value["machine_translations"] || current_value[:machine_translations]
-              if mt_hash.is_a?(Hash)
-                mt_hash.delete_if { |k, _v| !other_locales.include?(k.to_s) }
-              end
-            else
-              # Remove all non-default locale roots, but keep whatever lives under `machine_translations`.
-              current_value.delete_if do |key, _value|
-                other_locales.include?(key.to_s)
-              end
-            end
-
-            next if current_value == original_value
-
-            touched = true
-            updated_columns[field.to_sym] = current_value
-          end
-
+          updated_columns = cleaned_columns(record, context, model_name, fields)
           return if @dry_run
-          return unless touched
+          return if updated_columns.empty?
 
           # Maintenance task: avoid model validations/callbacks (especially important for
           # complex JSONB translation fields).
+          # rubocop:disable Rails/SkipsModelValidations
           record.update_columns(updated_columns)
+          # rubocop:enable Rails/SkipsModelValidations
         end
 
         def clean_component_settings
@@ -169,70 +127,9 @@ module Decidim
         end
 
         def clean_component_settings_record(record, context, global_keys, process_step_keys)
-          locale = context.default_locale
-          other_locales = context.allowed_locales - [locale]
-          minimalistic_cleanup = Decidim::Voca.minimalistic_deepl? && context.enable_machine_translations?
-
           settings = record.read_attribute(:settings).deep_dup.deep_stringify_keys
-          global = settings["global"] ||= {}
-          touched = false
-
-          clean_translated_setting_hash = lambda do |container, key, csv_field_path|
-            current_value = container[key]
-            return unless current_value.is_a?(Hash)
-
-            original_value = current_value.deep_dup
-
-            if minimalistic_cleanup
-              current_value.delete_if do |setting_key, _value|
-                setting_key_str = setting_key.to_s
-                setting_key_str != locale && setting_key_str != "machine_translations"
-              end
-
-              mt_hash = current_value["machine_translations"] || current_value[:machine_translations]
-              if mt_hash.is_a?(Hash)
-                mt_hash.delete_if { |k, _v| !other_locales.include?(k.to_s) }
-              end
-            else
-              # Non-minimalistic mode keeps machine translations; just remove locale roots
-              # that are no longer human-filled.
-              other_locales.each { |other_locale| current_value.delete(other_locale) }
-            end
-
-            return if current_value == original_value
-
-            if @dry_run
-              value_json = original_value.respond_to?(:as_json) ? original_value.as_json.to_json : original_value.to_json
-              $stdout.puts CSV.generate_line(
-                [Decidim::Component.name, csv_field_path, value_json],
-                col_sep: ";"
-              )
-            else
-              touched = true
-            end
-
-            container[key] = current_value
-          end
-
-          global_keys.each do |key|
-            clean_translated_setting_hash.call(global, key, "settings[#{key}]")
-          end
-
-          step_container = settings["step"] ||= {}
-          return if @dry_run && process_step_keys.empty?
-
-          process_step_keys.each do |step_key|
-            next unless step_container.is_a?(Hash)
-            step_container.each do |step_id, step_settings|
-              next unless step_settings.is_a?(Hash)
-
-              clean_translated_setting_hash.call(
-                step_settings,
-                step_key,
-                    "settings[step][#{step_id}][#{step_key}]"
-              )
-            end
-          end
+          touched = clean_global_settings!(settings, context, global_keys)
+          touched ||= clean_step_settings!(settings, context, process_step_keys)
 
           return if @dry_run
           return unless touched
@@ -240,6 +137,123 @@ module Decidim
           # rubocop:disable Rails/SkipsModelValidations
           record.update_column(:settings, settings)
           # rubocop:enable Rails/SkipsModelValidations
+        end
+
+        def clean_global_settings!(settings, context, global_keys)
+          global = settings["global"] ||= {}
+          global_keys.any? do |key|
+            clean_translated_setting_hash!(global, key, "settings[#{key}]", context)
+          end
+        end
+
+        def clean_step_settings!(settings, context, process_step_keys)
+          step_container = settings["step"] ||= {}
+          return false unless step_container.is_a?(Hash)
+
+          process_step_keys.any? do |step_key|
+            clean_step_entries!(step_container, step_key, context)
+          end
+        end
+
+        def clean_step_entries!(step_container, step_key, context)
+          step_container.any? do |step_id, step_settings|
+            next false unless step_settings.is_a?(Hash)
+
+            clean_translated_setting_hash!(step_settings, step_key, step_csv_path(step_id, step_key), context)
+          end
+        end
+
+        def step_csv_path(step_id, step_key)
+          "settings[step][#{step_id}][#{step_key}]"
+        end
+
+        def clean_translated_setting_hash!(container, key, csv_field_path, context)
+          current_value = container[key]
+          return false unless current_value.is_a?(Hash)
+
+          original_value = current_value.deep_dup
+          clean_setting_value!(current_value, context)
+          return false if current_value == original_value
+
+          preview_component_setting(csv_field_path, original_value) if @dry_run
+          container[key] = current_value
+          !@dry_run
+        end
+
+        def clean_setting_value!(current_value, context)
+          locale = context.default_locale
+          other_locales = context.allowed_locales - [locale]
+          return cleanup_non_minimalistic_hash!(current_value, other_locales) unless minimalistic_cleanup?(context)
+
+          cleanup_hash!(current_value, locale, other_locales)
+        end
+
+        def preview_component_setting(csv_field_path, original_value)
+          value_json = original_value.respond_to?(:as_json) ? original_value.as_json.to_json : original_value.to_json
+          $stdout.puts CSV.generate_line([Decidim::Component.name, csv_field_path, value_json], col_sep: ";")
+        end
+
+        def promote_default_locale!(value, locale)
+          mt_hash = machine_translations_hash(value)
+          return unless value[locale].blank? && mt_hash&.[](locale).present?
+
+          value[locale] = mt_hash.delete(locale)
+        end
+
+        def cleaned_columns(record, context, model_name, fields)
+          fields.each_with_object({}) do |field, columns|
+            original = record.send(field)
+            next unless original.is_a?(Hash)
+            next preview_field(model_name, field, original) if @dry_run
+
+            cleaned = cleaned_value(original, context)
+            columns[field.to_sym] = cleaned if cleaned != original
+          end
+        end
+
+        def preview_field(model_name, field, value)
+          json = value.respond_to?(:as_json) ? value.as_json.to_json : value.to_json
+          $stdout.puts CSV.generate_line([model_name, field.to_s, json], col_sep: ";")
+        end
+
+        def cleaned_value(value, context)
+          current_value = value.deep_dup
+          locale = context.default_locale
+          other_locales = context.allowed_locales - [locale]
+          return cleanup_non_minimalistic_hash!(current_value, other_locales) unless minimalistic_cleanup?(context)
+
+          cleanup_hash!(current_value, locale, other_locales)
+        end
+
+        def minimalistic_cleanup?(context)
+          Decidim::Voca.minimalistic_deepl? && context.enable_machine_translations?
+        end
+
+        def cleanup_hash!(current_value, locale, other_locales)
+          promote_default_locale!(current_value, locale)
+          current_value.delete_if { |key, _value| kept_key?(key, locale) }
+          prune_machine_translations!(current_value, other_locales)
+          current_value
+        end
+
+        def cleanup_non_minimalistic_hash!(current_value, other_locales)
+          other_locales.each { |other_locale| current_value.delete(other_locale) }
+          current_value
+        end
+
+        def kept_key?(key, locale)
+          key_str = key.to_s
+          key_str != locale && key_str != "machine_translations"
+        end
+
+        def prune_machine_translations!(value, other_locales)
+          mt_hash = machine_translations_hash(value)
+          mt_hash&.delete_if { |key, _value| other_locales.exclude?(key.to_s) }
+        end
+
+        def machine_translations_hash(value)
+          hash = value["machine_translations"] || value[:machine_translations]
+          hash if hash.is_a?(Hash)
         end
       end
     end
