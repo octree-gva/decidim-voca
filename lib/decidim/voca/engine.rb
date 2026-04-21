@@ -403,7 +403,7 @@ module Decidim
                                                                          "*.maps.ls.hereapi.com")
 
           decidim_config.maps = {
-            provider: :osm,
+            provider: ENV.fetch("MAPS_PROVIDER", ""),
             api_key: ENV.fetch("MAPS_API_KEY", ""),
             dynamic: {
               tile_layer: {
@@ -415,7 +415,7 @@ module Decidim
               }
             },
 
-            static: { url: "https://image.maps.ls.hereapi.com/mia/1.6/mapview" },
+            static: { url: "https://image.maps.hereapi.com/mia/v3/base/mc/overlay" },
             autocomplete: {
               address_format: [%w(street houseNumber), "city", "country"],
               url: "https://photon.komoot.io/api/"
