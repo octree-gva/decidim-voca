@@ -403,7 +403,7 @@ module Decidim
                                                                          "*.maps.ls.hereapi.com")
 
           decidim_config.maps = {
-            provider: ENV.fetch("MAPS_PROVIDER", ""),
+            provider: ENV.fetch("MAPS_PROVIDER", "here"),
             api_key: ENV.fetch("MAPS_API_KEY", ""),
             dynamic: {
               tile_layer: {
