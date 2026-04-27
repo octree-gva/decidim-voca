@@ -17,6 +17,8 @@ module Decidim
 
         def self.for(record)
           org = resolve_organization!(record)
+          raise "Organization not found for #{record.class.name} (id: #{record.id.inspect}) [found #{org.class.name}]" unless org && org.is_a?(::Decidim::Organization)
+
           new(
             allowed_locales: Array(org.available_locales).map(&:to_s),
             default_locale: org.default_locale.to_s,
@@ -40,96 +42,107 @@ module Decidim
 
         def self.resolver_methods
           [
+            :try_attachment,
             :try_organization,
             :try_participatory_space_organization,
-            :try_component_organization,
+            :try_component,
             :try_comment_organization,
             :try_result,
             :try_meeting,
             :try_questionnaire,
             :try_question,
             :try_proposal,
-            :try_collaborative_draft
+            :try_collaborative_draft,
+            :try_commentable
           ]
         end
 
-        def self.try_meeting(record)
-          return unless record.respond_to?(:meeting)
+        def self.try_attachment(record)
+          return unless record.respond_to?(:collection_for) && record.collection_for
 
-          record.meeting.component.organization
+          context = resolve_with_resolvers(record.collection_for)
+          return if context.blank?
+
+          context
+        end
+
+        def self.try_commentable(record)
+          return unless record.respond_to?(:root_commentable) && record.root_commentable
+
+          context = resolve_with_resolvers(record.root_commentable)
+          return if context.blank?
+
+          context
+        end
+
+        def self.try_meeting(record)
+          return unless record.respond_to?(:meeting) && record.meeting
+
+          try_component(record.meeting)
         end
 
         def self.try_questionnaire(record)
           questionnaire = if record.is_a?(::Decidim::Forms::Questionnaire)
                             record
-                          elsif record.respond_to?(:questionnaire)
+                          elsif record.respond_to?(:questionnaire) && record.questionnaire
                             record.questionnaire
                           end
           return unless questionnaire
 
           questionnaire_for = questionnaire.questionnaire_for
-          return questionnaire_for.component.organization if questionnaire_for.respond_to?(:component)
-
-          questionnaire_for.organization if questionnaire_for.respond_to?(:organization)
+          try_component(questionnaire_for) || try_organization(questionnaire_for)
         end
 
         def self.try_question(record)
-          return unless record.respond_to?(:question)
+          return unless record.respond_to?(:question) && record.question
 
           try_questionnaire(record.question)
         end
 
         def self.try_proposal(record)
-          return unless record.respond_to?(:proposal)
+          return unless record.respond_to?(:proposal) && record.proposal
 
-          record.proposal.component.organization
+          try_component(record.proposal)
         end
 
         def self.try_comment_organization(record)
-          return unless record.respond_to?(:commentable)
+          return unless record.respond_to?(:commentable) && record.commentable
 
           commentable = record.commentable
           return if commentable.nil?
 
-          try_organization(commentable) ||
-            try_participatory_space_organization(commentable) ||
-            try_component_organization(commentable)
+          resolve_with_resolvers(commentable)
         end
 
         def self.try_collaborative_draft(record)
-          return unless record.respond_to?(:collaborative_draft)
+          return unless record.respond_to?(:collaborative_draft) && record.collaborative_draft
 
-          record.collaborative_draft.component.organization
+          try_component(record.collaborative_draft)
         end
 
         def self.try_result(record)
-          return unless record.respond_to?(:result)
+          return unless record.respond_to?(:result) && record.result
 
-          record.result.component.organization
+          try_component(record.result)
         end
 
         def self.try_organization(record)
           return unless record.respond_to?(:organization)
 
-          record.organization.presence
+          record.organization
         end
 
         def self.try_participatory_space_organization(record)
-          return unless record.respond_to?(:participatory_space)
+          return unless record.respond_to?(:participatory_space) && record.participatory_space
 
           ps = record.participatory_space
-          return unless ps.respond_to?(:organization)
-
-          ps.organization.presence
+          try_organization(ps)
         end
 
-        def self.try_component_organization(record)
-          return unless record.respond_to?(:component)
+        def self.try_component(record)
+          return unless record.respond_to?(:component) && record.component
 
-          comp = record.component
-          return unless comp.respond_to?(:organization)
-
-          comp.organization.presence
+          try_organization(record.component)
         end
 
         def self.raise_missing_organization!(record)
