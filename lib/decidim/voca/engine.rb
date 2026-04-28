@@ -100,7 +100,12 @@ module Decidim
 
       # Fixes for geolocated proposals at creation
       config.to_prepare do
-        Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        if Decidim::Voca.decidim_awesome?
+          Decidim::DecidimAwesome::Proposals::CreateProposalOverride.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        else
+          Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
+        end
+
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
       end
 
@@ -384,7 +389,7 @@ module Decidim
                                                                          "*.maps.ls.hereapi.com")
 
           decidim_config.maps = {
-            provider: :osm,
+            provider: ENV.fetch("MAPS_PROVIDER", "here"),
             api_key: ENV.fetch("MAPS_API_KEY", ""),
             dynamic: {
               tile_layer: {
@@ -396,7 +401,7 @@ module Decidim
               }
             },
 
-            static: { url: "https://image.maps.ls.hereapi.com/mia/1.6/mapview" },
+            static: { url: "https://image.maps.hereapi.com/mia/v3/base/mc/overlay" },
             autocomplete: {
               address_format: [%w(street houseNumber), "city", "country"],
               url: "https://photon.komoot.io/api/"
