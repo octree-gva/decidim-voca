@@ -390,6 +390,13 @@ module Decidim
 
       initializer "decidim.voca.map_configuration", after: :load_config_initializers do
         Decidim.configure do |decidim_config|
+          maps_enabled = %w[1 true enabled].include?(ENV.fetch("DECIDIM_MAPS_ENABLED", "false"))
+          unless maps_enabled
+            decidim_config.maps = nil
+            decidim_config.geocoder = nil
+            next
+          end
+
           Rails.logger.warn("Decidim.config.maps will be overridden by voca maps configuration") unless decidim_config.maps
 
           # Setup CSP for geocoding, static maps (pngs), dynamic maps (tiles) and autocomplete.
