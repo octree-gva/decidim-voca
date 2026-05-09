@@ -12,6 +12,13 @@ RSpec/SpecFilePathFormat:
     - spec/commands/**/*machine_translation*_spec.rb
     # System smoke for admin component + MT; path is stable under admin/.
     - spec/system/admin/component_name_machine_translation_spec.rb
+    # Module is Decidim::Voca::DeepL but lib/spec dirs use deepl/ (not deep_l).
+    - spec/lib/decidim/voca/deepl/**/*_spec.rb
+
+RSpec/DescribeClass:
+  Exclude:
+    # Integration/regression examples cover flows, not a single unit under test.
+    - spec/regression/**/*_spec.rb
 
 RSpec/DescribeMethod:
   Exclude:

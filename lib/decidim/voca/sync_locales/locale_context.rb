@@ -44,16 +44,33 @@ module Decidim
           [
             :try_attachment,
             :try_organization,
-            :try_participatory_space_organization,
+            :try_participatory_space,
+            :try_assembly,
+            :try_conference,
+            :try_conference_speakers,
+            :try_conference_meeting,
             :try_component,
             :try_comment_organization,
+            :try_author,
+            :try_user,
+            :try_sender,
+            :try_recipient,
+            :try_amender,
             :try_result,
             :try_meeting,
             :try_questionnaire,
             :try_question,
             :try_proposal,
+            :try_resource,
             :try_collaborative_draft,
-            :try_commentable
+            :try_commentable,
+            :try_project,
+            :try_budget,
+            :try_category,
+            :try_coauthorable,
+            :try_from_to,
+            :try_reminder,
+            :try_parent
           ]
         end
 
@@ -81,6 +98,50 @@ module Decidim
           try_component(record.meeting)
         end
 
+        def self.try_reminder(record)
+          return unless record.respond_to?(:reminder) && record.reminder
+
+          try_component(record.reminder)
+        end
+
+        def self.try_project(record)
+          return unless record.respond_to?(:project) && record.project
+
+          try_component(record.project)
+        end
+
+        def self.try_budget(record)
+          return unless record.respond_to?(:budget) && record.budget
+
+          try_component(record.budget)
+        end
+
+        def self.try_category(record)
+          return unless record.respond_to?(:category) && record.category
+
+          try_participatory_space(record.category)
+        end
+
+        def self.try_coauthorable(record)
+          return unless record.respond_to?(:coauthorable) && record.coauthorable
+
+          resolve_with_resolvers(record.coauthorable)
+        end
+
+        def self.try_from_to(record)
+          if record.respond_to?(:from) && record.from
+            resolve_with_resolvers(record.from)
+          elsif record.respond_to?(:to) && record.to
+            resolve_with_resolvers(record.to)
+          end
+        end
+
+        def self.try_parent(record)
+          return unless record.respond_to?(:parent) && record.parent
+
+          resolve_with_resolvers(record.parent)
+        end
+
         def self.try_questionnaire(record)
           questionnaire = if record.is_a?(::Decidim::Forms::Questionnaire)
                             record
@@ -103,6 +164,63 @@ module Decidim
           return unless record.respond_to?(:proposal) && record.proposal
 
           try_component(record.proposal)
+        end
+
+        def self.try_resource(record)
+          return unless record.respond_to?(:resource) && record.resource
+
+          resolve_with_resolvers(record.resource)
+        end
+
+        def self.try_author(record)
+          return unless record.respond_to?(:author) && record.author
+
+          try_organization(record.author)
+        end
+
+        def self.try_conference(record)
+          return unless record.respond_to?(:conference) && record.conference
+
+          try_organization(record.conference)
+        end
+
+        def self.try_conference_speakers(record)
+          return unless record.respond_to?(:conference_speakers) && record.conference_speakers
+
+          speaker = record.conference_speakers.first
+          return if speaker.nil?
+
+          try_organization(speaker)
+        end
+
+        def self.try_conference_meeting(record)
+          return unless record.respond_to?(:conference_meeting) && record.conference_meeting
+
+          try_component(record.conference_meeting)
+        end
+
+        def self.try_user(record)
+          return unless record.respond_to?(:user) && record.user
+
+          try_organization(record.user)
+        end
+
+        def self.try_sender(record)
+          return unless record.respond_to?(:sender) && record.sender
+
+          try_organization(record.sender)
+        end
+
+        def self.try_recipient(record)
+          return unless record.respond_to?(:recipient) && record.recipient
+
+          try_organization(record.recipient)
+        end
+
+        def self.try_amender(record)
+          return unless record.respond_to?(:amender) && record.amender
+
+          try_organization(record.amender)
         end
 
         def self.try_comment_organization(record)
@@ -132,11 +250,16 @@ module Decidim
           record.organization
         end
 
-        def self.try_participatory_space_organization(record)
+        def self.try_participatory_space(record)
           return unless record.respond_to?(:participatory_space) && record.participatory_space
 
-          ps = record.participatory_space
-          try_organization(ps)
+          try_organization(record.participatory_space)
+        end
+
+        def self.try_assembly(record)
+          return unless record.respond_to?(:assembly) && record.assembly
+
+          try_organization(record.assembly)
         end
 
         def self.try_component(record)
