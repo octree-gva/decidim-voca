@@ -17,6 +17,8 @@ require_relative "voca/overrides/proposal_serializer_overrides"
 require_relative "voca/overrides/user_group_form_overrides"
 require_relative "voca/overrides/resource_presenter_overrides"
 require_relative "voca/overrides/sanitize_helper_overrides"
+require_relative "voca/overrides/address_cell_overrides"
+require_relative "voca/overrides/card_metadata_cell_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
 require_relative "voca/deepl/translation_bar_overrides"
@@ -62,6 +64,10 @@ module Decidim
 
     def self.next_gen_images?
       configuration.enable_next_gen_images
+    end
+
+    def self.decidim_awesome?
+      Gem.loaded_specs.has_key?("decidim-decidim_awesome")
     end
 
     def self.weglot?

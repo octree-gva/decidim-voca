@@ -1,5 +1,8 @@
 ---
 fr:
+  time:
+    formats:
+      12h_24h: "%H:%M"
   decidim:
     core:
       actions:
