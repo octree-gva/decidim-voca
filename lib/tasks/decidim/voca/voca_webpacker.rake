@@ -27,13 +27,12 @@ namespace :decidim_voca do
     end
 
     def voca_npm_dependencies
-      @voca_npm_dependencies ||= begin
-        return [] if voca_path.nil? || !File.exist?(voca_path.join("package.json"))
-
-        package_json = JSON.parse(File.read(voca_path.join("package.json")))
-
-        (package_json["dependencies"] || {}).map { |package, version| "#{package}@#{version}" }
-      end
+      @voca_npm_dependencies ||= if voca_path.nil? || !File.exist?(voca_path.join("package.json"))
+                                   []
+                                 else
+                                   package_json = JSON.parse(File.read(voca_path.join("package.json")))
+                                   (package_json["dependencies"] || {}).map { |package, version| "#{package}@#{version}" }
+                                 end
     end
 
     def voca_path
