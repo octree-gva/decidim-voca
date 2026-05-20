@@ -17,9 +17,7 @@ def install_module(path)
     sh "bundle add good_job" unless Gem.loaded_specs.has_key?("good_job")
     sh "bundle add next_gen_images" unless Gem.loaded_specs.has_key?("next_gen_images")
     sh "bundle add deface" unless Gem.loaded_specs.has_key?("deface")
-    unless Gem.loaded_specs.has_key?("decidim-decidim_awesome")
-      sh "bundle add decidim-decidim_awesome #{Decidim::Voca.compat_decidim_awesome_version}"
-    end
+    sh "bundle add decidim-decidim_awesome #{Decidim::Voca.compat_decidim_awesome_version}" unless Gem.loaded_specs.has_key?("decidim-decidim_awesome")
     unless Gem.loaded_specs.has_key?("decidim-telemetry")
       sh "bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref #{Decidim::Voca.compat_decidim_telemetry_version}"
     end

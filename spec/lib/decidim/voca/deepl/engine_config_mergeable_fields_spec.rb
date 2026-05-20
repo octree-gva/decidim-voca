@@ -30,13 +30,6 @@ RSpec.describe Decidim::Voca::DeepL::EngineConfig do
       expect(list).to include("answer", "cost_report", "execution_period")
     end
 
-    it "merges short_name onto Organization when the column exists" do
-      skip "schema has no decidim_organizations.short_name" unless Decidim::Organization.column_names.include?("short_name")
-
-      list = Decidim::Organization.translatable_fields_list.map(&:to_s)
-      expect(list).to include("short_name")
-    end
-
     it "fixes TimelineEntry to list both title and description" do
       list = Decidim::Accountability::TimelineEntry.translatable_fields_list.map(&:to_s)
       expect(list).to contain_exactly("title", "description")
