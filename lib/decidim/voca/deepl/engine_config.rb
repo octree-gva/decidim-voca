@@ -113,8 +113,16 @@ module Decidim
           end
 
           def merge_applicable_column_fields!(klass, row)
+            return unless database_table_ready?(klass)
+
             applicable = row[:fields].map(&:to_s).select { |f| klass.column_names.include?(f) }
             Decidim::Voca.merge_translatable_fields(klass, *applicable) if applicable.any?
+          end
+
+          def database_table_ready?(klass)
+            klass.table_exists?
+          rescue ActiveRecord::NoDatabaseError, ActiveRecord::ConnectionNotEstablished, PG::ConnectionBad
+            false
           end
 
           def fix_accountability_timeline_entry_translatable_fields!

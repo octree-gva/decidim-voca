@@ -7,6 +7,43 @@ def base_app_name
   "decidim_voca"
 end
 
+def wait_for_postgres!(timeout: 60)
+  return unless ENV["CI"] == "1" || ENV.fetch("DISABLED_DOCKER_COMPOSE", "false") == "true"
+
+  host = ENV.fetch("DATABASE_HOST", "postgres")
+  port = ENV.fetch("DATABASE_PORT", "5432").to_i
+  require "socket"
+  deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + timeout
+  loop do
+    TCPSocket.new(host, port).close
+    return
+  rescue Errno::ECONNREFUSED, Errno::EHOSTUNREACH, Errno::ETIMEDOUT
+    raise "PostgreSQL not reachable at #{host}:#{port} after #{timeout}s" if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+
+    sleep 1
+  end
+end
+
+def ensure_postgres_database!(db_name)
+  require "pg"
+  host = ENV.fetch("DATABASE_HOST", "postgres")
+  port = ENV.fetch("DATABASE_PORT", "5432").to_i
+  user = ENV.fetch("DATABASE_USERNAME", "decidim")
+  password = ENV.fetch("DATABASE_PASSWORD", "pleaseChangeMe")
+
+  conn = PG.connect(host:, port:, user:, password:, dbname: "postgres")
+  exists = conn.exec_params("SELECT 1 FROM pg_database WHERE datname = $1", [db_name]).ntuples.positive?
+  conn.exec("CREATE DATABASE #{PG::Connection.quote_ident(db_name)}") unless exists
+ensure
+  conn&.close
+end
+
+# Decidim's InstallGenerator boots Rails before recreate_db; default database name is <app_name>_development.
+def ensure_generator_databases!
+  wait_for_postgres!
+  ensure_postgres_database!("#{base_app_name}_test_app_development")
+end
+
 def install_module(path)
   Dir.chdir(path) do
     sh "bundle exec rails decidim_voca:install:migrations"
@@ -34,7 +71,7 @@ end
 
 desc "Prepare for testing"
 task :prepare_tests do
-  # Remove previous existing db, and recreate one.
+  wait_for_postgres!
   disable_docker_compose = ENV.fetch("DISABLED_DOCKER_COMPOSE", "false") == "true"
   unless disable_docker_compose
     system("docker-compose -f docker-compose.yml down -v --remove-orphans")
@@ -69,6 +106,8 @@ end
 
 desc "Generates a dummy app for testing"
 task :test_app do
+  ensure_generator_databases!
+
   Bundler.with_original_env do
     generate_decidim_app(
       "spec/decidim_dummy_app",
@@ -77,6 +116,7 @@ task :test_app do
       "--path",
       "../..",
       "--skip_spring",
+      "--recreate_db",
       "--demo",
       "--force_ssl",
       "false",
@@ -85,6 +125,7 @@ task :test_app do
     )
   end
   # DB must exist before install_module runs `rails decidim:update` (CI: postgres service).
+  Rake::Task["prepare_tests"].reenable
   Rake::Task["prepare_tests"].invoke
   install_module("spec/decidim_dummy_app")
 end
