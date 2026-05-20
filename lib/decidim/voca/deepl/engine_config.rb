@@ -100,14 +100,14 @@ module Decidim
 
           def maybe_include_component_settings_mt!(klass, row)
             return unless row[:component_settings_mt]
-            return unless klass.exclude?(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
+            return if klass.included_modules.include?(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
 
             klass.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
           end
 
           def maybe_include_translatable_resource!(klass, row)
             return unless row[:include_translatable_resource]
-            return unless klass.exclude?(Decidim::TranslatableResource)
+            return if klass.included_modules.include?(Decidim::TranslatableResource)
 
             klass.include(Decidim::TranslatableResource)
           end

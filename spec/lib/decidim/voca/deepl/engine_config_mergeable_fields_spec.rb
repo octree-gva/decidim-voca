@@ -49,5 +49,9 @@ RSpec.describe Decidim::Voca::DeepL::EngineConfig do
       list = Decidim::Forms::DisplayCondition.translatable_fields_list.map(&:to_s)
       expect(list).to include("condition_value")
     end
+
+    it "includes component settings machine translation on Component" do
+      expect(Decidim::Component.included_modules).to include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
+    end
   end
 end
