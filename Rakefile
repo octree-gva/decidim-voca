@@ -2,21 +2,29 @@
 
 require "decidim/dev/common_rake"
 
+# Stable name regardless of mount path (/home/module in Docker vs repo dir on host).
+def base_app_name
+  "decidim_voca"
+end
+
 def install_module(path)
   Dir.chdir(path) do
-    system("bundle exec rails decidim_voca:install:migrations")
+    sh "bundle exec rails decidim_voca:install:migrations"
     # Check for deepl, activerecord-postgis-adapter, good_job, next_gen_images, deface
     # If are not in Gemfile, add them
-    system("bundle add deepl-rb") unless Gem.loaded_specs.has_key?("deepl-rb")
-    system("bundle add activerecord-postgis-adapter") unless Gem.loaded_specs.has_key?("activerecord-postgis-adapter")
-    system("bundle add good_job") unless Gem.loaded_specs.has_key?("good_job")
-    system("bundle add next_gen_images") unless Gem.loaded_specs.has_key?("next_gen_images")
-    system("bundle add deface") unless Gem.loaded_specs.has_key?("deface")
-    system("bundle add decidim-decidim_awesome #{Decidim::Voca.compat_decidim_awesome_version}") unless Gem.loaded_specs.has_key?("decidim-decidim_awesome")
-    unless Gem.loaded_specs.has_key?("decidim-telemetry")
-      system("bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref #{Decidim::Voca.compat_decidim_telemetry_version}")
+    sh "bundle add deepl-rb" unless Gem.loaded_specs.has_key?("deepl-rb")
+    sh "bundle add activerecord-postgis-adapter" unless Gem.loaded_specs.has_key?("activerecord-postgis-adapter")
+    sh "bundle add good_job" unless Gem.loaded_specs.has_key?("good_job")
+    sh "bundle add next_gen_images" unless Gem.loaded_specs.has_key?("next_gen_images")
+    sh "bundle add deface" unless Gem.loaded_specs.has_key?("deface")
+    unless Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+      sh "bundle add decidim-decidim_awesome #{Decidim::Voca.compat_decidim_awesome_version}"
     end
-    system("bundle exec rails decidim:update")
+    unless Gem.loaded_specs.has_key?("decidim-telemetry")
+      sh "bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref #{Decidim::Voca.compat_decidim_telemetry_version}"
+    end
+    sh "bundle exec rails decidim:update"
+    sh "bundle exec rails db:migrate"
   end
 end
 
@@ -38,7 +46,7 @@ task :prepare_tests do
   common_db_config = {
     "adapter" => "postgis",
     "encoding" => "unicode",
-    "host" => ENV.fetch("DATABASE_HOST", "spam-signal-pg"),
+    "host" => ENV.fetch("DATABASE_HOST", "voca-pg"),
     "port" => ENV.fetch("DATABASE_PORT", "5432").to_i,
     "username" => ENV.fetch("DATABASE_USERNAME", "decidim"),
     "password" => ENV.fetch("DATABASE_PASSWORD", "pleaseChangeMe"),
@@ -53,10 +61,11 @@ task :prepare_tests do
   config_file = File.expand_path("spec/decidim_dummy_app/config/database.yml", __dir__)
   File.open(config_file, "w") { |f| YAML.dump(database_yml, f) }
 
-  Dir.chdir("spec/decidim_dummy_app") do
-    system("bundle exec rails db:drop")
-    system("bundle exec rails db:create")
-    system("bundle exec rails db:migrate")
+  dummy_app = File.expand_path("spec/decidim_dummy_app", __dir__)
+  Dir.chdir(dummy_app) do
+    # Fresh CI has no DB yet; do not abort test_app when drop fails.
+    sh "bundle exec rails db:drop || true"
+    sh "bundle exec rails db:create db:migrate"
   end
 end
 
@@ -77,8 +86,9 @@ task :test_app do
       "en,fr,es"
     )
   end
-  install_module("spec/decidim_dummy_app")
+  # DB must exist before install_module runs `rails decidim:update` (CI: postgres service).
   Rake::Task["prepare_tests"].invoke
+  install_module("spec/decidim_dummy_app")
 end
 
 desc "Generates a development app"
