@@ -73,7 +73,7 @@ end
 desc "Prepare for testing"
 task :prepare_tests do
   wait_for_postgres!
-  disable_docker_compose = ENV.fetch("DISABLED_DOCKER_COMPOSE", "false") == "true"
+  disable_docker_compose = ENV.fetch("DISABLED_DOCKER_COMPOSE", "true") == "true"
   unless disable_docker_compose
     system("docker-compose -f docker-compose.yml down -v --remove-orphans")
     system("docker-compose -f docker-compose.yml up -d ")
@@ -117,8 +117,8 @@ task :test_app do
       "--path",
       "../..",
       "--skip_spring",
+      "--skip_webpack_install",
       "--recreate_db",
-      "--demo",
       "--force_ssl",
       "false",
       "--locales",
