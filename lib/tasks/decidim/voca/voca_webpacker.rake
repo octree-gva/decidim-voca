@@ -54,7 +54,8 @@ namespace :decidim do
       end
 
       def voca_system!(command)
-        system("cd #{rails_app_path} && #{command}") || abort("\n== Command #{command} failed ==")
+        success = system("cd #{rails_app_path} && #{command}")
+        abort("\n== Command #{command} failed ==") unless success
       end
 
       def voca_gem_name

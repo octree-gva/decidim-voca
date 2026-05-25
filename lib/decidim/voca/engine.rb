@@ -7,6 +7,12 @@ require "deface"
 require "next_gen_images"
 require "decidim/verifications"
 require "decidim/voca/code_census"
+require_relative "export/csv_with_locale_transformer"
+require_relative "export/proposal_serializer_localized_csv"
+require_relative "export/comment_serializer_localized_csv"
+require_relative "export/user_answers_serializer_localized_csv"
+require_relative "overrides/csv_export_serializers"
+require_relative "overrides/mod_secure/user_conversations_redirect_overrides"
 
 module Decidim
   module Voca
@@ -89,6 +95,7 @@ module Decidim
         Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
         Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
+        Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
       end
 
       # Fixes for geolocated proposals at creation
@@ -100,6 +107,14 @@ module Decidim
         end
 
         Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
+      end
+
+      config.to_prepare do
+        Decidim::Voca::DeepL::EngineConfig.configure!
+      end
+
+      initializer "decidim.voca.deepl", after: :load_config_initializers do
+        Decidim::Voca::DeepL::EngineConfig.initialize!
       end
 
       # Setup upload variants
@@ -210,17 +225,21 @@ module Decidim
         end
       end
 
-      if Gem.loaded_specs.has_key?("decidim-decidim_awesome")
-        # Decidim Awesome Proposal and EditorImagesController Override
+      # CSV serializers must load after Decidim Awesome's ProposalSerializer override, or Awesome's
+      # +alias_method :decidim_original_serialize, :serialize+ aliases voca's prepended +serialize+ and causes
+      # infinite recursion (see Overrides::CsvExportSerializers).
+      if Decidim::Voca::Installation.decidim_awesome_installed?
         initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
           config.to_prepare do
-            Decidim::Proposals::ProposalSerializer.include(
-              Decidim::Voca::Overrides::ProposalSerializerOverrides
-            )
+            Decidim::Voca::Overrides::CsvExportSerializers.apply
             ActiveSupport.on_load(:action_controller) do
               Decidim::EditorImagesController = Decidim::DecidimAwesome::EditorImagesController
             end
           end
+        end
+      else
+        config.to_prepare do
+          Decidim::Voca::Overrides::CsvExportSerializers.apply
         end
       end
 
@@ -294,39 +313,6 @@ module Decidim
 
       initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
         Decidim::Voca::UserFieldsConfigurator.call
-      end
-
-      initializer "decidim.voca.deepl", after: :load_config_initializers do
-        if Decidim::Voca.deepl_enabled?
-          require "deepl"
-          DeepL.configure do |config|
-            config.auth_key = ENV.fetch("DECIDIM_DEEPL_API_KEY", "")
-            config.host = ENV.fetch("DECIDIM_DEEPL_HOST", "https://api.deepl.com")
-            config.version = ENV.fetch("DECIDIM_DEEPL_VERSION", "v2")
-          end
-
-          Rails.application.config.middleware.use ::Decidim::Voca::DeeplMiddleware
-          Decidim.configure do |decidim_config|
-            if decidim_config.machine_translation_service.blank?
-              # Even enabled, this won't enable organizations to use machine translations
-              # You need to update programitacally the Organization:
-              # Decidim::Organization.last.update(enable_machine_translations: true, machine_translation_display_priority: "translation")
-              decidim_config.enable_machine_translations = true
-              decidim_config.machine_translation_service = "Decidim::Voca::DeeplMachineTranslator"
-              decidim_config.machine_translation_delay = 0.seconds
-            end
-          end
-
-          # Insert Deepl Context in ActiveJob::Base
-          # ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeeplActiveJobContext }
-          if Decidim::Voca.minimalistic_deepl?
-            Rails.logger.warn("Deepl is enabled, preparing minimalistic machine translation")
-            config.to_prepare do
-              ::Decidim::TranslationBarCell.include(Decidim::Voca::Deepl::TranslationBarOverrides)
-              ::Decidim::FormBuilder.include(Decidim::Voca::Deepl::DeeplFormBuilderOverrides)
-            end
-          end
-        end
       end
 
       initializer "decidim.voca.good_job", after: :load_config_initializers do
@@ -444,6 +430,9 @@ module Decidim
         Decidim.icons.register(name: "camera", icon: "camera-line", category: "system", description: "", engine: :core)
       end
       initializer "decidim_voca.image_processing" do
+        # Keep Decidim's default :mini_magick in test (CI / docker often lack a full libvips stack).
+        next if Rails.env.test?
+
         Rails.application.configure do
           config.active_storage.variant_processor = :vips
         end

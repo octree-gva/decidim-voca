@@ -17,6 +17,19 @@ Fixes and adjustments for the Decidim instances distributed by voca.
 ## Documentation
 The documentation and the API specification are in the [documentation website](https://octree-gva.github.io/decidim-voca/)
 
+## Development and testing (Docker)
+
+Use the Compose stack from this directory. Prefer **`docker compose exec`** into the long-running **`voca`** service (after `docker compose up -d`) so Bundler sees the same gem path as the dev image.
+
+Example: run the **export** specs and unset `DATABASE_URL` so the dummy app uses `config/database.yml`:
+
+```bash
+docker compose up -d
+docker compose exec voca bash -lc 'cd /home/module && unset DATABASE_URL && export RAILS_ENV=test && bundle exec rspec spec/lib/decidim/voca/export*spec.rb'
+```
+
+There is no `bin/check` in this repository; use `bundle exec rspec` and `bundle exec rubocop` inside the container. See [CONTRIBUTING.md](CONTRIBUTING.md) for where features live.
+
 ### Features
 - `anonymize users`: Run`rails decidim:voca:anonymize` to anonymize all your database and avoid sending email or leaking nicknames/passwords.
 
