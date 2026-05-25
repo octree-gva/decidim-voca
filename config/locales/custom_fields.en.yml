@@ -36,3 +36,6 @@ en:
       authorizations:
         new:
           authorize_with: Verify your identity with the «%{authorizer}»
+        first_login:
+          actions:
+            code_census: Verify your identity with the «%{authorizer}»

@@ -10,6 +10,7 @@ services:
     environment:
       - DECIDIM_VERSION=0.29.7
       - PORT=3000
+      - DECIDIM_DEEPL_API_KEY=insecure_key
       - MAPS_PROVIDER=osm
       - MAPS_STATIC_PROVIDER=osm
       - MAPS_STATIC_URL=https://a.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png
@@ -19,10 +20,11 @@ services:
       - MAPS_DYNAMIC_API_KEY=my_insecure_api_key
       - MAPS_GEOCODING_HOST=nominatim.openstreetmap.org
       - MAPS_ATTRIBUTION=<a href="https://www.openstreetmap.org/copyright" target="_blank">© OpenStreetMap</a> contributors
-      - DATABASE_URL=postgis://decidim:pleaseChangeMe@voca-pg:5432/decidim
-      - DATABASE_HOST=voca-pg
+      - DATABASE_URL=postgresql://decidim:pleaseChangeMe@voca-pg:5432/decidim
+      - BUNDLE_PATH=/home/decidim/app/vendor/bundle
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
+      - DECIDIM_AVAILABLE_LOCALES=en,fr,uk
       - DECIDIM_FORCE_SSL=false
       - DISABLE_SPRING=1
       - DEV_MODULE=decidim-voca
@@ -38,7 +40,8 @@ services:
       - TRAEFIK_SERVICE_HEALTHCHECK_INTERVAL=10s
       - TRAEFIK_SERVICE_HEALTHCHECK_TIMEOUT=10s
     depends_on:
-      - voca-pg
+      voca-pg:
+        condition: service_healthy
     ports:
       - 3000:3000
     links:
