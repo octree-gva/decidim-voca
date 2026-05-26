@@ -111,7 +111,7 @@ module Decidim
 
             lang = ::DeepL.languages.find { |locale| locale.code == target_locale.to_s.upcase }
             lang&.supports_formality?
-          rescue ::DeepL::Exceptions::NotSupported, NameError, NoMethodError
+          rescue ::DeepL::Exceptions::NotSupported, NameError
             false
           end
         end
