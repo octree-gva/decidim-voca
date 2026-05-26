@@ -306,7 +306,7 @@ module Decidim
           component = try_decidim_component_id(record)
           return component if component.present?
 
-          return unless (record.respond_to?(:component) && record.component)
+          return unless record.respond_to?(:component) && record.component
 
           try_organization(record.component)
         end

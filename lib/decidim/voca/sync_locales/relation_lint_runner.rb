@@ -7,7 +7,7 @@ module Decidim
       class RelationLintRunner
         def call
           Rails.application.eager_load!
-          log_path = Rails.root.join("tmp", "#{Date.current.strftime('%Y%m%d')}_relation_lint.log")
+          log_path = Rails.root.join("tmp", "#{Date.current.strftime("%Y%m%d")}_relation_lint.log")
           FileUtils.mkdir_p(log_path.dirname)
 
           failures = 0
