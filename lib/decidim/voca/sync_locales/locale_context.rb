@@ -62,6 +62,7 @@ module Decidim
             :try_meeting,
             :try_questionnaire,
             :try_question,
+            :try_privatable_to,
             :try_proposal,
             :try_resource,
             :try_collaborative_draft,
@@ -153,6 +154,12 @@ module Decidim
           return unless record.respond_to?(:condition) && record.condition
 
           try_organization(record.condition)
+        enabled
+
+        def self.try_privatable_to(record)
+          return unless record.respond_to?(:privatable_to) && record.privatable_to
+
+          resolve_with_resolvers(record.privatable_to)
         end
 
         def self.try_coauthorable(record)
