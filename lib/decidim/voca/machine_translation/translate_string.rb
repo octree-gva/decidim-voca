@@ -71,7 +71,7 @@ module Decidim
             return text unless translatable?(text)
             return dummy_deepl_style_translation(text, target_locale, html) if dummy_translate?
 
-            return text unless defined?(DeepL) && Decidim::Voca::Installation.deepl_enabled?
+            return text unless defined?(::DeepL) && Decidim::Voca::Installation.deepl_enabled?
 
             mutex.synchronize do
               result = ::DeepL.translate(
@@ -107,9 +107,11 @@ module Decidim
           end
 
           def supports_formality?(target_locale)
+            return false unless defined?(::DeepL)
+
             lang = ::DeepL.languages.find { |locale| locale.code == target_locale.to_s.upcase }
             lang&.supports_formality?
-          rescue ::DeepL::Exceptions::NotSupported, NoMethodError
+          rescue ::DeepL::Exceptions::NotSupported, NameError, NoMethodError
             false
           end
         end

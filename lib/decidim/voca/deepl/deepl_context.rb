@@ -12,6 +12,16 @@ module Decidim
         include ActionView::Helpers::SanitizeHelper
         include ActionView::Helpers::TagHelper
 
+        class << self
+          def with_organization(organization)
+            previous = attributes
+            self.organization = organization.to_global_id.to_s if organization
+            yield
+          ensure
+            self.attributes = previous
+          end
+        end
+
         ##
         # @return String Context for Deepl API
         def deepl_context

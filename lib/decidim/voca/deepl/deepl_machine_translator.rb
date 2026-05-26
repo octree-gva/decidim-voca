@@ -23,7 +23,7 @@ module Decidim
         def translate
           return if text.blank?
 
-          translation = MachineTranslation::TranslateString.call(
+          translation = Decidim::Voca::MachineTranslation::TranslateString.call(
             text:,
             source_locale:,
             target_locale:,
@@ -48,7 +48,8 @@ module Decidim
         end
 
         def name_context
-          return "" if field_name == "title"
+          return "" if field_name.to_s.in?(%w(title name))
+
           return ", named #{translated_attribute(resource.title)}" if resource.respond_to?(:title)
           return ", named #{translated_attribute(resource.name)}" if resource.respond_to?(:name)
 
