@@ -263,9 +263,18 @@ module Decidim
         end
 
         def self.try_component(record)
-          return unless record.respond_to?(:component) && record.component
+          component = try_decidim_component_id(record)
+          return component if component.present?
+
+          return unless (record.respond_to?(:component) && record.component)
 
           try_organization(record.component)
+        end
+
+        def self.try_decidim_component_id(record)
+          return unless record.respond_to?(:decidim_component_id) && record.decidim_component_id
+
+          try_organization(Decidim::Component.find(record.decidim_component_id))
         end
 
         def self.raise_missing_organization!(record)
