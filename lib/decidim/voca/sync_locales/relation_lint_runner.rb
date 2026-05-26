@@ -32,13 +32,17 @@ module Decidim
 
         private
 
+        def class_name_included?
+          cls.name.start_with?("Decidim::") &&
+            !cls.name.start_with?("Decidim::Dev::") &&
+            !cls.name.start_with?("Decidim::System::") &&
+            !cls.name.start_with?("Decidim::TermCustomizer::")
+        end
+
         def decidim_models
           ActiveRecord::Base.descendants.select do |cls|
             next false if cls.name.blank?
-            next false unless cls.name.start_with?("Decidim::")
-            next false if cls.name.start_with?("Decidim::Dev::")
-            next false if cls.name.start_with?("Decidim::System::")
-            next false if cls.name.start_with?("Decidim::TermCustomizer::")
+            next false unless class_name_included?(cls)
             next false if cls.abstract_class?
             next false unless cls.table_exists?
 

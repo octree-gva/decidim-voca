@@ -154,7 +154,7 @@ module Decidim
           return unless record.respond_to?(:condition) && record.condition
 
           try_organization(record.condition)
-        enabled
+        end
 
         def self.try_privatable_to(record)
           return unless record.respond_to?(:privatable_to) && record.privatable_to

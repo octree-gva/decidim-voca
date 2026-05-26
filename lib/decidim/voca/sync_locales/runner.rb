@@ -13,13 +13,17 @@ module Decidim
           @fields[model] ||= Array(model.translatable_fields_list).compact.map(&:to_s)
         end
 
+        def class_name_included?
+          cls.name.start_with?("Decidim::") &&
+            !cls.name.start_with?("Decidim::Dev::") &&
+            !cls.name.start_with?("Decidim::System::") &&
+            !cls.name.start_with?("Decidim::TermCustomizer::")
+        end
+
         def translatable_models
           ActiveRecord::Base.descendants.select do |cls|
             next false if cls.name.blank?
-            next false if cls.name.start_with?("Decidim::Dev::")
-            next false if cls.name.start_with?("Decidim::System::")
-            next false if cls.name.start_with?("Decidim::TermCustomizer::")
-            next false if cls.abstract_class?
+            next false unless class_name_included?(cls)
             next false unless cls.table_exists?
             next false unless cls.include?(Decidim::TranslatableResource)
 
