@@ -71,6 +71,8 @@ module Decidim
             :try_awesome_config,
             :try_category,
             :try_coauthorable,
+            :try_flow,
+            :try_condition,
             :try_from_to,
             :try_reminder,
             :try_parent,
@@ -139,6 +141,18 @@ module Decidim
           return unless record.respond_to?(:category) && record.category
 
           try_participatory_space(record.category)
+        end
+
+        def self.try_flow(record)
+          return unless record.respond_to?(:flow) && record.flow
+
+          try_organization(record.flow)
+        end
+
+        def self.try_condition(record)
+          return unless record.respond_to?(:condition) && record.condition
+
+          try_organization(record.condition)
         end
 
         def self.try_coauthorable(record)
