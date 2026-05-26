@@ -17,6 +17,7 @@ module Decidim
           ActiveRecord::Base.descendants.select do |cls|
             next false if cls.name.blank?
             next false if cls.name.start_with?("Decidim::Dev::")
+            next false if cls.name.start_with?("Decidim::TermCustomizer::")
             next false if cls.abstract_class?
             next false unless cls.table_exists?
             next false unless cls.include?(Decidim::TranslatableResource)

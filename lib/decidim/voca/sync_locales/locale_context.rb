@@ -53,8 +53,10 @@ module Decidim
             :try_comment_organization,
             :try_author,
             :try_user,
+            :try_current_user,
             :try_sender,
             :try_recipient,
+            :try_conversation,
             :try_amender,
             :try_result,
             :try_meeting,
@@ -66,11 +68,13 @@ module Decidim
             :try_commentable,
             :try_project,
             :try_budget,
+            :try_awesome_config,
             :try_category,
             :try_coauthorable,
             :try_from_to,
             :try_reminder,
-            :try_parent
+            :try_parent,
+            :try_item
           ]
         end
 
@@ -78,6 +82,15 @@ module Decidim
           return unless record.respond_to?(:collection_for) && record.collection_for
 
           context = resolve_with_resolvers(record.collection_for)
+          return if context.blank?
+
+          context
+        end
+
+        def self.try_attached_to(record)
+          return unless record.respond_to?(:attached_to) && record.attached_to
+
+          context = resolve_with_resolvers(record.attached_to)
           return if context.blank?
 
           context
@@ -96,6 +109,12 @@ module Decidim
           return unless record.respond_to?(:meeting) && record.meeting
 
           try_component(record.meeting)
+        end
+
+        def self.try_awesome_config(record)
+          return unless record.respond_to?(:awesome_config) && record.awesome_config
+
+          try_organization(record.awesome_config)
         end
 
         def self.try_reminder(record)
@@ -140,6 +159,12 @@ module Decidim
           return unless record.respond_to?(:parent) && record.parent
 
           resolve_with_resolvers(record.parent)
+        end
+
+        def self.try_item(record)
+          return unless record.respond_to?(:item) && record.item
+
+          resolve_with_resolvers(record.item)
         end
 
         def self.try_questionnaire(record)
@@ -211,10 +236,25 @@ module Decidim
           try_organization(record.sender)
         end
 
+        def self.try_current_user(record)
+          return unless record.respond_to?(:current_user) && record.current_user
+
+          try_organization(record.current_user)
+        end
+
         def self.try_recipient(record)
           return unless record.respond_to?(:recipient) && record.recipient
 
           try_organization(record.recipient)
+        end
+
+        def self.try_conversation(record)
+          return unless record.respond_to?(:conversation) && record.conversation
+
+          participants = record.conversation.participants
+          return if participants.empty?
+
+          try_organization(participants.first)
         end
 
         def self.try_amender(record)
