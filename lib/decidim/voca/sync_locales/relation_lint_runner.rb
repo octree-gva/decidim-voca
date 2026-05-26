@@ -3,7 +3,7 @@
 module Decidim
   module Voca
     module SyncLocales
-      # Walks all Decidim ActiveRecord models and records rows where LocaleContext cannot resolve an organization.
+      # Walks all Decidim ActiveRecord models and logs rows where LocaleContext resolution fails for any reason.
       class RelationLintRunner
         def call
           Rails.application.eager_load!
@@ -15,15 +15,14 @@ module Decidim
             decidim_models.each do |model|
               model.unscoped.find_each do |record|
                 LocaleContext.for(record)
-              rescue MissingOrganizationContextError, ActiveRecord::RecordNotFound => e
+              rescue StandardError => e
                 failures += 1
-                log.puts("#{model.name}\t#{record.id}\t#{e.class}: #{e.message}")
-              rescue RuntimeError => e
-                raise unless e.message.start_with?("Organization not found for ")
-
-                failures += 1
-                log.puts("#{model.name}\t#{record.id}\t#{e.class}: #{e.message}")
+                rid = record.respond_to?(:id) ? record.id : "n/a"
+                log.puts("#{model.name}\t#{rid}\t#{e.class}: #{e.message}")
               end
+            rescue StandardError => e
+              failures += 1
+              log.puts("#{model.name}\t-\t#{e.class}: #{e.message}")
             end
           end
 
