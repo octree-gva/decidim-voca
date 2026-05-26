@@ -13,7 +13,7 @@ module Decidim
           @fields[model] ||= Array(model.translatable_fields_list).compact.map(&:to_s)
         end
 
-        def class_name_included?
+        def class_name_included?(cls)
           cls.name.start_with?("Decidim::") &&
             !cls.name.start_with?("Decidim::Dev::") &&
             !cls.name.start_with?("Decidim::System::") &&

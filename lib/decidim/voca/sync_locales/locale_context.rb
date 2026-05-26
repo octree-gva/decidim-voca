@@ -43,7 +43,9 @@ module Decidim
         def self.resolver_methods
           [
             :try_attachment,
+            :try_attached_to,
             :try_organization,
+            :try_decidim_organization_id,
             :try_participatory_space,
             :try_assembly,
             :try_conference,
@@ -53,6 +55,8 @@ module Decidim
             :try_comment_organization,
             :try_author,
             :try_user,
+            :try_participant,
+            :try_participants,
             :try_current_user,
             :try_sender,
             :try_recipient,
@@ -97,6 +101,12 @@ module Decidim
           return if context.blank?
 
           context
+        end
+
+        def self.try_decidim_organization_id(record)
+          return unless record.respond_to?(:decidim_organization_id) && record.decidim_organization_id
+
+          Decidim::Organization.find_by(id: record.decidim_organization_id)
         end
 
         def self.try_commentable(record)
@@ -249,6 +259,21 @@ module Decidim
           return unless record.respond_to?(:user) && record.user
 
           try_organization(record.user)
+        end
+
+        def self.try_participant(record)
+          return unless record.respond_to?(:participant) && record.participant
+
+          try_organization(record.participant)
+        end
+
+        def self.try_participants(record)
+          return unless record.respond_to?(:participants) && record.participants
+
+          participant = record.participants.first
+          return if participant.nil?
+
+          try_organization(participant)
         end
 
         def self.try_sender(record)
