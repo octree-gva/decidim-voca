@@ -7,12 +7,12 @@ rescue StandardError
   true
 end
 
-def voca_delete_orphans(model, relation_sym)
+def voca_delete_orphans(model, relation_sym, dry_run: false)
   deleted = 0
   model.find_each do |resource|
     next unless voca_orphan?(resource, relation_sym)
 
-    resource.delete
+    resource.delete unless dry_run
     deleted += 1
   end
   deleted
@@ -83,6 +83,7 @@ VOCA_RELATION_CHECKS = [
   ["Decidim::Proposals::CollaborativeDraftCollaboratorRequest", :user],
 
   # --- Core / other ---
+  ["Decidim::Component", :participatory_space],
   ["Decidim::ActionLog", :organization],
   ["Decidim::ActionLog", :user],
   ["Decidim::Pages::Page", :component],
@@ -128,7 +129,7 @@ if Rake::Task.task_defined?("decidim:upgrade:clean:invalid_records")
       next unless model
 
       puts("==== Deleting invalid #{model_name} (missing #{relation_sym})")
-      deleted = voca_delete_orphans(model, relation_sym)
+      deleted = voca_delete_orphans(model, relation_sym, dry_run: ENV["DRY_RUN"] == "1")
       total_deleted += deleted
       puts("===== Deleted #{deleted} invalid #{model_name}")
     end
