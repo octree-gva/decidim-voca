@@ -2,8 +2,8 @@
 
 module Decidim
   module Voca
-    module Deepl
-      module DeeplFormBuilderOverrides
+    module DeepL
+      module DeepLFormBuilderOverrides
         extend ActiveSupport::Concern
 
         included do
@@ -25,7 +25,7 @@ module Decidim
 
           def organization_context
             # deserialize the global id to get the organization
-            @organization_context ||= GlobalID::Locator.locate(Decidim::Voca::DeeplContext.organization)
+            @organization_context ||= GlobalID::Locator.locate(Decidim::Voca::DeepL::Context.organization)
           end
 
           def tabs_content_tag(type, name, options = {})
@@ -60,7 +60,12 @@ module Decidim
           def label_tabs_tag(name, options = {})
             tabs_id = sanitized_tabs_id(name, options)
 
-            content_tag(:div, class: "label--tabs", "data-machine-translated": true) do
+            content_tag(
+              :div,
+              class: "label--tabs",
+              "data-machine-translated": organization_context&.enable_machine_translations?,
+              "data-minimalistic-deepl": Decidim::Voca.minimalistic_deepl?
+            ) do
               field_label = label_i18n(name, options[:label] || label_for(name), required: options[:required])
 
               language_selector = "".html_safe

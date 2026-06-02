@@ -6,7 +6,9 @@ module Decidim
     subject { user }
 
     let(:user) { create(:user, organization:) }
-    let(:organization) { create(:organization, available_locales: I18n.available_locales) }
+    let(:organization) do
+      create(:organization, host: "#{SecureRandom.hex(8)}.example.org", available_locales: I18n.available_locales)
+    end
 
     context "when validating user's name" do
       describe "sanitize" do
