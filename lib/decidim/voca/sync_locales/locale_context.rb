@@ -42,35 +42,46 @@ module Decidim
 
         def self.resolver_methods
           [
-            :try_attachment,
             :try_organization,
+            :try_decidim_organization_id,
+            :try_component,
             :try_participatory_space,
             :try_assembly,
             :try_conference,
-            :try_conference_speakers,
-            :try_conference_meeting,
-            :try_component,
-            :try_comment_organization,
+            :try_flow,
+            :try_condition,
+            :try_awesome_config,
             :try_author,
             :try_user,
+            :try_participant,
+            :try_current_user,
             :try_sender,
             :try_recipient,
             :try_amender,
-            :try_result,
             :try_meeting,
             :try_questionnaire,
             :try_question,
             :try_proposal,
-            :try_resource,
             :try_collaborative_draft,
-            :try_commentable,
             :try_project,
             :try_budget,
             :try_category,
+            :try_reminder,
+            :try_result,
+            :try_conference_meeting,
+            :try_conference_speakers,
+            :try_participants,
+            :try_conversation,
+            :try_commentable,
+            :try_comment_organization,
+            :try_resource,
+            :try_attachment,
+            :try_attached_to,
+            :try_privatable_to,
             :try_coauthorable,
             :try_from_to,
-            :try_reminder,
-            :try_parent
+            :try_parent,
+            :try_item
           ]
         end
 
@@ -81,6 +92,21 @@ module Decidim
           return if context.blank?
 
           context
+        end
+
+        def self.try_attached_to(record)
+          return unless record.respond_to?(:attached_to) && record.attached_to
+
+          context = resolve_with_resolvers(record.attached_to)
+          return if context.blank?
+
+          context
+        end
+
+        def self.try_decidim_organization_id(record)
+          return unless record.respond_to?(:decidim_organization_id) && record.decidim_organization_id
+
+          Decidim::Organization.find_by(id: record.decidim_organization_id)
         end
 
         def self.try_commentable(record)
@@ -96,6 +122,12 @@ module Decidim
           return unless record.respond_to?(:meeting) && record.meeting
 
           try_component(record.meeting)
+        end
+
+        def self.try_awesome_config(record)
+          return unless record.respond_to?(:awesome_config) && record.awesome_config
+
+          try_organization(record.awesome_config)
         end
 
         def self.try_reminder(record)
@@ -122,6 +154,24 @@ module Decidim
           try_participatory_space(record.category)
         end
 
+        def self.try_flow(record)
+          return unless record.respond_to?(:flow) && record.flow
+
+          try_organization(record.flow)
+        end
+
+        def self.try_condition(record)
+          return unless record.respond_to?(:condition) && record.condition
+
+          try_organization(record.condition)
+        end
+
+        def self.try_privatable_to(record)
+          return unless record.respond_to?(:privatable_to) && record.privatable_to
+
+          resolve_with_resolvers(record.privatable_to)
+        end
+
         def self.try_coauthorable(record)
           return unless record.respond_to?(:coauthorable) && record.coauthorable
 
@@ -140,6 +190,12 @@ module Decidim
           return unless record.respond_to?(:parent) && record.parent
 
           resolve_with_resolvers(record.parent)
+        end
+
+        def self.try_item(record)
+          return unless record.respond_to?(:item) && record.item
+
+          resolve_with_resolvers(record.item)
         end
 
         def self.try_questionnaire(record)
@@ -205,16 +261,46 @@ module Decidim
           try_organization(record.user)
         end
 
+        def self.try_participant(record)
+          return unless record.respond_to?(:participant) && record.participant
+
+          try_organization(record.participant)
+        end
+
+        def self.try_participants(record)
+          return unless record.respond_to?(:participants) && record.participants
+
+          participant = record.participants.first
+          return if participant.nil?
+
+          try_organization(participant)
+        end
+
         def self.try_sender(record)
           return unless record.respond_to?(:sender) && record.sender
 
           try_organization(record.sender)
         end
 
+        def self.try_current_user(record)
+          return unless record.respond_to?(:current_user) && record.current_user
+
+          try_organization(record.current_user)
+        end
+
         def self.try_recipient(record)
           return unless record.respond_to?(:recipient) && record.recipient
 
           try_organization(record.recipient)
+        end
+
+        def self.try_conversation(record)
+          return unless record.respond_to?(:conversation) && record.conversation
+
+          participants = record.conversation.participants
+          return if participants.empty?
+
+          try_organization(participants.first)
         end
 
         def self.try_amender(record)
@@ -263,9 +349,18 @@ module Decidim
         end
 
         def self.try_component(record)
+          component = try_decidim_component_id(record)
+          return component if component.present?
+
           return unless record.respond_to?(:component) && record.component
 
           try_organization(record.component)
+        end
+
+        def self.try_decidim_component_id(record)
+          return unless record.respond_to?(:decidim_component_id) && record.decidim_component_id
+
+          try_organization(Decidim::Component.find(record.decidim_component_id))
         end
 
         def self.raise_missing_organization!(record)
