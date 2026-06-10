@@ -24,15 +24,19 @@ module Decidim
           return if source_text.blank?
 
           pending_locales.each do |target_locale|
-            Decidim::MachineTranslationFieldsJob
-              .set(wait: Decidim.config.machine_translation_delay)
-              .perform_now(
-                record,
-                field_name,
-                source_text,
-                target_locale,
-                default
-              )
+            translate_field(source_text, target_locale, default)
+          end
+        end
+
+        def translate_field(source_text, target_locale, source_locale)
+          Decidim::Voca::DeepL::Context.with_organization(context.organization) do
+            Decidim::Voca::DeepL::MachineTranslator.new(
+              record,
+              field_name,
+              source_text,
+              target_locale,
+              source_locale
+            ).translate
           end
         end
 
