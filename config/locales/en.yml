@@ -55,6 +55,8 @@ en:
             success: You are now authorized.
             error: The provided code is not valid.
       admin:
+        participatory_spaces:
+          tab: Participatory Spaces
         machine_translation_alert:
           title: |
             Switch language
@@ -93,6 +95,13 @@ en:
           description_html: |
             <p>The language "%{current_locale}" is fully translated by machine, you need to switch to "%{default_locale}".</p>
           button: Switch language
+  activemodel:
+    attributes:
+      decidim/voca/participatory_spaces/config_form:
+        initiatives_enabled: Initiatives enabled
+        conferences_enabled: Conferences enabled
+        participatory_processes_enabled: Participatory Processes enabled
+        assemblies_enabled: Assemblies enabled
   devise:
     mailer:
       confirmation_instructions:

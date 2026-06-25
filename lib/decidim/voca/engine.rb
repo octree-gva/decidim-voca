@@ -6,6 +6,7 @@ require "decidim/core"
 require "deface"
 require "next_gen_images"
 require "decidim/verifications"
+require "decidim/toggle"
 require "decidim/voca/code_census"
 require_relative "export/csv_with_locale_transformer"
 require_relative "export/proposal_serializer_localized_csv"
@@ -376,13 +377,6 @@ module Decidim
 
       initializer "decidim.voca.map_configuration", after: :load_config_initializers do
         Decidim.configure do |decidim_config|
-          maps_enabled = %w(1 true enabled).include?(ENV.fetch("DECIDIM_MAPS_ENABLED", "true"))
-          unless maps_enabled
-            decidim_config.maps = nil
-            decidim_config.geocoder = nil
-            next
-          end
-
           Rails.logger.warn("Decidim.config.maps will be overridden by voca maps configuration") unless decidim_config.maps
 
           # Setup CSP for geocoding, static maps (pngs), dynamic maps (tiles) and autocomplete.
@@ -396,7 +390,7 @@ module Decidim
                                                                          "*.maps.ls.hereapi.com")
 
           decidim_config.maps = {
-            provider: ENV.fetch("MAPS_PROVIDER", "here"),
+            provider: ENV["MAPS_PROVIDER"].presence || "here",
             api_key: ENV.fetch("MAPS_API_KEY", ""),
             dynamic: {
               tile_layer: {
@@ -428,6 +422,27 @@ module Decidim
 
       initializer "decidim_voca.icons" do
         Decidim.icons.register(name: "camera", icon: "camera-line", category: "system", description: "", engine: :core)
+      end
+
+      initializer "decidim_voca.organization_settings_tab",
+                  after: "decidim_toggle.organization_settings_tabs" do
+        require_relative "participatory_spaces/settings_tab"
+        Decidim::Voca::ParticipatorySpaces::SettingsTab.register!
+      end
+
+      initializer "decidim_voca.participatory_spaces_menu",
+                  after: [
+                    "decidim_initiatives.menu",
+                    "decidim_assemblies.menu",
+                    "decidim_participatory_processes.menu",
+                    "decidim_conferences.menu",
+                    "decidim_initiatives_admin.menu",
+                    "decidim_assemblies_admin.menu",
+                    "decidim_participatory_processes_admin.menu",
+                    "decidim_conferences_admin.menu"
+                  ] do
+        require_relative "participatory_spaces/menu"
+        Decidim::Voca::ParticipatorySpaces::Menu.register!
       end
       initializer "decidim_voca.image_processing" do
         # Keep Decidim's default :mini_magick in test (CI / docker often lack a full libvips stack).

@@ -54,6 +54,10 @@ gem "decidim-user_fields",
     git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields",
     tag: "v0.1.4"
 
+gem "decidim-toggle",
+    git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle",
+    branch: "main"
+
 gem "opentelemetry-exporter-otlp"
 gem "opentelemetry-exporter-otlp-logs"
 gem "opentelemetry-instrumentation-all"
