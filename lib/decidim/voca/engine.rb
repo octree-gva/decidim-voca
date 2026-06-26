@@ -430,20 +430,6 @@ module Decidim
         Decidim::Voca::ParticipatorySpaces::SettingsTab.register!
       end
 
-      initializer "decidim_voca.participatory_spaces_menu",
-                  after: [
-                    "decidim_initiatives.menu",
-                    "decidim_assemblies.menu",
-                    "decidim_participatory_processes.menu",
-                    "decidim_conferences.menu",
-                    "decidim_initiatives_admin.menu",
-                    "decidim_assemblies_admin.menu",
-                    "decidim_participatory_processes_admin.menu",
-                    "decidim_conferences_admin.menu"
-                  ] do
-        require_relative "participatory_spaces/menu"
-        Decidim::Voca::ParticipatorySpaces::Menu.register!
-      end
       initializer "decidim_voca.image_processing" do
         # Keep Decidim's default :mini_magick in test (CI / docker often lack a full libvips stack).
         next if Rails.env.test?

@@ -1,0 +1,55 @@
+// Public UI: hide disabled participatory spaces (menu, footer, search).
+// Body data attributes: participatory_spaces_public_body_data_attributes deface override.
+// Search sections: participatory_spaces_search_section_resource_type deface override.
+// Keep url segments and search resource types in sync with SPACES in participatory_spaces.rb.
+
+@mixin voca-hide-public-participatory-space-link($segment) {
+  a[href="/#{$segment}"],
+  a[href^="/#{$segment}/"] {
+    display: none !important;
+  }
+
+  li:has(a[href="/#{$segment}"]),
+  li:has(a[href^="/#{$segment}/"]) {
+    display: none !important;
+  }
+}
+
+@mixin voca-hide-public-participatory-space-search($resource-type, $encoded-type) {
+  section.search__result[data-search-resource-type="#{$resource-type}"] {
+    display: none !important;
+  }
+
+  a.filter[href*="#{$encoded-type}"],
+  div:has(> a.filter[href*="#{$encoded-type}"]) {
+    display: none !important;
+  }
+
+  .filters__section--general a[href*="#{$encoded-type}"],
+  .filters__section--general:has(a[href*="#{$encoded-type}"]) {
+    display: none !important;
+  }
+}
+
+body[data-initiatives-enabled="false"] {
+  @include voca-hide-public-participatory-space-link("initiatives");
+  @include voca-hide-public-participatory-space-search("Decidim::Initiative", "Decidim%3A%3AInitiative");
+}
+
+body[data-conferences-enabled="false"] {
+  @include voca-hide-public-participatory-space-link("conferences");
+  @include voca-hide-public-participatory-space-search("Decidim::Conference", "Decidim%3A%3AConference");
+}
+
+body[data-participatory-processes-enabled="false"] {
+  @include voca-hide-public-participatory-space-link("processes");
+  @include voca-hide-public-participatory-space-search(
+    "Decidim::ParticipatoryProcess",
+    "Decidim%3A%3AParticipatoryProcess"
+  );
+}
+
+body[data-assemblies-enabled="false"] {
+  @include voca-hide-public-participatory-space-link("assemblies");
+  @include voca-hide-public-participatory-space-search("Decidim::Assembly", "Decidim%3A%3AAssembly");
+}

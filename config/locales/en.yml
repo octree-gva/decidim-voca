@@ -57,6 +57,16 @@ en:
       admin:
         participatory_spaces:
           tab: Participatory Spaces
+          management_callout_html: |
+            <h4>Manage participatory spaces</h4>
+            <p>Your server installed the modules <code>%{installed}</code>.<br />
+            %{not_installed}</p>
+            <p><strong>Note</strong>: You must unpublish spaces before disabling them. For example, no assemblies can remain published in order to disable assemblies.</p>
+          not_installed_modules_html: "<code>%{missing}</code> are not installed."
+          all_modules_missing_html: "No participatory space modules are installed on this server. Available for installation: <code>%{missing}</code>."
+          cannot_disable_with_published: >-
+            You cannot disable this space while published %{space_name} exist.
+            Please unpublish them before disabling.
         machine_translation_alert:
           title: |
             Switch language

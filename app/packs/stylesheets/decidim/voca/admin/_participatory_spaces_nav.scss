@@ -1,0 +1,32 @@
+// Hide participatory space modules in admin when disabled for the organization.
+// Body data attributes: participatory_spaces_admin_body_data_attributes deface override.
+
+@mixin voca-hide-admin-participatory-space-module($path) {
+  a[href*="/admin/#{$path}"] {
+    display: none !important;
+  }
+
+  li:has(a[href*="/admin/#{$path}"]) {
+    display: none !important;
+  }
+}
+
+body[data-initiatives-enabled="false"] .main-nav__modules,
+body[data-initiatives-enabled="false"] .menu-bar__main-dropdown__menu {
+  @include voca-hide-admin-participatory-space-module("initiatives");
+}
+
+body[data-conferences-enabled="false"] .main-nav__modules,
+body[data-conferences-enabled="false"] .menu-bar__main-dropdown__menu {
+  @include voca-hide-admin-participatory-space-module("conferences");
+}
+
+body[data-participatory-processes-enabled="false"] .main-nav__modules,
+body[data-participatory-processes-enabled="false"] .menu-bar__main-dropdown__menu {
+  @include voca-hide-admin-participatory-space-module("participatory_processes");
+}
+
+body[data-assemblies-enabled="false"] .main-nav__modules,
+body[data-assemblies-enabled="false"] .menu-bar__main-dropdown__menu {
+  @include voca-hide-admin-participatory-space-module("assemblies");
+}

@@ -5,6 +5,10 @@ require "spec_helper"
 describe "Participatory spaces JavaScript config" do
   let(:organization) { create(:organization) }
 
+  before do
+    allow(Decidim::Toggle).to receive(:gem_present?).and_return(true)
+  end
+
   it "exposes each participatory space enabled flag" do
     seed_participatory_space_toggle(organization, :decidim_initiatives, enabled: false)
     seed_participatory_space_toggle(organization, :decidim_conferences, enabled: true)

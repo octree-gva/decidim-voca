@@ -23,10 +23,10 @@ GIT
 
 GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle
-  revision: cfe99c715cb8b3b738b4b495828d3dd6eaca51c4
-  branch: main
+  revision: ff0a47ee3d20a1c1d0bd7710d9f8f6fdf7c3886f
+  tag: v0.1.1
   specs:
-    decidim-toggle (0.1.0)
+    decidim-toggle (0.1.1)
       decidim-core (~> 0.29)
       decidim-system (~> 0.29)
       deface (~> 1.9.0)
@@ -58,7 +58,7 @@ PATH
       decidim-decidim_awesome (~> 0.12.6)
       decidim-ephemeral_participation (~> 0.0.6)
       decidim-telemetry (~> 0.0.4)
-      decidim-toggle (~> 0.1.0)
+      decidim-toggle (~> 0.1.1)
       decidim-user_fields (~> 0.1.4)
       deepl-rb (~> 3.2.0)
       deface (~> 1.9)
