@@ -76,8 +76,8 @@ describe Decidim::Voca::ParticipatorySpaces::ConfigForm do
 
   describe "#attribute_disabled?" do
     it "is true when the participatory space gem is not in the bundle" do
-      allow(Decidim::Toggle).to receive(:gem_present?).with("decidim-conferences").and_return(false)
       allow(Decidim::Toggle).to receive(:gem_present?).and_return(true)
+      allow(Decidim::Toggle).to receive(:gem_present?).with("decidim-conferences").and_return(false)
 
       form = described_class.from_model(organization)
 

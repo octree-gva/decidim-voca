@@ -6,11 +6,6 @@ describe Decidim::Voca::ParticipatorySpaces::UpdateConfigCommand do
   subject(:command) { described_class.new(organization, form) }
 
   let(:organization) { create(:organization) }
-
-  before do
-    allow(Decidim::Toggle).to receive(:gem_present?).and_return(true)
-  end
-
   let(:form) do
     Decidim::Voca::ParticipatorySpaces::ConfigForm.from_params(
       initiatives_enabled: false,
@@ -18,6 +13,10 @@ describe Decidim::Voca::ParticipatorySpaces::UpdateConfigCommand do
       participatory_processes_enabled: false,
       assemblies_enabled: true
     ).with_context(current_organization: organization)
+  end
+
+  before do
+    allow(Decidim::Toggle).to receive(:gem_present?).and_return(true)
   end
 
   it "persists each participatory space toggle" do

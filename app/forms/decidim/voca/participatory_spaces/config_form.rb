@@ -50,7 +50,7 @@ module Decidim
         def attribute_disabled?(attribute)
           attribute = attribute.to_sym
           space = attribute.to_s.delete_suffix("_enabled").to_sym
-          return false unless SPACES.key?(space)
+          return false unless SPACES.has_key?(space)
 
           !Decidim::Toggle.gem_present?(SPACES.fetch(space)[:gem])
         end

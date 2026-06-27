@@ -83,7 +83,7 @@ module Decidim
         return 0 unless Decidim::Toggle.gem_present?(config[:gem])
 
         model_class = config[:search_resource_type]&.safe_constantize
-        return 0 unless model_class&.respond_to?(:published)
+        return 0 unless model_class.respond_to?(:published)
 
         model_class.where(organization:).published.count
       end
