@@ -2,16 +2,18 @@
 
 require "spec_helper"
 
-describe Decidim::Voca::ParticipatorySpaces::UpdateConfigCommand do
+describe Decidim::Toggle::UpdateModuleConfigCommand do
   subject(:command) { described_class.new(organization, form) }
 
   let(:organization) { create(:organization) }
   let(:form) do
     Decidim::Voca::ParticipatorySpaces::ConfigForm.from_params(
-      initiatives_enabled: false,
-      conferences_enabled: true,
-      participatory_processes_enabled: false,
-      assemblies_enabled: true
+      organization: {
+        initiatives_enabled: false,
+        conferences_enabled: true,
+        participatory_processes_enabled: false,
+        assemblies_enabled: true
+      }
     ).with_context(current_organization: organization)
   end
 
@@ -19,7 +21,7 @@ describe Decidim::Voca::ParticipatorySpaces::UpdateConfigCommand do
     allow(Decidim::Toggle).to receive(:gem_present?).and_return(true)
   end
 
-  it "persists each participatory space toggle" do
+  it "persists the spaces config" do
     expect { command.call }.to broadcast(:ok)
 
     expect(Decidim::Voca::ParticipatorySpaces.enabled?(organization.reload, :decidim_initiatives)).to be(false)

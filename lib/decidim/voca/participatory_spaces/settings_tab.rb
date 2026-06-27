@@ -9,7 +9,8 @@ module Decidim
             tabs.add_tab :participatory_spaces,
                          I18n.t("decidim.voca.admin.participatory_spaces.tab"),
                          form: Decidim::Voca::ParticipatorySpaces::ConfigForm,
-                         command: Decidim::Voca::ParticipatorySpaces::UpdateConfigCommand,
+                         command: Decidim::Toggle::UpdateModuleConfigCommand,
+                         module_name: ParticipatorySpaces::MODULE_CONFIG_NAME,
                          position: 12
           end
         end

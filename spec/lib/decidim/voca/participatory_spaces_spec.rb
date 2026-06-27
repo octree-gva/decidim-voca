@@ -92,18 +92,22 @@ describe Decidim::Voca::ParticipatorySpaces do
     end
   end
 
-  describe ".javascript_config_for" do
-    it "exposes each participatory space enabled flag" do
-      seed_participatory_space_toggle(organization, :decidim_initiatives, enabled: false)
-      seed_participatory_space_toggle(organization, :decidim_conferences, enabled: true)
+  describe "javascript config" do
+    before do
+      Decidim::Voca::ParticipatorySpaces::SettingsTab.register!
+    end
 
-      config = described_class.javascript_config_for(organization)
+    it "exposes space enabled flags via decidim-toggle" do
+      seed_participatory_space_toggle(organization, :initiatives, enabled: false)
+      seed_participatory_space_toggle(organization, :conferences, enabled: true)
+
+      config = Decidim::Toggle.javascript_config_for(organization)
 
       expect(config).to include(
-        "decidim_initiatives.enabled" => false,
-        "decidim_conferences.enabled" => true,
-        "decidim_participatory_processes.enabled" => true,
-        "decidim_assemblies.enabled" => true
+        "spaces.initiatives_enabled" => false,
+        "spaces.conferences_enabled" => true,
+        "spaces.participatory_processes_enabled" => true,
+        "spaces.assemblies_enabled" => true
       )
     end
   end

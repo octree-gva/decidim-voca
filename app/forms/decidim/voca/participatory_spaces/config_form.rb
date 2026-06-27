@@ -5,12 +5,18 @@ module Decidim
     module ParticipatorySpaces
       class ConfigForm < Decidim::Form
         include Decidim::Toggle::TabForm
+        include Decidim::Toggle::ModuleConfigForm
+        include Decidim::Toggle::ExposeAttributesToJs
+
+        self.module_config_name = MODULE_CONFIG_NAME
 
         mimic :organization
 
         SPACES.each_key do |space|
           attribute :"#{space}_enabled", :boolean, default: SPACES.fetch(space).fetch(:default_enabled, false)
         end
+
+        expose_to_javascript(*SPACES.keys.map { |space| :"#{space}_enabled" })
 
         validate :cannot_disable_spaces_with_published_content
 
@@ -38,13 +44,6 @@ module Decidim
             installed: installed_gems.join(", "),
             not_installed:
           )
-        end
-
-        def self.from_model(organization)
-          attrs = SPACES.to_h do |space, config|
-            [:"#{space}_enabled", ParticipatorySpaces.enabled?(organization, config[:name])]
-          end
-          from_params(organization: attrs).with_context(current_organization: organization)
         end
 
         def attribute_disabled?(attribute)

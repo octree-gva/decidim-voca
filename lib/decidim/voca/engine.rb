@@ -6,7 +6,6 @@ require "decidim/core"
 require "deface"
 require "next_gen_images"
 require "decidim/verifications"
-require "decidim/toggle"
 require "decidim/voca/code_census"
 require_relative "export/csv_with_locale_transformer"
 require_relative "export/proposal_serializer_localized_csv"
@@ -426,7 +425,6 @@ module Decidim
 
       initializer "decidim_voca.organization_settings_tab",
                   after: "decidim_toggle.organization_settings_tabs" do
-        require_relative "participatory_spaces/settings_tab"
         Decidim::Voca::ParticipatorySpaces::SettingsTab.register!
       end
 

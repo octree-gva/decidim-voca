@@ -3,6 +3,8 @@
 module Decidim
   module Voca
     module ParticipatorySpaces
+      MODULE_CONFIG_NAME = "spaces"
+
       SPACES = {
         initiatives: {
           gem: "decidim-initiatives",
@@ -48,28 +50,32 @@ module Decidim
         config = SPACES.fetch(space.to_sym)
         return false unless Decidim::Toggle.gem_present?(config[:gem])
 
-        enabled?(organization, config[:name])
+        space_enabled_flag?(organization, space)
       end
 
       def enabled?(organization, module_name)
         return false if organization.blank?
 
-        config = SPACES.values.find { |space_config| space_config[:name] == module_name.to_s }
-        return false unless config && Decidim::Toggle.gem_present?(config[:gem])
+        space = space_for_module_name(module_name)
+        return false unless space
 
-        record = Decidim::Toggle::OrganizationModuleConfig.find_by(
-          decidim_organization_id: organization.id,
-          module_name: module_name.to_s
-        )
-        return config.fetch(:default_enabled, false) unless record&.config&.has_key?("enabled")
+        config = SPACES.fetch(space)
+        return false unless Decidim::Toggle.gem_present?(config[:gem])
 
-        ActiveModel::Type::Boolean.new.cast(record.config["enabled"])
+        space_enabled_flag?(organization, space)
       end
 
-      def javascript_config_for(organization)
-        installed_spaces.each_with_object({}) do |(_, config), js_config|
-          js_config["#{config[:name]}.enabled"] = enabled?(organization, config[:name])
-        end
+      def space_for_module_name(module_name)
+        SPACES.find { |_, config| config[:name] == module_name.to_s }&.first
+      end
+
+      def space_enabled_flag?(organization, space)
+        config = SPACES.fetch(space.to_sym)
+        attr = "#{space}_enabled"
+        raw = Decidim::Toggle.config_for(organization, MODULE_CONFIG_NAME)
+        return config.fetch(:default_enabled, false) unless raw.has_key?(attr)
+
+        ActiveModel::Type::Boolean.new.cast(raw[attr])
       end
 
       def published_spaces?(organization, space)
