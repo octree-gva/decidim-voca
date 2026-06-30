@@ -5,6 +5,7 @@ require "decidim/dev/common_rake"
 def install_module(path)
   Dir.chdir(path) do
     system("bundle exec rails decidim_voca:install:migrations")
+    system("bundle exec rails decidim_toggle:install:migrations")
     system("bundle add deepl-rb") unless Gem.loaded_specs.has_key?("deepl-rb")
     system("bundle add activerecord-postgis-adapter") unless Gem.loaded_specs.has_key?("activerecord-postgis-adapter")
     system("bundle add good_job") unless Gem.loaded_specs.has_key?("good_job")

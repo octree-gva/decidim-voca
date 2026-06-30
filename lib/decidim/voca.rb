@@ -6,6 +6,9 @@ require_relative "voca/deepl" if Decidim::Voca::Installation.deepl_installed?
 
 require_relative "voca/engine"
 require_relative "voca/configuration"
+require_relative "voca/participatory_spaces"
+require_relative "voca/participatory_spaces/body_data_attributes"
+require_relative "voca/participatory_spaces/settings_tab"
 require_relative "voca/overrides/organization/organization_model_overrides"
 require_relative "voca/overrides/next_gen_images/decidim_viewmodel"
 require_relative "voca/overrides/next_gen_images/override_for_has_one_attached"
