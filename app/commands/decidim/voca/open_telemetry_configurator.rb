@@ -23,6 +23,10 @@ module Decidim
         broadcast(:invalid, e.message)
       end
 
+      def self.service_name
+        ENV.fetch("OTEL_SERVICE_NAME", ENV.fetch("MASTER_ID", "rails-app")).to_s
+      end
+
       private
 
       def traces_endpoint
@@ -67,10 +71,6 @@ module Decidim
         Rails.logger.info("[OpenTelemetry] SDK configured successfully")
         setup_logging!
         setup_error_reporting!
-      end
-
-      def self.service_name
-        ENV.fetch("OTEL_SERVICE_NAME", ENV.fetch("MASTER_ID", "rails-app")).to_s
       end
 
       def service_name

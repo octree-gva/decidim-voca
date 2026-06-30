@@ -10,7 +10,8 @@ module Decidim
         let(:test_class) do
           Class.new do
             include OtelLogger
-            public :message_to_string, :severity_to_number, :severity_to_text, :low_severity?, :otel_severity_pair
+            public :message_to_string, :severity_to_number, :severity_to_text, :low_severity?,
+                   :otel_severity_pair, :extract_attributes
           end
         end
 
@@ -71,6 +72,55 @@ module Decidim
 
           it "returns INFO for unknown severity" do
             expect(subject.severity_to_text("UNKNOWN")).to eq("INFO")
+          end
+        end
+
+        describe "#extract_attributes" do
+          around do |example|
+            original_otel = ENV.fetch("OTEL_SERVICE_NAME", nil)
+            original_master = ENV.fetch("MASTER_ID", nil)
+            example.run
+          ensure
+            if original_otel.nil?
+              ENV.delete("OTEL_SERVICE_NAME")
+            else
+              ENV["OTEL_SERVICE_NAME"] = original_otel
+            end
+            if original_master.nil?
+              ENV.delete("MASTER_ID")
+            else
+              ENV["MASTER_ID"] = original_master
+            end
+          end
+
+          it "exports OTEL_SERVICE_NAME as service.name and serviceName" do
+            ENV["OTEL_SERVICE_NAME"] = "my-decidim-instance"
+            ENV.delete("MASTER_ID")
+
+            attrs = subject.extract_attributes("MyLogger")
+
+            expect(attrs["service.name"]).to eq("my-decidim-instance")
+            expect(attrs["serviceName"]).to eq("my-decidim-instance")
+          end
+
+          it "falls back to MASTER_ID when OTEL_SERVICE_NAME is unset" do
+            ENV.delete("OTEL_SERVICE_NAME")
+            ENV["MASTER_ID"] = "voca-staging"
+
+            attrs = subject.extract_attributes(nil)
+
+            expect(attrs["service.name"]).to eq("voca-staging")
+            expect(attrs["serviceName"]).to eq("voca-staging")
+          end
+
+          it "falls back to rails-app when neither OTEL_SERVICE_NAME nor MASTER_ID is set" do
+            ENV.delete("OTEL_SERVICE_NAME")
+            ENV.delete("MASTER_ID")
+
+            attrs = subject.extract_attributes(nil)
+
+            expect(attrs["service.name"]).to eq("rails-app")
+            expect(attrs["serviceName"]).to eq("rails-app")
           end
         end
       end
