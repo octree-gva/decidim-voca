@@ -1,7 +1,14 @@
 # frozen_string_literal: true
 
+require_relative "voca/installation"
+
+require_relative "voca/deepl" if Decidim::Voca::Installation.deepl_installed?
+
 require_relative "voca/engine"
 require_relative "voca/configuration"
+require_relative "voca/participatory_spaces"
+require_relative "voca/participatory_spaces/body_data_attributes"
+require_relative "voca/participatory_spaces/settings_tab"
 require_relative "voca/overrides/organization/organization_model_overrides"
 require_relative "voca/overrides/next_gen_images/decidim_viewmodel"
 require_relative "voca/overrides/next_gen_images/override_for_has_one_attached"
@@ -15,14 +22,18 @@ require_relative "voca/overrides/meetings_controller_overrides"
 require_relative "voca/overrides/etherpad_overrides"
 require_relative "voca/overrides/proposal_serializer_overrides"
 require_relative "voca/overrides/user_group_form_overrides"
+require_relative "voca/overrides/resource_presenter_overrides"
+require_relative "voca/overrides/sanitize_helper_overrides"
+require_relative "voca/overrides/address_cell_overrides"
+require_relative "voca/overrides/card_metadata_cell_overrides"
 require_relative "voca/overrides/footer/footer_topic_cell_overrides"
 require_relative "voca/overrides/footer/footer_menu_presenter"
-require_relative "voca/deepl/translation_bar_overrides"
-require_relative "voca/deepl/deepl_context"
-require_relative "voca/deepl/deepl_middleware"
-require_relative "voca/deepl/deepl_machine_translator"
-require_relative "voca/deepl/deepl_active_job_context"
-require_relative "voca/deepl/deepl_form_builder_overrides"
+require_relative "voca/machine_translation/translate_string"
+require_relative "voca/machine_translation_resource_job_voca"
+require_relative "voca/component_setting_manifest"
+require_relative "voca/component_setting_pending_locales"
+require_relative "voca/component_translated_settings_machine_translation"
+require_relative "voca/sync_locales"
 require_relative "voca/overrides/system/system_organization_update_form"
 require_relative "voca/overrides/extra_data_cell_overrides"
 require_relative "voca/overrides/check_boxes_tree_helper_overrides"
@@ -62,9 +73,13 @@ module Decidim
       configuration.enable_next_gen_images
     end
 
+    def self.decidim_awesome?
+      Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+    end
+
     def self.weglot?
       # Prefer deepl over weglot
-      configuration.enable_weglot && !deepl_enabled?
+      configuration.enable_weglot && !Installation.deepl_enabled?
     end
 
     def self.weglot_cache?
@@ -72,11 +87,7 @@ module Decidim
     end
 
     def self.minimalistic_deepl?
-      deepl_enabled? && configuration.enable_minimalistic_deepl
-    end
-
-    def self.deepl_enabled?
-      ::Decidim::Env.new("DECIDIM_DEEPL_API_KEY", "").present?
+      Installation.deepl_enabled? && configuration.enable_minimalistic_deepl
     end
 
     def self.opentelemetry_traces_endpoint
@@ -129,6 +140,18 @@ module Decidim
         Rails.logger.warn("[OpenTelemetry] Failed to flush logs: #{e.message}") if defined?(Rails)
         false
       end
+    end
+
+    # Decidim::TranslatableResource.translatable_fields replaces the entire list.
+    # Append VOCA field names without dropping fields registered elsewhere.
+    def self.merge_translatable_fields(klass, *fields)
+      existing = klass.translatable_fields_list
+      existing = existing ? existing.map(&:to_s) : []
+      additions = fields.flatten.map(&:to_s).reject { |f| existing.include?(f) }
+      return if additions.empty?
+
+      # Open class and set the translatable fields
+      klass.translatable_fields(*(existing + additions))
     end
   end
 end

@@ -83,6 +83,14 @@ it:
           description: Sono state rilevate troppe richieste. Attendi qualche minuto prima di riprovare. Contatta il supporto se hai bisogno di assistenza.
           subtitle: Limite di velocità superato
           title: Accesso temporaneamente limitato
+  decidim_toggle:
+    system:
+      spaces:
+        tab: Spazi partecipativi
+        initiatives_enabled: Iniziative attive
+        conferences_enabled: Conferenze attive
+        participatory_processes_enabled: Processi partecipativi attivi
+        assemblies_enabled: Assemblee attive
   devise:
     mailer:
       confirmation_instructions:

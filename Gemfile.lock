@@ -22,6 +22,16 @@ GIT
       yabeda-rails (>= 0.10.0)
 
 GIT
+  remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle
+  revision: 246e6ddcc8c4dda80c47d2286f28927182fad657
+  tag: v0.1.3
+  specs:
+    decidim-toggle (0.1.3)
+      decidim-core (>= 0.29, < 0.33)
+      decidim-system (>= 0.29, < 0.33)
+      deface (~> 1.9.0)
+
+GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields
   revision: eea3a4f0f75f43095ff9a5436b1a493a928270f8
   tag: v0.1.4
@@ -43,11 +53,12 @@ GIT
 PATH
   remote: .
   specs:
-    decidim-voca (0.0.17)
+    decidim-voca (0.0.23)
       decidim-admin (>= 0.29, < 0.30)
       decidim-decidim_awesome (~> 0.12.6)
       decidim-ephemeral_participation (~> 0.0.6)
       decidim-telemetry (~> 0.0.4)
+      decidim-toggle (~> 0.1.3)
       decidim-user_fields (~> 0.1.4)
       deepl-rb (~> 3.2.0)
       deface (~> 1.9)
@@ -1130,6 +1141,7 @@ DEPENDENCIES
   decidim-dev (~> 0.29.6)
   decidim-ephemeral_participation!
   decidim-telemetry!
+  decidim-toggle!
   decidim-user_fields!
   decidim-voca!
   deepl-rb

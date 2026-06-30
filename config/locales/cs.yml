@@ -83,6 +83,14 @@ cs:
           description: Zjištěno příliš mnoho požadavků. Počkejte prosím několik minut a zkuste to znovu. Pokud potřebujete pomoc, kontaktujte podporu.
           subtitle: Překročení limitu rychlosti
           title: Dočasně omezený přístup
+  decidim_toggle:
+    system:
+      spaces:
+        tab: Participační prostory
+        initiatives_enabled: Iniciativy povoleny
+        conferences_enabled: Konference povoleny
+        participatory_processes_enabled: Participační procesy povoleny
+        assemblies_enabled: Shromáždění povolena
   devise:
     mailer:
       confirmation_instructions:

@@ -2,64 +2,76 @@
 
 module Decidim
   module Voca
-    class DeeplContext < ActiveSupport::CurrentAttributes
-      attribute :organization
-      attribute :participatory_space
-      attribute :current_component
-      attribute :current_locale
-      include ::Decidim::TranslatableAttributes
-      include ActionView::Helpers::SanitizeHelper
-      include ActionView::Helpers::TagHelper
+    module DeepL
+      class Context < ActiveSupport::CurrentAttributes
+        attribute :organization
+        attribute :participatory_space
+        attribute :current_component
+        attribute :current_locale
+        include ::Decidim::TranslatableAttributes
+        include ActionView::Helpers::SanitizeHelper
+        include ActionView::Helpers::TagHelper
 
-      ##
-      # @return String Context for Deepl API
-      def deepl_context
-        (
-          ["Context: the text is written from a participatory platform, organized in participatory spaces, components and users."] +
-            organization_context +
-            participatory_space_context +
-            current_component_context
-        ).compact_blank.join("\n")
-      end
+        class << self
+          def with_organization(organization)
+            previous = attributes
+            self.organization = organization.to_global_id.to_s if organization
+            yield
+          ensure
+            self.attributes = previous
+          end
+        end
 
-      private
+        ##
+        # @return String Context for Deepl API
+        def deepl_context
+          (
+            ["Context: the text is written from a participatory platform, organized in participatory spaces, components and users."] +
+              organization_context +
+              participatory_space_context +
+              current_component_context
+          ).compact_blank.join("\n")
+        end
 
-      def located_organization
-        @located_organization ||= GlobalID::Locator.locate(organization)
-      end
+        private
 
-      def located_participatory_space
-        @located_participatory_space ||= GlobalID::Locator.locate(participatory_space)
-      end
+        def located_organization
+          @located_organization ||= GlobalID::Locator.locate(organization)
+        end
 
-      def located_current_component
-        @located_current_component ||= GlobalID::Locator.locate(current_component)
-      end
+        def located_participatory_space
+          @located_participatory_space ||= GlobalID::Locator.locate(participatory_space)
+        end
 
-      def organization_context
-        return [] unless organization
+        def located_current_component
+          @located_current_component ||= GlobalID::Locator.locate(current_component)
+        end
 
-        [
-          "- Platform Name: #{translated_attribute(located_organization.name) || "undefined"}",
-          "- Platform Description: #{strip_tags(sanitize(translated_attribute(located_organization.description)) || "undefined")}"
-        ]
-      end
+        def organization_context
+          return [] unless organization
 
-      def participatory_space_context
-        return [] unless participatory_space
+          [
+            "- Platform Name: #{translated_attribute(located_organization.name) || "undefined"}",
+            "- Platform Description: #{strip_tags(sanitize(translated_attribute(located_organization.description)) || "undefined")}"
+          ]
+        end
 
-        [
-          "- Participatory Space Name: #{translated_attribute(located_participatory_space.name) || "undefined"}",
-          "- Participatory Space Description: #{strip_tags(sanitize(translated_attribute(located_participatory_space.description)) || "undefined")}"
-        ]
-      end
+        def participatory_space_context
+          return [] unless participatory_space
 
-      def current_component_context
-        return [] unless current_component
+          [
+            "- Participatory Space Name: #{translated_attribute(located_participatory_space.name) || "undefined"}",
+            "- Participatory Space Description: #{strip_tags(sanitize(translated_attribute(located_participatory_space.description)) || "undefined")}"
+          ]
+        end
 
-        [
-          "- Component Name: #{translated_attribute(located_current_component.name) || "undefined"}"
-        ]
+        def current_component_context
+          return [] unless current_component
+
+          [
+            "- Component Name: #{translated_attribute(located_current_component.name) || "undefined"}"
+          ]
+        end
       end
     end
   end
