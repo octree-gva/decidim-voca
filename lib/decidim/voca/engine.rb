@@ -377,7 +377,8 @@ module Decidim
       initializer "decidim.voca.map_configuration", after: :load_config_initializers do
         Decidim.configure do |decidim_config|
           maps_enabled = %w(1 true enabled).include?(ENV.fetch("DECIDIM_MAPS_ENABLED", "true"))
-          unless maps_enabled
+          map_provider = ENV.fetch("MAPS_PROVIDER", "here")
+          if !maps_enabled || map_provider.blank?
             decidim_config.maps = nil
             decidim_config.geocoder = nil
             next
@@ -396,7 +397,7 @@ module Decidim
                                                                          "*.maps.ls.hereapi.com")
 
           decidim_config.maps = {
-            provider: ENV.fetch("MAPS_PROVIDER", "here"),
+            provider: map_provider,
             api_key: ENV.fetch("MAPS_API_KEY", ""),
             dynamic: {
               tile_layer: {
@@ -429,6 +430,12 @@ module Decidim
       initializer "decidim_voca.icons" do
         Decidim.icons.register(name: "camera", icon: "camera-line", category: "system", description: "", engine: :core)
       end
+
+      initializer "decidim_voca.organization_settings_tab",
+                  after: "decidim_toggle.organization_settings_tabs" do
+        Decidim::Voca::ParticipatorySpaces::SettingsTab.register!
+      end
+
       initializer "decidim_voca.image_processing" do
         # Keep Decidim's default :mini_magick in test (CI / docker often lack a full libvips stack).
         next if Rails.env.test?
