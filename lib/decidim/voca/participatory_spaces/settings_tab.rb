@@ -7,10 +7,10 @@ module Decidim
         def self.register!
           Decidim::Toggle.settings_tabs :organization_settings do |tabs|
             tabs.add_tab :participatory_spaces,
-                         I18n.t("decidim.voca.admin.participatory_spaces.tab"),
+                         I18n.t("decidim_toggle.system.#{ParticipatorySpaces::MODULE_NAME}.tab"),
                          form: Decidim::Voca::ParticipatorySpaces::ConfigForm,
                          command: Decidim::Toggle::UpdateModuleConfigCommand,
-                         module_name: ParticipatorySpaces::MODULE_CONFIG_NAME,
+                         module_name: ParticipatorySpaces::MODULE_NAME,
                          position: 12
           end
         end

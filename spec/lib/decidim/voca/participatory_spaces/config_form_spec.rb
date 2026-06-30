@@ -9,6 +9,25 @@ describe Decidim::Voca::ParticipatorySpaces::ConfigForm do
     allow(Decidim::Toggle).to receive(:gem_present?).and_return(true)
   end
 
+  describe "module name" do
+    it "matches the toggle registration" do
+      expect(described_class.module_config_name).to eq(
+        Decidim::Voca::ParticipatorySpaces::MODULE_NAME
+      )
+    end
+  end
+
+  describe "labels" do
+    it "uses decidim_toggle.system.spaces scope for attribute names" do
+      expect(described_class.human_attribute_name(:assemblies_enabled)).to eq(
+        I18n.t("decidim_toggle.system.spaces.assemblies_enabled")
+      )
+      expect(described_class.human_attribute_name(:initiatives_enabled)).to eq(
+        I18n.t("decidim_toggle.system.spaces.initiatives_enabled")
+      )
+    end
+  end
+
   describe ".from_model" do
     it "loads enabled flags for installed spaces" do
       seed_participatory_space_toggle(organization, :decidim_assemblies, enabled: false)

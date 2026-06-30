@@ -8,7 +8,7 @@ module Decidim
         include Decidim::Toggle::ModuleConfigForm
         include Decidim::Toggle::ExposeAttributesToJs
 
-        self.module_config_name = MODULE_CONFIG_NAME
+        self.module_config_name = MODULE_NAME
 
         mimic :organization
 

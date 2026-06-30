@@ -91,6 +91,14 @@ fr:
           description_html: |
             <p>La langue "%{current_locale}" est entièrement traduite par la machine, vous devez passer à "%{default_locale}".</p>
           button: Changer de langue
+  decidim_toggle:
+    system:
+      spaces:
+        tab: Espaces participatifs
+        initiatives_enabled: Initiatives activées
+        conferences_enabled: Conférences activées
+        participatory_processes_enabled: Processus participatifs activés
+        assemblies_enabled: Assemblées activées
   devise:
     mailer:
       confirmation_instructions:

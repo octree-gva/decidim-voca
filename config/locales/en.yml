@@ -56,7 +56,6 @@ en:
             error: The provided code is not valid.
       admin:
         participatory_spaces:
-          tab: Participatory Spaces
           management_callout_html: |
             <h4>Manage participatory spaces</h4>
             <p>Your server installed the modules <code>%{installed}</code>.<br />
@@ -105,9 +104,10 @@ en:
           description_html: |
             <p>The language "%{current_locale}" is fully translated by machine, you need to switch to "%{default_locale}".</p>
           button: Switch language
-  activemodel:
-    attributes:
-      decidim/voca/participatory_spaces/config_form:
+  decidim_toggle:
+    system:
+      spaces:
+        tab: Participatory Spaces
         initiatives_enabled: Initiatives enabled
         conferences_enabled: Conferences enabled
         participatory_processes_enabled: Participatory Processes enabled

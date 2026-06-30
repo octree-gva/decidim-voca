@@ -3,7 +3,7 @@
 module Decidim
   module Voca
     module ParticipatorySpaces
-      MODULE_CONFIG_NAME = "spaces"
+      MODULE_NAME = "spaces"
 
       SPACES = {
         initiatives: {
@@ -72,7 +72,7 @@ module Decidim
       def space_enabled_flag?(organization, space)
         config = SPACES.fetch(space.to_sym)
         attr = "#{space}_enabled"
-        raw = Decidim::Toggle.config_for(organization, MODULE_CONFIG_NAME)
+        raw = Decidim::Toggle.config_for(organization, MODULE_NAME)
         return config.fetch(:default_enabled, false) unless raw.has_key?(attr)
 
         ActiveModel::Type::Boolean.new.cast(raw[attr])

@@ -6,7 +6,7 @@ module ParticipatorySpacesToggleHelpers
 
     Decidim::Toggle.save_config!(
       organization,
-      Decidim::Voca::ParticipatorySpaces::MODULE_CONFIG_NAME,
+      Decidim::Voca::ParticipatorySpaces::MODULE_NAME,
       { "#{space}_enabled" => enabled }
     )
   end
