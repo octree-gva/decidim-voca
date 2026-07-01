@@ -23,4 +23,4 @@ CI may run additional steps (see `.gitlab-ci.yml` or GitHub Actions if present).
 
 ## Docs
 
-Human-facing documentation is under `website/docs/` (Docusaurus). CSV export behaviour and how it ties to machine translation are described in `website/docs/machine_translation.md` (CSV exports section).
+Human-facing documentation is under `website/docs/` (Docusaurus). CSV export behaviour and how it ties to machine translation are described in `website/docs/machine_translation.md` (CSV exports section). Organization feature toggles are described in `website/docs/feature-toggle.md`.
