@@ -23,6 +23,10 @@ module Decidim
         broadcast(:invalid, e.message)
       end
 
+      def self.service_name
+        ENV.fetch("OTEL_SERVICE_NAME", ENV.fetch("MASTER_ID", "rails-app")).to_s
+      end
+
       private
 
       def traces_endpoint
@@ -70,7 +74,7 @@ module Decidim
       end
 
       def service_name
-        ENV.fetch("MASTER_ID", ENV.fetch("OTEL_SERVICE_NAME", "rails-app")).to_s
+        self.class.service_name
       end
 
       def resource
