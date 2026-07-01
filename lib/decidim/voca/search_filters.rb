@@ -9,7 +9,7 @@ module Decidim
         disabled = disabled_resource_types(organization)
         return results if disabled.empty?
 
-        results.except(*disabled)
+        results.reject { |type, _| disabled.include?(type) }
       end
 
       def disabled_resource_types(organization)
