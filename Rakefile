@@ -16,8 +16,7 @@ def install_module(path)
       system("bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref #{Decidim::Voca.compat_decidim_telemetry_version}")
     end
     system("bundle exec rails decidim:update")
-    system("bundle exec rails decidim:voca:webpacker:install")
-    system("bundle exec rails db:migrate")
+    system("bundle exec rails decidim_voca:webpacker:install")
   end
 end
 

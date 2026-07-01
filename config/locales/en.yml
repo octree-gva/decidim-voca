@@ -66,6 +66,17 @@ en:
           cannot_disable_with_published: >-
             You cannot disable this space while published %{space_name} exist.
             Please unpublish them before disabling.
+        components:
+          management_callout_html: |
+            <h4>Manage components</h4>
+            <p>Your server installed the modules <code>%{installed}</code>.<br />
+            %{not_installed}</p>
+            <p><strong>Note</strong>: You must unpublish components before disabling them. For example, no published proposals components can remain in order to disable proposals.</p>
+          not_installed_modules_html: "<code>%{missing}</code> are not installed."
+          all_modules_missing_html: "No component modules are installed on this server. Available for installation: <code>%{missing}</code>."
+          cannot_disable_with_published: >-
+            You cannot disable this component while published %{component_name} components exist.
+            Please unpublish them before disabling.
         machine_translation_alert:
           title: |
             Switch language
@@ -112,6 +123,23 @@ en:
         conferences_enabled: Conferences enabled
         participatory_processes_enabled: Participatory Processes enabled
         assemblies_enabled: Assemblies enabled
+      components:
+        tab: Components
+        meetings_enabled: Meetings enabled
+        blogs_enabled: Blogs enabled
+        budgets_enabled: Participatory budget enabled
+        proposals_enabled: Proposals enabled
+        pages_enabled: Page enabled
+        debates_enabled: Debates enabled
+        accountability_enabled: Accountability enabled
+        sortitions_enabled: Sortition enabled
+        forms_enabled: Form enabled
+        participatory_documents_enabled: Participatory document enabled
+        collaborative_texts_enabled: Collaborative text enabled
+        elections_enabled: Election enabled
+        awesome_map_enabled: Awesome Map enabled
+        awesome_iframe_enabled: Fullscreen Iframe enabled
+        surveys_enabled: Survey enabled
   devise:
     mailer:
       confirmation_instructions:

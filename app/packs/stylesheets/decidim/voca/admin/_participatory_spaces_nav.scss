@@ -1,5 +1,5 @@
 // Hide participatory space modules, cross-space form fields, and content blocks in admin when disabled.
-// Body data attributes: participatory_spaces_admin_body_data_attributes deface override.
+// Body data attributes: voca_admin_body_data_attributes deface override (spaces + components).
 // Manifest names: related_* on participatory space homepages; highlighted_* on organization homepage.
 
 @mixin voca-hide-admin-participatory-space-module($path) {
