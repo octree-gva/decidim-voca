@@ -8,7 +8,7 @@ module Decidim
     end
 
     def self.decidim_version
-      [">= 0.29", "<0.30"].freeze
+      [">= 0.29", "< 0.33"].freeze
     end
 
     def self.compat_decidim_awesome_version

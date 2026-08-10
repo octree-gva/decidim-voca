@@ -3,29 +3,25 @@
 module Decidim
   module Voca
     class Configuration
-      include ActiveSupport::Configurable
+      class << self
+        def config = self
 
-      config_accessor :enable_minimalistic_deepl do
-        true
+        def configure
+          yield self
+        end
       end
 
-      config_accessor :enable_weglot do
-        ::Decidim::Env.new("WEGLOT_API_KEY", "").present?
-      end
+      mattr_accessor :enable_minimalistic_deepl, default: true
 
-      config_accessor :enable_next_gen_images do
-        true
-      end
+      mattr_accessor :enable_weglot, default: ::Decidim::Env.new("WEGLOT_API_KEY", "").present?
 
-      config_accessor :weglot_api_key do
-        ::Decidim::Env.new("WEGLOT_API_KEY", "").to_s
-      end
+      mattr_accessor :enable_next_gen_images, default: true
 
-      config_accessor :enable_weglot_cache do
-        false
-      end
+      mattr_accessor :weglot_api_key, default: ::Decidim::Env.new("WEGLOT_API_KEY", "").to_s
 
-      config_accessor :rack_attack do
+      mattr_accessor :enable_weglot_cache, default: false
+
+      mattr_accessor :rack_attack, default:
         {
           enabled: ::Decidim::Env.new("RACK_ATTACK_ENABLED", "true").present?,
           ban_minutes: ::Decidim::Env.new("RACK_ATTACK_BAN_MINUTES", "10").to_i,
@@ -46,7 +42,6 @@ module Decidim
           post_comments_per_minute: ::Decidim::Env.new("RACK_ATTACK_POST_COMMENTS_PER_MINUTE", "10").to_i,
           api_per_minute: ::Decidim::Env.new("RACK_ATTACK_API_PER_MINUTE", "300").to_i
         }
-      end
     end
   end
 end

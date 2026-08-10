@@ -1,14 +1,14 @@
 services:
   voca:
     command: bash -c "sleep infinity"
-    image: octree/decidim-dev:0.29
+    image: octree/decidim-dev:0.32
     entrypoint: ""
     volumes:
       - .:/home/module
       - bundle:/home/decidim/app/vendor
       - node_modules:/home/decidim/app/node_modules
     environment:
-      - DECIDIM_VERSION=0.29.7
+      - DECIDIM_VERSION=0.32
       - PORT=3000
       - DECIDIM_DEEPL_API_KEY=insecure_key
       - MAPS_PROVIDER=osm
@@ -78,7 +78,7 @@ services:
       - TRAEFIK_LOG_LEVEL=DEBUG
 
   voca-pg:
-    image: postgis/postgis:16-3.5-alpine
+    image: postgis/postgis:17-3.5-alpine
     restart: always
     volumes:
       - voca-pg-data:/var/lib/postgresql/data

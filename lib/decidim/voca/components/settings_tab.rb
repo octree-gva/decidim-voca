@@ -5,6 +5,8 @@ module Decidim
     module Components
       class SettingsTab
         def self.register!
+          return unless Gem.loaded_specs.has_key?("decidim-toggle")
+
           Decidim::Toggle.settings_tabs :organization_settings do |tabs|
             tabs.add_tab :components,
                          I18n.t("decidim_toggle.system.#{Components::MODULE_NAME}.tab"),

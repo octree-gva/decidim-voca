@@ -69,34 +69,34 @@ module Decidim
       end
 
       # Enforce uuid in conversations
-      config.to_prepare do
-        Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:profile_conversation_path) do |options|
-          options[:id] = options[:id].to_param if options[:id].respond_to?(:to_param)
-          if options[:id] && (options[:id].is_a?(Integer) || !options[:id].match?(Decidim::Voca::UUID_REGEXP))
-            options[:id] =
-              Decidim::Messaging::Conversation.find(options[:id]).uuid
-          end
-          super(options)
-        end
-        Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:conversation_path) do |conversation, options = {}|
-          options = conversation if conversation.is_a?(Hash) && options.empty?
-          conversation_id = options[:id] || conversation
-          options[:id] = if conversation.respond_to?(:uuid)
-                           conversation.uuid
-                         elsif conversation_id.respond_to?(:uuid)
-                           conversation_id.uuid
-                         elsif conversation_id && (conversation_id.is_a?(Integer) || !conversation_id.match?(Decidim::Voca::UUID_REGEXP))
-                           Decidim::Messaging::Conversation.find(conversation_id).uuid
-                         else
-                           conversation_id
-                         end
-          super(options)
-        end
-        Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
-        Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
-      end
+      #config.to_prepare do
+      #  Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:profile_conversation_path) do |options|
+      #    options[:id] = options[:id].to_param if options[:id].respond_to?(:to_param)
+      #    if options[:id] && (options[:id].is_a?(Integer) || !options[:id].match?(Decidim::Voca::UUID_REGEXP))
+      #      options[:id] =
+      #        Decidim::Messaging::Conversation.find(options[:id]).uuid
+      #    end
+      #    super(options)
+      #  end
+      #  Decidim::Core::Engine.routes.url_helpers.define_singleton_method(:conversation_path) do |conversation, options = {}|
+      #    options = conversation if conversation.is_a?(Hash) && options.empty?
+      #    conversation_id = options[:id] || conversation
+      #    options[:id] = if conversation.respond_to?(:uuid)
+      #                     conversation.uuid
+      #                   elsif conversation_id.respond_to?(:uuid)
+      #                     conversation_id.uuid
+      #                   elsif conversation_id && (conversation_id.is_a?(Integer) || !conversation_id.match?(Decidim::Voca::UUID_REGEXP))
+      #                     Decidim::Messaging::Conversation.find(conversation_id).uuid
+      #                   else
+      #                     conversation_id
+      #                   end
+      #    super(options)
+      #  end
+      #  Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
+      #  Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
+      #  Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
+      #  Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
+      #end
 
       # Fixes for geolocated proposals at creation
       config.to_prepare do
@@ -131,12 +131,12 @@ module Decidim
         Decidim::ViewModel.include Decidim::Voca::Overrides::DecidimViewModel
 
         # Participatory Process Banner Image
-        Decidim::ParticipatoryProcess.include(Decidim::Voca::Overrides.override_for_has_one_attached(:hero_image, Decidim::HeroImageUploader))
-        Decidim::ParticipatoryProcesses::ProcessGCell.include(Decidim::Voca::Overrides.override_cell_resource_image_url(:hero_image))
+        #Decidim::ParticipatoryProcess.include(Decidim::Voca::Overrides.override_for_has_one_attached(:hero_image, Decidim::HeroImageUploader))
+        #Decidim::ParticipatoryProcesses::ProcessGCell.include(Decidim::Voca::Overrides.override_cell_resource_image_url(:hero_image))
 
         # Assemblies
-        Decidim::Assembly.include(Decidim::Voca::Overrides.override_for_has_one_attached(:hero_image, Decidim::HeroImageUploader))
-        Decidim::Assemblies::AssemblyGCell.include(Decidim::Voca::Overrides.override_cell_resource_image_url(:hero_image))
+        #Decidim::Assembly.include(Decidim::Voca::Overrides.override_for_has_one_attached(:hero_image, Decidim::HeroImageUploader))
+        #Decidim::Assemblies::AssemblyGCell.include(Decidim::Voca::Overrides.override_cell_resource_image_url(:hero_image))
 
         # Proposals
         Decidim::Proposals::ProposalGCell.include(Decidim::Voca::Overrides::ProposalGCellOverride)
@@ -149,7 +149,7 @@ module Decidim
         Decidim::Etherpad::Pad.include(Decidim::Voca::Overrides::EtherpadOverrides)
 
         # User Group Form
-        Decidim::UserGroupForm.include(Decidim::Voca::Overrides::UserGroupFormOverrides)
+        #Decidim::UserGroupForm.include(Decidim::Voca::Overrides::UserGroupFormOverrides)
 
         # Footer topic "Help" hardcoded string
         Decidim::FooterTopicsCell.include(Decidim::Voca::Overrides::Footer::FooterTopicCellOverrides)
@@ -174,7 +174,7 @@ module Decidim
         Decidim::Admin::ContentBlocks::UpdateContentBlock.include(Decidim::Voca::Overrides::UpdateContentBlockOverrides)
 
         # Overrides CopyAssembly
-        Decidim::Assemblies::Admin::CopyAssembly.include(Decidim::Voca::Overrides::CopyAssemblyOverrides)
+        #Decidim::Assemblies::Admin::CopyAssembly.include(Decidim::Voca::Overrides::CopyAssemblyOverrides)
 
         # Overrides NotifyProposalAnswer
         Decidim::Proposals::Admin::NotifyProposalAnswer.include(Decidim::Voca::Overrides::NotifyProposalAnswerOverrides)
@@ -314,7 +314,7 @@ module Decidim
       end
 
       initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
-        Decidim::Voca::UserFieldsConfigurator.call
+        # Decidim::Voca::UserFieldsConfigurator.call
       end
 
       initializer "decidim.voca.good_job", after: :load_config_initializers do

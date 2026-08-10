@@ -31,9 +31,9 @@ module Decidim
 
         def apply
           mod = Decidim::Voca::Export::UserAnswersSerializerLocalizedCsv
-          return if Decidim::Forms::UserAnswersSerializer.ancestors.include?(mod)
+          return if Decidim::Forms::UserResponsesSerializer.ancestors.include?(mod)
 
-          Decidim::Forms::UserAnswersSerializer.prepend(mod)
+          Decidim::Forms::UserResponsesSerializer.prepend(mod)
         end
       end
 
