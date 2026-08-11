@@ -59,6 +59,8 @@ module Decidim
             :try_recipient,
             :try_amender,
             :try_meeting,
+            :try_agenda,
+            :try_answer,
             :try_questionnaire,
             :try_question,
             :try_proposal,
@@ -81,9 +83,28 @@ module Decidim
             :try_coauthorable,
             :try_from_to,
             :try_parent,
+            :try_shapefile,
+            :try_constraints,
+            :try_known_parent,
             :try_item
           ]
         end
+
+        # ponytail: audited from 0.29 models + voca schema + geo; ceiling = list new belongs_to names here
+        KNOWN_PARENT_ASSOCIATIONS = %i[
+          response election taxonomy taxonomy_item taxonomy_filter taxonomizable
+          scope root_taxonomy type participatory_process document document_version
+          vote translation_set api_client suggestion content_block moderation comment
+          initiative order amendable emendation followable remindable categorizable
+          authorization transfer valuator_role conference_speaker decidim_component
+          decidim_geo_space suggestable user_group admin answer_option matrix_row
+          condition_question reportable cancelled_by_user related_object blocking_user
+          source_user managed_user registration_type message dummy_resource templatable
+          attachment_collection target token_for topic version area area_type
+          assembly_type scope_type last_comment_by proposal_state participatory_process_group
+          participatory_process_type scoped_type decidim_proposals_component
+          decidim_participatory_space user_report section subject status
+        ].freeze
 
         def self.try_attachment(record)
           return unless record.respond_to?(:collection_for) && record.collection_for
@@ -104,9 +125,15 @@ module Decidim
         end
 
         def self.try_decidim_organization_id(record)
-          return unless record.respond_to?(:decidim_organization_id) && record.decidim_organization_id
+          org_id = if record.respond_to?(:decidim_organization_id) && record.decidim_organization_id.present?
+                     record.decidim_organization_id
+                   elsif record.respond_to?(:organization_id) && record.organization_id.present?
+                     # e.g. StaticPageTopic schema column is organization_id
+                     record.organization_id
+                   end
+          return unless org_id
 
-          Decidim::Organization.find_by(id: record.decidim_organization_id)
+          Decidim::Organization.find_by(id: org_id)
         end
 
         def self.try_commentable(record)
@@ -122,6 +149,76 @@ module Decidim
           return unless record.respond_to?(:meeting) && record.meeting
 
           try_component(record.meeting)
+        end
+
+        def self.try_agenda(record)
+          return unless record.respond_to?(:agenda) && record.agenda
+
+          try_meeting(record.agenda)
+        end
+
+        def self.try_answer(record)
+          # 0.29 uses Answer; newer Decidim renamed to Response
+          related = if record.respond_to?(:answer) && record.answer
+                      record.answer
+                    elsif record.respond_to?(:response) && record.response
+                      record.response
+                    end
+          return unless related
+
+          try_questionnaire(related) || try_organization(related)
+        end
+
+        def self.try_constraints(record)
+          return unless record.respond_to?(:constraints)
+
+          constraint = begin
+            record.constraints.first
+          rescue StandardError
+            nil
+          end
+          return unless constraint
+
+          try_organization(constraint) || resolve_with_resolvers(constraint)
+        end
+
+        def self.try_known_parent(record)
+          # ponytail: one-level re-entry guard; avoids A↔B loops via known parents
+          return if Thread.current[:voca_sync_locales_known_parent]
+
+          Thread.current[:voca_sync_locales_known_parent] = true
+          begin
+            KNOWN_PARENT_ASSOCIATIONS.each do |name|
+              next unless record.respond_to?(name)
+
+              related = safe_association(record, name)
+              next if related.blank? || related.equal?(record)
+              # skip STI `type` strings / constants; allow Struct stand-ins in specs
+              next if related.is_a?(String) || related.is_a?(Module) || related.is_a?(Numeric)
+
+              organization = resolve_with_resolvers(related)
+              return organization if organization.present?
+            end
+            nil
+          ensure
+            Thread.current[:voca_sync_locales_known_parent] = false
+          end
+        end
+
+        def self.try_shapefile(record)
+          # Geo::Shapedata: organization via scope may be nil; schema has decidim_geo_shapefiles_id
+          # Skip ActiveStorage has_one_attached :shapefile on Shapefile itself
+          shapefile = safe_association(record, :shapefile) if record.respond_to?(:shapefile)
+          shapefile = nil unless shapefile.is_a?(ActiveRecord::Base)
+
+          if shapefile.blank? && record.respond_to?(:decidim_geo_shapefiles_id) && record.decidim_geo_shapefiles_id
+            return unless defined?(::Decidim::Geo::Shapefile)
+
+            shapefile = ::Decidim::Geo::Shapefile.find_by(id: record.decidim_geo_shapefiles_id)
+          end
+          return unless shapefile
+
+          try_organization(shapefile) || try_decidim_organization_id(shapefile)
         end
 
         def self.try_awesome_config(record)
@@ -193,21 +290,29 @@ module Decidim
         end
 
         def self.try_item(record)
-          return unless record.respond_to?(:item) && record.item
+          item = paper_trail_item(record)
+          return resolve_with_resolvers(item) if item
 
-          resolve_with_resolvers(record.item)
+          try_version_object_attributes(record)
         end
 
         def self.try_questionnaire(record)
+          if record.respond_to?(:questionnaire_for)
+            questionnaire_for = safe_association(record, :questionnaire_for)
+            if questionnaire_for
+              return try_component(questionnaire_for) || try_organization(questionnaire_for)
+            end
+          end
+
           questionnaire = if record.is_a?(::Decidim::Forms::Questionnaire)
                             record
-                          elsif record.respond_to?(:questionnaire) && record.questionnaire
-                            record.questionnaire
+                          elsif record.respond_to?(:questionnaire)
+                            safe_association(record, :questionnaire)
                           end
           return unless questionnaire
+          return if questionnaire.equal?(record)
 
-          questionnaire_for = questionnaire.questionnaire_for
-          try_component(questionnaire_for) || try_organization(questionnaire_for)
+          try_questionnaire(questionnaire)
         end
 
         def self.try_question(record)
@@ -333,13 +438,23 @@ module Decidim
         def self.try_organization(record)
           return unless record.respond_to?(:organization)
 
-          record.organization
+          begin
+            org = record.organization
+            return org if org.present?
+          rescue ActiveRecord::RecordNotFound
+            # Component default_scope can make delegated organization raise.
+          end
+
+          organization_from_component_id(record)
         end
 
         def self.try_participatory_space(record)
-          return unless record.respond_to?(:participatory_space) && record.participatory_space
+          return unless record.respond_to?(:participatory_space)
 
-          try_organization(record.participatory_space)
+          space = safe_association(record, :participatory_space)
+          return unless space
+
+          try_organization(space)
         end
 
         def self.try_assembly(record)
@@ -349,19 +464,104 @@ module Decidim
         end
 
         def self.try_component(record)
-          component = try_decidim_component_id(record)
-          return component if component.present?
+          organization = organization_from_component_id(record)
+          return organization if organization.present?
 
-          return unless record.respond_to?(:component) && record.component
+          component = if record.respond_to?(:component)
+                        safe_association(record, :component)
+                      elsif record.respond_to?(:decidim_component)
+                        safe_association(record, :decidim_component)
+                      end
+          component ||= unscoped_component_for(record)
+          return unless component
 
-          try_organization(record.component)
+          organization_of(component)
         end
 
         def self.try_decidim_component_id(record)
+          organization_from_component_id(record)
+        end
+
+        def self.paper_trail_item(record)
+          return unless record.respond_to?(:item_type) && record.respond_to?(:item_id)
+          return if record.item_type.blank? || record.item_id.blank?
+
+          if record.respond_to?(:item)
+            item = safe_association(record, :item)
+            return item if item
+          end
+
+          klass = record.item_type.safe_constantize
+          return unless klass.is_a?(Class) && klass < ActiveRecord::Base
+
+          scope = klass.respond_to?(:unscoped) ? klass.unscoped : klass
+          scope.find_by(id: record.item_id)
+        end
+        private_class_method :paper_trail_item
+
+        # ponytail: reads organization_id/component_id from version object only; upgrade if other attrs needed
+        def self.try_version_object_attributes(record)
+          return unless record.respond_to?(:object) && record.object.present?
+
+          attrs = record.object
+          attrs = attrs.with_indifferent_access if attrs.respond_to?(:with_indifferent_access)
+          return unless attrs.is_a?(Hash)
+
+          if (org_id = attrs[:decidim_organization_id]).present?
+            return Decidim::Organization.find_by(id: org_id)
+          end
+
+          if (component_id = attrs[:decidim_component_id]).present?
+            component = Decidim::Component.unscoped.find_by(id: component_id)
+            return organization_of(component) if component
+          end
+
+          nil
+        end
+        private_class_method :try_version_object_attributes
+
+        def self.organization_from_component_id(record)
+          component = unscoped_component_for(record)
+          return unless component
+
+          organization_of(component)
+        end
+        private_class_method :organization_from_component_id
+
+        def self.unscoped_component_for(record)
           return unless record.respond_to?(:decidim_component_id) && record.decidim_component_id
 
-          try_organization(Decidim::Component.find(record.decidim_component_id))
+          Decidim::Component.unscoped.find_by(id: record.decidim_component_id)
         end
+        private_class_method :unscoped_component_for
+
+        def self.organization_of(record)
+          return unless record
+
+          begin
+            org = record.organization if record.respond_to?(:organization)
+            return org if org.present?
+          rescue ActiveRecord::RecordNotFound
+            nil
+          end
+
+          space = safe_association(record, :participatory_space) if record.respond_to?(:participatory_space)
+          return unless space
+
+          space.organization if space.respond_to?(:organization)
+        rescue ActiveRecord::RecordNotFound
+          nil
+        end
+        private_class_method :organization_of
+
+        def self.safe_association(record, name)
+          return unless record.respond_to?(name)
+
+          record.public_send(name)
+        rescue ActiveRecord::RecordNotFound
+          nil
+        end
+        private_class_method :safe_association
 
         def self.raise_missing_organization!(record)
           rid = record.respond_to?(:id) ? record.id : "n/a"
