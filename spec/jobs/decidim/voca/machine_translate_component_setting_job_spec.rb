@@ -26,9 +26,7 @@ RSpec.describe Decidim::Voca::MachineTranslateComponentSettingJob do
   end
   let(:component) do
     create(:component, participatory_space: participatory_process).tap do |c|
-      # rubocop:disable Rails/SkipsModelValidations -- fixture JSONB shape for job under test
-      c.update_column(:settings, settings_hash)
-      # rubocop:enable Rails/SkipsModelValidations
+      set_jsonb_column(c, :settings, settings_hash)
     end
   end
 
@@ -51,9 +49,7 @@ RSpec.describe Decidim::Voca::MachineTranslateComponentSettingJob do
     end
 
     it "does nothing when source text is blank" do
-      # rubocop:disable Rails/SkipsModelValidations -- set invalid source for job branch
-      component.update_column(:settings, { "global" => { "dummy_global_translatable_text" => { "en" => "" } } })
-      # rubocop:enable Rails/SkipsModelValidations
+      set_jsonb_column(component, :settings, { "global" => { "dummy_global_translatable_text" => { "en" => "" } } })
 
       described_class.perform_now(component.id, "dummy_global_translatable_text", "fr", "en", html: true)
 

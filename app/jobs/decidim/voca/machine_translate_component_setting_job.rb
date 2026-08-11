@@ -16,7 +16,18 @@ module Decidim
         source_text = extract_source_text(component, setting_key, source_locale)
         return if source_text.blank?
 
-        persist_machine_translation(component, setting_key, target_locale, source_locale, source_text, html)
+        translated = MachineTranslation::TranslateString.call(
+          text: source_text,
+          source_locale:,
+          target_locale:,
+          html:,
+          context: "Decidim::Component id=#{component.id} setting=#{setting_key}"
+        )
+        return if translated.nil?
+
+        component.with_lock do
+          merge_translation_into_settings(component, setting_key, target_locale, translated)
+        end
       end
 
       private
@@ -28,24 +39,6 @@ module Decidim
         field[source_locale.to_s].presence || field[source_locale.to_sym].presence
       end
 
-      # rubocop:disable Metrics/ParameterLists -- mirrors #perform arguments split for complexity
-      def persist_machine_translation(component, setting_key, target_locale, source_locale, source_text, html)
-        context = "Decidim::Component id=#{component.id} setting=#{setting_key}"
-        translated = MachineTranslation::TranslateString.call(
-          text: source_text,
-          source_locale:,
-          target_locale:,
-          html:,
-          context:
-        )
-        return if translated.nil?
-
-        component.with_lock do
-          merge_translation_into_settings(component, setting_key, target_locale, translated)
-        end
-      end
-      # rubocop:enable Metrics/ParameterLists
-
       def merge_translation_into_settings(component, setting_key, target_locale, translated)
         fresh = component.reload.read_attribute(:settings).deep_dup.deep_stringify_keys
         fg = fresh["global"] ||= {}
@@ -54,9 +47,7 @@ module Decidim
 
         f["machine_translations"] ||= {}
         f["machine_translations"][target_locale.to_s] = translated
-        # rubocop:disable Rails/SkipsModelValidations -- nested JSONB merge must not re-run after_save MT callbacks
-        component.update_column(:settings, fresh)
-        # rubocop:enable Rails/SkipsModelValidations
+        UpdateColumnWithoutCallbacks.call(component, :settings, fresh)
       end
     end
   end

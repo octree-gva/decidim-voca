@@ -64,10 +64,7 @@ module Decidim
             context = LocaleContext.for(record)
             stringy = FieldHashNormalizer.deep_stringify(raw)
             normalized = FieldHashNormalizer.call(raw, context)
-            # Bulk sync: bypass validations/callbacks (same intent as data migration tasks).
-            # rubocop:disable Rails/SkipsModelValidations
-            record.update_column(field, normalized) if normalized != stringy
-            # rubocop:enable Rails/SkipsModelValidations
+            UpdateColumnWithoutCallbacks.call(record, field, normalized) if normalized != stringy
             MachineTranslationEnqueuer.new(record, field, context, normalized).call
           end
 
@@ -140,11 +137,7 @@ module Decidim
           return if @dry_run
           return if updated_columns.empty?
 
-          # Maintenance task: avoid model validations/callbacks (especially important for
-          # complex JSONB translation fields).
-          # rubocop:disable Rails/SkipsModelValidations
-          record.update_columns(updated_columns)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call_many(record, updated_columns)
         end
 
         def clean_component_settings
@@ -201,9 +194,7 @@ module Decidim
           return if @dry_run
           return unless touched
 
-          # rubocop:disable Rails/SkipsModelValidations
-          record.update_column(:settings, settings)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call(record, :settings, settings)
         end
 
         def clean_awesome_menu_labels_record(record, context)
@@ -225,9 +216,7 @@ module Decidim
           return if @dry_run
           return unless touched
 
-          # rubocop:disable Rails/SkipsModelValidations
-          record.update_column(:value, items)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call(record, :value, items)
         end
 
         def clean_component_settings_record(record, context, global_keys, process_step_keys)
@@ -238,9 +227,7 @@ module Decidim
           return if @dry_run
           return unless touched
 
-          # rubocop:disable Rails/SkipsModelValidations
-          record.update_column(:settings, settings)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call(record, :settings, settings)
         end
 
         def clean_global_settings!(settings, context, global_keys)

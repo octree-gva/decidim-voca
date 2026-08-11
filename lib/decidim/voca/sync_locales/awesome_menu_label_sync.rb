@@ -31,9 +31,7 @@ module Decidim
 
           return unless changed
 
-          # rubocop:disable Rails/SkipsModelValidations
-          @record.update_column(:value, items)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call(@record, :value, items)
         end
 
         private

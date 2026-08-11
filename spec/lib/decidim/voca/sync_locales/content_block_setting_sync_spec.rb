@@ -22,9 +22,7 @@ RSpec.describe Decidim::Voca::SyncLocales::ContentBlockSettingSync do
   end
 
   it "enqueues MachineTranslateContentBlockSettingJob for pending locales" do
-    # rubocop:disable Rails/SkipsModelValidations -- nested settings fixture
-    content_block.update_column(:settings, { "welcome_text" => { "en" => "Hello" } })
-    # rubocop:enable Rails/SkipsModelValidations
+    set_jsonb_column(content_block, :settings, { "welcome_text" => { "en" => "Hello" } })
 
     expect do
       described_class.new(content_block).call
@@ -38,9 +36,7 @@ RSpec.describe Decidim::Voca::SyncLocales::ContentBlockSettingSync do
   end
 
   it "coalesces flat keys then enqueues" do
-    # rubocop:disable Rails/SkipsModelValidations -- flat seed shape
-    content_block.update_column(:settings, { "welcome_text_en" => "Bonjour flat" })
-    # rubocop:enable Rails/SkipsModelValidations
+    set_jsonb_column(content_block, :settings, { "welcome_text_en" => "Bonjour flat" })
 
     expect do
       described_class.new(content_block).call

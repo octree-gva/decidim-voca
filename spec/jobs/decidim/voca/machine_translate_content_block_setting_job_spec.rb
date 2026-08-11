@@ -16,9 +16,7 @@ RSpec.describe Decidim::Voca::MachineTranslateContentBlockSettingJob do
   end
   let(:content_block) do
     create(:content_block, organization:, scope_name: :homepage, manifest_name: :hero).tap do |block|
-      # rubocop:disable Rails/SkipsModelValidations -- fixture JSONB shape for job under test
-      block.update_column(:settings, { "welcome_text" => { "en" => "Hello world" } })
-      # rubocop:enable Rails/SkipsModelValidations
+      set_jsonb_column(block, :settings, { "welcome_text" => { "en" => "Hello world" } })
     end
   end
 
@@ -35,9 +33,7 @@ RSpec.describe Decidim::Voca::MachineTranslateContentBlockSettingJob do
     end
 
     it "coalesces flat welcome_text_en keys before translating" do
-      # rubocop:disable Rails/SkipsModelValidations -- flat seed shape
-      content_block.update_column(:settings, { "welcome_text_en" => "Flat hello" })
-      # rubocop:enable Rails/SkipsModelValidations
+      set_jsonb_column(content_block, :settings, { "welcome_text_en" => "Flat hello" })
 
       described_class.perform_now(content_block.id, "welcome_text", "fr", "en", html: false)
 
@@ -49,9 +45,7 @@ RSpec.describe Decidim::Voca::MachineTranslateContentBlockSettingJob do
     end
 
     it "does nothing when source text is blank" do
-      # rubocop:disable Rails/SkipsModelValidations -- blank source branch
-      content_block.update_column(:settings, { "welcome_text" => { "en" => "" } })
-      # rubocop:enable Rails/SkipsModelValidations
+      set_jsonb_column(content_block, :settings, { "welcome_text" => { "en" => "" } })
 
       described_class.perform_now(content_block.id, "welcome_text", "fr", "en", html: false)
 

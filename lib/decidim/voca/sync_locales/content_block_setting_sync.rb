@@ -42,9 +42,7 @@ module Decidim
           changed ||= settings != original
           return unless changed
 
-          # rubocop:disable Rails/SkipsModelValidations
-          @record.update_column(:settings, settings)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call(@record, :settings, settings)
         end
 
         private

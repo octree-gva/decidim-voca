@@ -42,12 +42,12 @@ RSpec.describe Decidim::Voca::MachineTranslateAwesomeMenuLabelJob do
     end
 
     it "does nothing when source text is blank" do
-      # rubocop:disable Rails/SkipsModelValidations
-      awesome_config.update_column(
+      set_jsonb_column(
+        awesome_config,
         :value,
         [{ "url" => "/about", "label" => { "en" => "" }, "position" => 2 }]
       )
-      # rubocop:enable Rails/SkipsModelValidations
+
       described_class.perform_now(awesome_config.id, "/about", "fr", "en")
 
       awesome_config.reload

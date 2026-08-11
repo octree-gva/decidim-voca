@@ -27,9 +27,7 @@ RSpec.describe Decidim::Admin::ContentBlocks::UpdateContentBlock do
   before do
     Decidim::Voca::DeepL::EngineConfig.apply_mergeable_fields!
     stub_dummy_machine_translator
-    # rubocop:disable Rails/SkipsModelValidations -- baseline flat admin shape
-    content_block.update_column(:settings, { "welcome_text_en" => "old hero", "welcome_text_fr" => "" })
-    # rubocop:enable Rails/SkipsModelValidations
+    set_jsonb_column(content_block, :settings, { "welcome_text_en" => "old hero", "welcome_text_fr" => "" })
     clear_enqueued_jobs
   end
 

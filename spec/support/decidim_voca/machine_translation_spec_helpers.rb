@@ -21,6 +21,11 @@ module Decidim
       def stub_dummy_machine_translator
         allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Dev::DummyTranslator)
       end
+
+      # Fixture helper: write nested JSONB without firing MT after_save callbacks.
+      def set_jsonb_column(record, attribute, value)
+        Decidim::Voca::UpdateColumnWithoutCallbacks.call(record, attribute, value)
+      end
     end
   end
 end

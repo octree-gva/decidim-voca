@@ -23,9 +23,7 @@ RSpec.describe Decidim::Voca::ContentBlockTranslatedSettingsMachineTranslation d
   end
 
   it "enqueues MachineTranslateContentBlockSettingJob when default locale welcome_text changes" do
-    # rubocop:disable Rails/SkipsModelValidations -- nested settings fixture
-    content_block.update_column(:settings, { "welcome_text" => { "en" => "first" } })
-    # rubocop:enable Rails/SkipsModelValidations
+    set_jsonb_column(content_block, :settings, { "welcome_text" => { "en" => "first" } })
 
     expect do
       content_block.assign_attributes(settings: { "welcome_text" => { "en" => "second" } })
@@ -40,9 +38,7 @@ RSpec.describe Decidim::Voca::ContentBlockTranslatedSettingsMachineTranslation d
   end
 
   it "enqueues when admin-style flat welcome_text_en changes" do
-    # rubocop:disable Rails/SkipsModelValidations -- flat admin fixture
-    content_block.update_column(:settings, { "welcome_text_en" => "first", "welcome_text_fr" => "" })
-    # rubocop:enable Rails/SkipsModelValidations
+    set_jsonb_column(content_block, :settings, { "welcome_text_en" => "first", "welcome_text_fr" => "" })
 
     expect do
       content_block.assign_attributes(settings: { "welcome_text_en" => "second", "welcome_text_fr" => "" })
@@ -58,9 +54,7 @@ RSpec.describe Decidim::Voca::ContentBlockTranslatedSettingsMachineTranslation d
 
   it "does not enqueue when machine translation service is unset" do
     allow(Decidim).to receive(:machine_translation_service_klass).and_return(nil)
-    # rubocop:disable Rails/SkipsModelValidations -- nested settings fixture
-    content_block.update_column(:settings, { "welcome_text" => { "en" => "first" } })
-    # rubocop:enable Rails/SkipsModelValidations
+    set_jsonb_column(content_block, :settings, { "welcome_text" => { "en" => "first" } })
 
     expect do
       content_block.assign_attributes(settings: { "welcome_text" => { "en" => "second" } })

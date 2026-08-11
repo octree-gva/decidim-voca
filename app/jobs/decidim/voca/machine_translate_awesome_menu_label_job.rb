@@ -16,7 +16,18 @@ module Decidim
         source_text = extract_source_text(config, item_url, source_locale)
         return if source_text.blank?
 
-        persist_machine_translation(config, item_url, target_locale, source_locale, source_text)
+        translated = MachineTranslation::TranslateString.call(
+          text: source_text,
+          source_locale:,
+          target_locale:,
+          html: false,
+          context: "Decidim::DecidimAwesome::AwesomeConfig id=#{config.id} url=#{item_url}"
+        )
+        return if translated.nil?
+
+        config.with_lock do
+          merge_translation_into_value(config, item_url, target_locale, translated)
+        end
       end
 
       private
@@ -31,22 +42,6 @@ module Decidim
         label[source_locale.to_s].presence || label[source_locale.to_sym].presence
       end
 
-      def persist_machine_translation(config, item_url, target_locale, source_locale, source_text)
-        context = "Decidim::DecidimAwesome::AwesomeConfig id=#{config.id} url=#{item_url}"
-        translated = MachineTranslation::TranslateString.call(
-          text: source_text,
-          source_locale:,
-          target_locale:,
-          html: false,
-          context:
-        )
-        return if translated.nil?
-
-        config.with_lock do
-          merge_translation_into_value(config, item_url, target_locale, translated)
-        end
-      end
-
       def merge_translation_into_value(config, item_url, target_locale, translated)
         items = AwesomeMenuLabels.menu_items(config.reload.value)
         item = items.find { |i| i["url"].to_s == item_url.to_s }
@@ -57,9 +52,7 @@ module Decidim
 
         label["machine_translations"] ||= {}
         label["machine_translations"][target_locale.to_s] = translated
-        # rubocop:disable Rails/SkipsModelValidations -- nested JSONB merge must not re-run after_save MT callbacks
-        config.update_column(:value, items)
-        # rubocop:enable Rails/SkipsModelValidations
+        UpdateColumnWithoutCallbacks.call(config, :value, items)
       end
 
       def find_item(value, item_url)

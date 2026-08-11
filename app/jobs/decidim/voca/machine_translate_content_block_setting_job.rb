@@ -16,7 +16,18 @@ module Decidim
         source_text = extract_source_text(content_block, setting_key, source_locale)
         return if source_text.blank?
 
-        persist_machine_translation(content_block, setting_key, target_locale, source_locale, source_text, html)
+        translated = translate_text(
+          source_text,
+          source_locale,
+          target_locale,
+          html,
+          "Decidim::ContentBlock id=#{content_block.id} setting=#{setting_key}"
+        )
+        return if translated.nil?
+
+        content_block.with_lock do
+          merge_translation_into_settings(content_block, setting_key, target_locale, translated)
+        end
       end
 
       private
@@ -33,23 +44,15 @@ module Decidim
         field[source_locale.to_s].presence || field[source_locale.to_sym].presence
       end
 
-      # rubocop:disable Metrics/ParameterLists -- mirrors #perform arguments split for complexity
-      def persist_machine_translation(content_block, setting_key, target_locale, source_locale, source_text, html)
-        context = "Decidim::ContentBlock id=#{content_block.id} setting=#{setting_key}"
-        translated = MachineTranslation::TranslateString.call(
+      def translate_text(source_text, source_locale, target_locale, html, context)
+        MachineTranslation::TranslateString.call(
           text: source_text,
           source_locale:,
           target_locale:,
           html:,
           context:
         )
-        return if translated.nil?
-
-        content_block.with_lock do
-          merge_translation_into_settings(content_block, setting_key, target_locale, translated)
-        end
       end
-      # rubocop:enable Metrics/ParameterLists
 
       def merge_translation_into_settings(content_block, setting_key, target_locale, translated)
         fresh = content_block.reload.read_attribute(:settings).deep_dup.deep_stringify_keys
@@ -62,9 +65,7 @@ module Decidim
 
         field["machine_translations"] ||= {}
         field["machine_translations"][target_locale.to_s] = translated
-        # rubocop:disable Rails/SkipsModelValidations -- nested JSONB merge must not re-run after_save MT callbacks
-        content_block.update_column(:settings, fresh)
-        # rubocop:enable Rails/SkipsModelValidations
+        UpdateColumnWithoutCallbacks.call(content_block, :settings, fresh)
       end
     end
   end
