@@ -91,19 +91,19 @@ module Decidim
         end
 
         # ponytail: audited from 0.29 models + voca schema + geo; ceiling = list new belongs_to names here
-        KNOWN_PARENT_ASSOCIATIONS = %i[
-          response election taxonomy taxonomy_item taxonomy_filter taxonomizable
-          scope root_taxonomy type participatory_process document document_version
-          vote translation_set api_client suggestion content_block moderation comment
-          initiative order amendable emendation followable remindable categorizable
-          authorization transfer valuator_role conference_speaker decidim_component
-          decidim_geo_space suggestable user_group admin answer_option matrix_row
-          condition_question reportable cancelled_by_user related_object blocking_user
-          source_user managed_user registration_type message dummy_resource templatable
-          attachment_collection target token_for topic version area area_type
-          assembly_type scope_type last_comment_by proposal_state participatory_process_group
-          participatory_process_type scoped_type decidim_proposals_component
-          decidim_participatory_space user_report section subject status
+        KNOWN_PARENT_ASSOCIATIONS = [
+          :response, :election, :taxonomy, :taxonomy_item, :taxonomy_filter, :taxonomizable, :scope,
+          :root_taxonomy, :type, :participatory_process, :document, :document_version, :vote,
+          :translation_set, :api_client, :suggestion, :content_block, :moderation, :comment, :initiative,
+          :order, :amendable, :emendation, :followable, :remindable, :categorizable, :authorization,
+          :transfer, :valuator_role, :conference_speaker, :decidim_component, :decidim_geo_space,
+          :suggestable, :user_group, :admin, :answer_option, :matrix_row, :condition_question,
+          :reportable, :cancelled_by_user, :related_object, :blocking_user, :source_user, :managed_user,
+          :registration_type, :message, :dummy_resource, :templatable, :attachment_collection, :target,
+          :token_for, :topic, :version, :area, :area_type, :assembly_type, :scope_type, :last_comment_by,
+          :proposal_state, :participatory_process_group, :participatory_process_type, :scoped_type,
+          :decidim_proposals_component, :decidim_participatory_space, :user_report, :section, :subject,
+          :status
         ].freeze
 
         def self.try_attachment(record)
@@ -192,9 +192,7 @@ module Decidim
               next unless record.respond_to?(name)
 
               related = safe_association(record, name)
-              next if related.blank? || related.equal?(record)
-              # skip STI `type` strings / constants; allow Struct stand-ins in specs
-              next if related.is_a?(String) || related.is_a?(Module) || related.is_a?(Numeric)
+              next unless known_parent_related?(related, record)
 
               organization = resolve_with_resolvers(related)
               return organization if organization.present?
@@ -204,6 +202,15 @@ module Decidim
             Thread.current[:voca_sync_locales_known_parent] = false
           end
         end
+
+        def self.known_parent_related?(related, record)
+          return false if related.blank? || related.equal?(record)
+          # skip STI `type` strings / constants; allow Struct stand-ins in specs
+          return false if related.is_a?(String) || related.is_a?(Module) || related.is_a?(Numeric)
+
+          true
+        end
+        private_class_method :known_parent_related?
 
         def self.try_shapefile(record)
           # Geo::Shapedata: organization via scope may be nil; schema has decidim_geo_shapefiles_id
@@ -299,9 +306,7 @@ module Decidim
         def self.try_questionnaire(record)
           if record.respond_to?(:questionnaire_for)
             questionnaire_for = safe_association(record, :questionnaire_for)
-            if questionnaire_for
-              return try_component(questionnaire_for) || try_organization(questionnaire_for)
-            end
+            return try_component(questionnaire_for) || try_organization(questionnaire_for) if questionnaire_for
           end
 
           questionnaire = if record.is_a?(::Decidim::Forms::Questionnaire)
@@ -491,13 +496,18 @@ module Decidim
             return item if item
           end
 
+          paper_trail_item_from_type(record)
+        end
+        private_class_method :paper_trail_item
+
+        def self.paper_trail_item_from_type(record)
           klass = record.item_type.safe_constantize
           return unless klass.is_a?(Class) && klass < ActiveRecord::Base
 
           scope = klass.respond_to?(:unscoped) ? klass.unscoped : klass
           scope.find_by(id: record.item_id)
         end
-        private_class_method :paper_trail_item
+        private_class_method :paper_trail_item_from_type
 
         # ponytail: reads organization_id/component_id from version object only; upgrade if other attrs needed
         def self.try_version_object_attributes(record)
