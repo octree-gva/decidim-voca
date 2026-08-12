@@ -33,14 +33,14 @@ module Decidim
       private
 
       def extract_source_text(component, setting_key, source_locale)
-        field = component.read_attribute(:settings).deep_dup.deep_stringify_keys.dig("global", setting_key.to_s)
+        field = (component.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys.dig("global", setting_key.to_s)
         return unless field.is_a?(Hash)
 
         field[source_locale.to_s].presence || field[source_locale.to_sym].presence
       end
 
       def merge_translation_into_settings(component, setting_key, target_locale, translated)
-        fresh = component.reload.read_attribute(:settings).deep_dup.deep_stringify_keys
+        fresh = (component.reload.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
         fg = fresh["global"] ||= {}
         f = fg[setting_key.to_s]
         return unless f.is_a?(Hash)

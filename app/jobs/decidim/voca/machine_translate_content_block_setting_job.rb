@@ -33,7 +33,7 @@ module Decidim
       private
 
       def extract_source_text(content_block, setting_key, source_locale)
-        settings = content_block.read_attribute(:settings).deep_dup.deep_stringify_keys
+        settings = (content_block.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
         keys = [setting_key.to_s]
         locales = content_block.organization.available_locales.map(&:to_s)
         ContentBlockSettingManifest.coalesce_flat_keys!(settings, keys, locales)
@@ -55,7 +55,7 @@ module Decidim
       end
 
       def merge_translation_into_settings(content_block, setting_key, target_locale, translated)
-        fresh = content_block.reload.read_attribute(:settings).deep_dup.deep_stringify_keys
+        fresh = (content_block.reload.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
         keys = [setting_key.to_s]
         locales = content_block.organization.available_locales.map(&:to_s)
         ContentBlockSettingManifest.coalesce_flat_keys!(fresh, keys, locales)

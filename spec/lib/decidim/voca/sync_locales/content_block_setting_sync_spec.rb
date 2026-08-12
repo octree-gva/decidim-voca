@@ -51,4 +51,12 @@ RSpec.describe Decidim::Voca::SyncLocales::ContentBlockSettingSync do
       described_class.new(organization).call
     end.not_to have_enqueued_job(Decidim::Voca::MachineTranslateContentBlockSettingJob)
   end
+
+  it "is a no-op when settings are nil" do
+    set_jsonb_column(content_block, :settings, nil)
+
+    expect do
+      described_class.new(content_block).call
+    end.not_to have_enqueued_job(Decidim::Voca::MachineTranslateContentBlockSettingJob)
+  end
 end

@@ -16,7 +16,7 @@ module Decidim
           return if keys.empty?
 
           context = LocaleContext.for(@record)
-          settings = @record.read_attribute(:settings).deep_dup.deep_stringify_keys
+          settings = (@record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
           Decidim::Voca::ContentBlockSettingManifest.coalesce_flat_keys!(
             settings,
             keys,

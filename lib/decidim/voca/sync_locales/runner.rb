@@ -181,7 +181,7 @@ module Decidim
         end
 
         def clean_content_block_settings_record(record, context, keys)
-          settings = record.read_attribute(:settings).deep_dup.deep_stringify_keys
+          settings = (record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
           Decidim::Voca::ContentBlockSettingManifest.coalesce_flat_keys!(
             settings,
             keys,
@@ -220,7 +220,7 @@ module Decidim
         end
 
         def clean_component_settings_record(record, context, global_keys, process_step_keys)
-          settings = record.read_attribute(:settings).deep_dup.deep_stringify_keys
+          settings = (record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
           touched = clean_global_settings!(settings, context, global_keys)
           touched ||= clean_step_settings!(settings, context, process_step_keys)
 
