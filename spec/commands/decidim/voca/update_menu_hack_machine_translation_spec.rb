@@ -10,7 +10,7 @@ RSpec.describe Decidim::DecidimAwesome::Admin::UpdateMenuHack do
       :organization,
       host: "#{SecureRandom.hex(8)}.example.org",
       available_locales: %w(en fr),
-      default_locale: "en",
+      default_locale: "fr",
       enable_machine_translations: true
     )
   end
@@ -22,7 +22,7 @@ RSpec.describe Decidim::DecidimAwesome::Admin::UpdateMenuHack do
       value: [
         {
           "url" => "/",
-          "label" => { "en" => "Accueil", "fr" => "" },
+          "label" => { "fr" => "Accueil", "en" => "" },
           "position" => 1,
           "visibility" => "default",
           "target" => ""
@@ -36,8 +36,8 @@ RSpec.describe Decidim::DecidimAwesome::Admin::UpdateMenuHack do
       position: 1,
       visibility: "default",
       target: "",
-      raw_label_en: "Home",
-      raw_label_fr: ""
+      raw_label_fr: "Démarches participatives",
+      raw_label_en: ""
     ).with_context(current_organization: organization)
   end
 
@@ -54,8 +54,8 @@ RSpec.describe Decidim::DecidimAwesome::Admin::UpdateMenuHack do
     end.to have_enqueued_job(Decidim::Voca::MachineTranslateAwesomeMenuLabelJob).with(
       awesome_config.id,
       "/",
-      "fr",
-      "en"
+      "en",
+      "fr"
     )
   end
 
@@ -66,7 +66,7 @@ RSpec.describe Decidim::DecidimAwesome::Admin::UpdateMenuHack do
 
     awesome_config.reload
     label = awesome_config.value.find { |i| i["url"] == "/" }["label"]
-    expect(label["en"]).to eq("Home")
-    expect(label.dig("machine_translations", "fr")).to eq("fr - Home")
+    expect(label["fr"]).to eq("Démarches participatives")
+    expect(label.dig("machine_translations", "en")).to eq("en - Démarches participatives")
   end
 end

@@ -10,7 +10,7 @@ RSpec.describe Decidim::Admin::ContentBlocks::UpdateContentBlock do
       :organization,
       host: "#{SecureRandom.hex(8)}.example.org",
       available_locales: %w(en fr),
-      default_locale: "en",
+      default_locale: "fr",
       enable_machine_translations: true
     )
   end
@@ -19,7 +19,7 @@ RSpec.describe Decidim::Admin::ContentBlocks::UpdateContentBlock do
     instance_double(
       Decidim::Admin::ContentBlockForm,
       invalid?: false,
-      settings: { "welcome_text_en" => "Nyon city", "welcome_text_fr" => "" },
+      settings: { "welcome_text_fr" => "Nyon city", "welcome_text_en" => "" },
       images: {}
     )
   end
@@ -27,7 +27,7 @@ RSpec.describe Decidim::Admin::ContentBlocks::UpdateContentBlock do
   before do
     Decidim::Voca::DeepL::EngineConfig.apply_mergeable_fields!
     stub_dummy_machine_translator
-    set_jsonb_column(content_block, :settings, { "welcome_text_en" => "old hero", "welcome_text_fr" => "" })
+    set_jsonb_column(content_block, :settings, { "welcome_text_fr" => "old hero", "welcome_text_en" => "" })
     clear_enqueued_jobs
   end
 
@@ -37,20 +37,20 @@ RSpec.describe Decidim::Admin::ContentBlocks::UpdateContentBlock do
     end.to have_enqueued_job(Decidim::Voca::MachineTranslateContentBlockSettingJob).with(
       content_block.id,
       "welcome_text",
-      "fr",
       "en",
+      "fr",
       html: false
     )
   end
 
-  it "persists machine_translations after the job runs" do
+  it "persists flat welcome_text_en after the job runs" do
     perform_enqueued_jobs do
       described_class.call(form, content_block, :homepage)
     end
 
     content_block.reload
-    nested = content_block.read_attribute(:settings)["welcome_text"]
-    expect(nested["en"]).to eq("Nyon city")
-    expect(nested.dig("machine_translations", "fr")).to eq("fr - Nyon city")
+    settings = content_block.read_attribute(:settings)
+    expect(settings["welcome_text_fr"]).to eq("Nyon city")
+    expect(settings["welcome_text_en"]).to eq("en - Nyon city")
   end
 end

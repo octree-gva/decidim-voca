@@ -33,6 +33,35 @@ module Decidim
         end
         settings
       end
+
+      # Decidim content-block JSONB is flat (+welcome_text_fr+). Expand nested (+machine_translations+)
+      # back to flat keys so HeroCell/admin schema resolve locale values.
+      def expand_to_flat_keys!(settings, keys)
+        return settings unless settings.is_a?(Hash)
+
+        keys.each { |key| expand_one_key_to_flat!(settings, key) }
+        settings
+      end
+
+      def expand_one_key_to_flat!(settings, key)
+        nested = settings.delete(key)
+        return unless nested.is_a?(Hash)
+
+        nested = nested.deep_stringify_keys
+        mt = nested.delete("machine_translations")
+        nested.each do |loc, val|
+          next if loc.blank?
+
+          settings["#{key}_#{loc}"] = val
+        end
+        return unless mt.is_a?(Hash)
+
+        mt.deep_stringify_keys.each do |loc, val|
+          next if loc.blank? || val.blank?
+
+          settings["#{key}_#{loc}"] = val
+        end
+      end
     end
   end
 end

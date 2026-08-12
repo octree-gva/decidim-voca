@@ -10,8 +10,9 @@ RSpec.describe Decidim::Voca::SyncLocales::ContentBlockSettingSync do
       :organization,
       host: "#{SecureRandom.hex(8)}.example.org",
       available_locales: %w(en fr),
-      default_locale: "en",
-      enable_machine_translations: true
+      default_locale: "fr",
+      enable_machine_translations: true,
+      machine_translation_display_priority: "translation"
     )
   end
   let(:content_block) { create(:content_block, organization:, scope_name: :homepage, manifest_name: :hero) }
@@ -21,42 +22,29 @@ RSpec.describe Decidim::Voca::SyncLocales::ContentBlockSettingSync do
     clear_enqueued_jobs
   end
 
-  it "enqueues MachineTranslateContentBlockSettingJob for pending locales" do
-    set_jsonb_column(content_block, :settings, { "welcome_text" => { "en" => "Hello" } })
-
-    expect do
-      described_class.new(content_block).call
-    end.to have_enqueued_job(Decidim::Voca::MachineTranslateContentBlockSettingJob).with(
-      content_block.id,
-      "welcome_text",
-      "fr",
-      "en",
-      html: false
+  it "populates flat welcome_text_en from FR human source during sync" do
+    set_jsonb_column(
+      content_block,
+      :settings,
+      { "welcome_text_fr" => "votre ville, vos idées, vos projets !" }
     )
-  end
 
-  it "coalesces flat keys then enqueues" do
-    set_jsonb_column(content_block, :settings, { "welcome_text_en" => "Bonjour flat" })
-
-    expect do
-      described_class.new(content_block).call
-    end.to have_enqueued_job(Decidim::Voca::MachineTranslateContentBlockSettingJob)
+    described_class.new(content_block).call
 
     content_block.reload
-    expect(content_block.read_attribute(:settings)["welcome_text"]["en"]).to eq("Bonjour flat")
+    settings = content_block.read_attribute(:settings)
+    expect(settings["welcome_text_fr"]).to eq("votre ville, vos idées, vos projets !")
+    expect(settings["welcome_text_en"]).to eq("en - votre ville, vos idées, vos projets !")
+    expect(settings).not_to have_key("welcome_text")
   end
 
   it "is a no-op for non-content-blocks" do
-    expect do
-      described_class.new(organization).call
-    end.not_to have_enqueued_job(Decidim::Voca::MachineTranslateContentBlockSettingJob)
+    expect { described_class.new(organization).call }.not_to raise_error
   end
 
   it "is a no-op when settings are nil" do
     set_jsonb_column(content_block, :settings, nil)
 
-    expect do
-      described_class.new(content_block).call
-    end.not_to have_enqueued_job(Decidim::Voca::MachineTranslateContentBlockSettingJob)
+    expect { described_class.new(content_block).call }.not_to raise_error
   end
 end

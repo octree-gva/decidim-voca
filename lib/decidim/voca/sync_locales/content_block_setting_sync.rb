@@ -3,7 +3,9 @@
 module Decidim
   module Voca
     module SyncLocales
-      # Normalizes + enqueues MT for translated keys under +ContentBlock#settings+.
+      # Normalizes + machine-translates translated keys under +ContentBlock#settings+.
+      # Translates inline (like {MachineTranslationEnqueuer}) and persists Decidim flat keys
+      # (+welcome_text_fr+ / +welcome_text_en+) so EN is populated after +sync_locales+.
       class ContentBlockSettingSync
         def initialize(record)
           @record = record
@@ -23,31 +25,25 @@ module Decidim
             context.allowed_locales
           )
 
-          changed = false
           keys.each do |key|
             raw = settings[key]
             next unless raw.is_a?(Hash)
 
-            stringy = FieldHashNormalizer.deep_stringify(raw)
             normalized = FieldHashNormalizer.call(raw, context)
-            if normalized != stringy
-              settings[key] = normalized
-              changed = true
-            end
-            enqueue_for_key(key, normalized, context)
+            translate_pending_inline!(key, normalized, context)
+            settings[key] = normalized
           end
 
-          # Always persist coalesced flat→nested even when normalizer was a no-op.
+          Decidim::Voca::ContentBlockSettingManifest.expand_to_flat_keys!(settings, keys)
           original = FieldHashNormalizer.deep_stringify(@record.read_attribute(:settings) || {})
-          changed ||= settings != original
-          return unless changed
+          return if settings == original
 
           UpdateColumnWithoutCallbacks.call(@record, :settings, settings)
         end
 
         private
 
-        def enqueue_for_key(key, normalized, context)
+        def translate_pending_inline!(key, normalized, context)
           return unless Decidim.machine_translation_service_klass
           return unless context.enable_machine_translations?
 
@@ -55,11 +51,23 @@ module Decidim
           source_text = normalized.stringify_keys[default]
           return if source_text.blank?
 
+          html = rich_text_content_block_setting?(key)
           ComponentSettingPendingLocales.for(normalized, context.organization).each do |target_locale|
-            html = rich_text_content_block_setting?(key)
-            Decidim::Voca::MachineTranslateContentBlockSettingJob
-              .set(wait: Decidim.config.machine_translation_delay)
-              .perform_later(@record.id, key, target_locale, default, html:)
+            next if normalized.dig("machine_translations", target_locale).present?
+
+            translated = Decidim::Voca::DeepL::Context.with_organization(context.organization) do
+              MachineTranslation::TranslateString.call(
+                text: source_text,
+                source_locale: default,
+                target_locale:,
+                html:,
+                context: "Decidim::ContentBlock id=#{@record.id} setting=#{key}"
+              )
+            end
+            next if translated.nil?
+
+            normalized["machine_translations"] ||= {}
+            normalized["machine_translations"][target_locale] = translated
           end
         end
 

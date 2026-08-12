@@ -2,7 +2,8 @@
 
 module Decidim
   module Voca
-    # Persists machine translation for a single translated content-block setting (nested JSONB).
+    # Persists machine translation for a single translated content-block setting.
+    # Writes Decidim-canonical flat keys (+welcome_text_en+) so front/admin resolve EN.
     class MachineTranslateContentBlockSettingJob < Decidim::ApplicationJob
       queue_as :translations
 
@@ -26,7 +27,7 @@ module Decidim
         return if translated.nil?
 
         content_block.with_lock do
-          merge_translation_into_settings(content_block, setting_key, target_locale, translated)
+          merge_translation_into_settings(content_block, setting_key, target_locale, source_locale, translated)
         end
       end
 
@@ -54,7 +55,7 @@ module Decidim
         )
       end
 
-      def merge_translation_into_settings(content_block, setting_key, target_locale, translated)
+      def merge_translation_into_settings(content_block, setting_key, target_locale, source_locale, translated)
         fresh = (content_block.reload.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
         keys = [setting_key.to_s]
         locales = content_block.organization.available_locales.map(&:to_s)
@@ -65,7 +66,15 @@ module Decidim
 
         field["machine_translations"] ||= {}
         field["machine_translations"][target_locale.to_s] = translated
+        # Keep human source at the default locale root for expand.
+        field[source_locale.to_s] ||= extract_source_from_field(field, source_locale)
+
+        ContentBlockSettingManifest.expand_to_flat_keys!(fresh, keys)
         UpdateColumnWithoutCallbacks.call(content_block, :settings, fresh)
+      end
+
+      def extract_source_from_field(field, source_locale)
+        field[source_locale.to_s].presence || field[source_locale.to_sym].presence
       end
     end
   end

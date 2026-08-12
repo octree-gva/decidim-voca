@@ -10,7 +10,7 @@ RSpec.describe Decidim::Voca::MachineTranslateAwesomeMenuLabelJob do
       :organization,
       host: "#{SecureRandom.hex(8)}.example.org",
       available_locales: %w(en fr),
-      default_locale: "en",
+      default_locale: "fr",
       enable_machine_translations: true
     )
   end
@@ -22,7 +22,7 @@ RSpec.describe Decidim::Voca::MachineTranslateAwesomeMenuLabelJob do
       value: [
         {
           "url" => "/about",
-          "label" => { "en" => "About us" },
+          "label" => { "fr" => "À propos" },
           "position" => 2
         }
       ]
@@ -33,25 +33,26 @@ RSpec.describe Decidim::Voca::MachineTranslateAwesomeMenuLabelJob do
 
   describe "#perform" do
     it "merges machine_translations under the matching item label" do
-      described_class.perform_now(awesome_config.id, "/about", "fr", "en")
+      described_class.perform_now(awesome_config.id, "/about", "en", "fr")
 
       awesome_config.reload
       label = awesome_config.value.first["label"]
-      expect(label["machine_translations"]["fr"]).to eq("fr - About us")
-      expect(label["en"]).to eq("About us")
+      expect(label["machine_translations"]["en"]).to eq("en - À propos")
+      expect(label["fr"]).to eq("À propos")
     end
 
     it "does nothing when source text is blank" do
       set_jsonb_column(
         awesome_config,
         :value,
-        [{ "url" => "/about", "label" => { "en" => "" }, "position" => 2 }]
+        [{ "url" => "/about", "label" => { "fr" => "" }, "position" => 2 }]
       )
 
-      described_class.perform_now(awesome_config.id, "/about", "fr", "en")
+      described_class.perform_now(awesome_config.id, "/about", "en", "fr")
 
       awesome_config.reload
       expect(awesome_config.value.first["label"]["machine_translations"]).to be_nil
     end
   end
 end
+
