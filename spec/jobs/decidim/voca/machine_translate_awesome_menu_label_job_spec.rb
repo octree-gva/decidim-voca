@@ -55,4 +55,3 @@ RSpec.describe Decidim::Voca::MachineTranslateAwesomeMenuLabelJob do
     end
   end
 end
-
