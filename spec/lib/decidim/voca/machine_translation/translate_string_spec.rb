@@ -29,7 +29,6 @@ RSpec.describe Decidim::Voca::MachineTranslation::TranslateString do
 
     it "does not treat Decidim::Voca::DeepL as the deepl-rb gem" do
       allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Voca::DeepL::MachineTranslator)
-      allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
       hide_const("::DeepL")
 
       expect(described_class.call(

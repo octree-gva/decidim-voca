@@ -25,8 +25,6 @@ module Decidim
         private
 
         def deepl_context!(env)
-          return unless Decidim::Voca::Installation.deepl_enabled?
-
           organization_context!(env)
           participatory_space_context!(env)
           component_context!(env)

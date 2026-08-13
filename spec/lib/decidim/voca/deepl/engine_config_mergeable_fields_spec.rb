@@ -19,7 +19,6 @@ RSpec.describe Decidim::Voca::DeepL::EngineConfig do
 
   describe ".apply_mergeable_fields!" do
     before do
-      allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
       # Idempotent: safe to run multiple times in one process
       described_class.apply_mergeable_fields!
       described_class.send(:fix_accountability_timeline_entry_translatable_fields!)

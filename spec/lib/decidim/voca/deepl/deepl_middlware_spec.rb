@@ -22,7 +22,6 @@ module Decidim
 
       before do
         allow(app).to receive(:call).and_return([200, {}, ["OK"]])
-        allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
         allow(Decidim::Voca::DeepL::Context).to receive(:organization=)
         allow(Decidim::Voca::DeepL::Context).to receive(:participatory_space=)
         allow(Decidim::Voca::DeepL::Context).to receive(:current_component=)
@@ -45,8 +44,6 @@ module Decidim
         end
 
         context "when deepl is disabled" do
-          before { allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(false) }
-
           it "skips deepl context setting" do
             expect(Decidim::Voca::DeepL::Context).not_to receive(:organization=)
             expect(Decidim::Voca::DeepL::Context).not_to receive(:participatory_space=)
@@ -85,10 +82,6 @@ module Decidim
       end
 
       describe "context setting methods" do
-        before do
-          allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
-        end
-
         context "when organization is present" do
           it "sets organization context to a global id" do
             expect(Decidim::Voca::DeepL::Context).to receive(:organization=).with(organization.to_global_id.to_s)

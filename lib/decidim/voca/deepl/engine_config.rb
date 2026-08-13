@@ -44,7 +44,6 @@ module Decidim
           {
             class_name: "Decidim::Templates::Template",
             include_translatable_resource: true,
-            if: -> { Decidim::Voca::Installation.decidim_templates_installed? },
             fields: %w(name description)
           }
         ].freeze
@@ -53,8 +52,6 @@ module Decidim
           # Wire model hooks and overrides that must be loaded after the app is initialized.
           # @param config [Rails::Application] host app (+Rails.application+; first block arg of +initializer+)
           def initialize!
-            return unless Decidim::Voca::Installation.deepl_enabled?
-
             configure_deepl!
             configure_machine_translation!
             Rails.application.config.middleware.use ::Decidim::Voca::DeepL::Middleware
@@ -66,8 +63,6 @@ module Decidim
           # Configure the DeepL SDK + Decidim machine translation config (+middleware, ActiveJob hook).
           # Called from {Decidim::Voca::Engine}'s +decidim.voca.deepl+ initializer (middleware stack not frozen yet).
           def configure!
-            return unless Decidim::Voca::Installation.deepl_enabled?
-
             apply_mergeable_fields!
             fix_accountability_timeline_entry_translatable_fields!
 

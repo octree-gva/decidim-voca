@@ -3,4 +3,4 @@ import "./proposal_better_ux/map_reload";
 import "./proposal_better_ux/find_my_location_button";
 import "./proposal_better_ux/use_camera_button";
 import "./weglot";
-import "./questionnaire/scroll_questionnaire_steps to_top";
+import "./questionnaire/scroll_questionnaire_steps_to_top";

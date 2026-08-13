@@ -1,9 +1,9 @@
 /**
  * Scrolls the questionnaire step to the top
  */
-
+console.log('Módulo de scroll carregado')
 document.addEventListener('DOMContentLoaded', () => {
-  const stepDivs = document.querySelectorAll('.answer-questionnaire__step');
+  const stepDivs = document.querySelectorAll('.response-questionnaire__step');
   if (stepDivs.length === 0) { return }
   stepDivs.forEach((stepDiv) => {
     const buttons = stepDiv.querySelectorAll('button');
