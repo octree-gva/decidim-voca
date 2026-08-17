@@ -27,7 +27,6 @@ Gem::Specification.new do |s|
   s.add_dependency "good_job", "~> 4.5.1"
 
   s.add_dependency "image_processing", "~> 1.2"
-  s.add_dependency "next_gen_images", "~> 1.1.1"
   s.add_dependency "ruby-vips", "~> 2.2.4"
   s.metadata["rubygems_mfa_required"] = "true"
 end

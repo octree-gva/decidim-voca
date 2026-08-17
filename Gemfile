@@ -21,6 +21,8 @@ gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch:
 gem "puma", ">= 6.3.1"
 gem "uglifier", "~> 4.1"
 
+gem "decidim-decidim_awesome", git: "https://github.com/decidim-ice/decidim-module-decidim_awesome.git", branch: "upgrade-32"
+
 group :development, :test do
   gem "brakeman", "~> 6.1"
   gem "byebug", "~> 11.0", platform: :mri

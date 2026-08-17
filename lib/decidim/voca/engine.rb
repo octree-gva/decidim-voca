@@ -4,7 +4,6 @@ require "rails"
 require "socket"
 require "decidim/core"
 require "deface"
-require "next_gen_images"
 require "decidim/verifications"
 require "decidim/voca/code_census"
 require_relative "export/csv_with_locale_transformer"
@@ -193,19 +192,6 @@ module Decidim
             end
             Rails.application.config.cache_store = cache_store_config
           end
-        end
-      end
-
-      # Rack::Attack configuration
-      initializer "decidim.voca.rack_attack", after: :load_config_initializers do
-        require "rack/attack"
-        if Rails.env.development?
-          Rails.application.configure do |config|
-            config.middleware.use Rack::Attack
-          end
-        end
-        ActiveSupport::Reloader.to_prepare do
-          Decidim::Voca::RackAttackConfigurator.call
         end
       end
 
