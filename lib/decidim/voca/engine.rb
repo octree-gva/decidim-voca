@@ -97,17 +97,6 @@ module Decidim
         #Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
       end
 
-      # Fixes for geolocated proposals at creation
-      config.to_prepare do
-        if Decidim::Voca.decidim_awesome?
-          Decidim::DecidimAwesome::Proposals::CreateProposalOverride.include(Decidim::Voca::Overrides::CreateProposalOverrides)
-        else
-          Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
-        end
-
-        Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
-      end
-
       config.to_prepare do
         Decidim::Voca::DeepL::EngineConfig.configure!
       end

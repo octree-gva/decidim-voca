@@ -2,7 +2,9 @@ import getProposalForm from "./utils/get_proposal_form";
 import { initializeUploadFields } from "src/decidim/direct_uploads/upload_field";
 
 document.addEventListener("DOMContentLoaded", () => {
-  initializeUploadFields();
+  console.log('Use my camera loaded')
+  const attachmentButtons = document.querySelectorAll("button[data-upload]");
+  initializeUploadFields(attachmentButtons);
   const $form = getProposalForm();
   if (!$form) {
     return;
