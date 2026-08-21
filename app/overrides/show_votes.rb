@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Deface::Override.new(
-  virtual_path: "decidim/proposals/admin/proposals/index",
+  virtual_path: "decidim/proposals/admin/proposals/_proposals-thead",
   name: "show_votes_th",
   replace_contents: "erb[silent]:contains('if current_settings.votes_enabled?')",
   closing_selector: "erb[silent]:contains('end')",

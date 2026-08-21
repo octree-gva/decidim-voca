@@ -10,7 +10,7 @@ module Decidim
         enforce_permission_to :locate, :geolocation
 
         unless Decidim::Map.configured?
-          return render(json: { message: I18n.t("unconfigured", scope: "decidim.application.geocoding"), found: false }, status: :unprocessable_entity)
+          return render(json: { message: I18n.t("unconfigured", scope: "decidim.application.geocoding"), found: false }, status: :unprocessable_content)
         end
 
         geocoder = Decidim::Map.utility(:geocoding, organization: current_organization)
@@ -25,7 +25,7 @@ module Decidim
       def ajax_user_has_no_permission
         return user_has_no_permission unless request.xhr?
 
-        render json: { message: I18n.t("actions.unauthorized", scope: "decidim.core") }, status: :unprocessable_entity
+        render json: { message: I18n.t("actions.unauthorized", scope: "decidim.core") }, status: :unprocessable_content
       end
     end
   end

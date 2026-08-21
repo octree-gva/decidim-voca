@@ -26,7 +26,7 @@ module Decidim
 
             on(:invalid) do
               flash.now[:alert] = t("authorizations.create.error", scope: "decidim.voca.code_census")
-              render :new, status: :unprocessable_entity
+              render :new, status: :unprocessable_content
             end
           end
         end
@@ -45,7 +45,7 @@ module Decidim
         end
 
         def code_form_params
-          params.require(:code).permit(:code)
+          params.expect(code: [:code])
         end
       end
     end

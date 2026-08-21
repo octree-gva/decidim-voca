@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 require_relative "voca/deepl"
 
 require_relative "voca/engine"
@@ -13,6 +12,8 @@ require_relative "voca/overrides/next_gen_images/image_tag_overrides"
 require_relative "voca/overrides/next_gen_images/proposal_g_cell_override"
 require_relative "voca/overrides/mod_secure/user_profile_verification_override"
 require_relative "voca/overrides/proposal_serializer_overrides"
+require_relative "voca/overrides/resource_presenter_overrides"
+require_relative "voca/overrides/sanitize_helper_overrides"
 require_relative "voca/machine_translation/translate_string"
 require_relative "voca/machine_translation_resource_job_voca"
 require_relative "voca/component_setting_manifest"

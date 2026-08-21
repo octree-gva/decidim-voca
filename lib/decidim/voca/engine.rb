@@ -93,8 +93,8 @@ module Decidim
         end
         Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        #Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        #Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
+        # Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
+        # Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
       end
 
       config.to_prepare do
@@ -105,8 +105,9 @@ module Decidim
         Decidim::Voca::DeepL::EngineConfig.initialize!
       end
 
-      # Setup upload variants
+      # Overrides
       config.to_prepare do
+        # Setup upload variants
         upload_variants = {
           thumbnail: { resize_to_fit: [nil, 237] },
           big: { resize_to_limit: [nil, 1000] },
@@ -114,6 +115,7 @@ module Decidim
           big_webp: { resize_to_limit: [nil, 1000], convert: :webp, format: :webp, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 100 } }
         }
         ActiveSupport.on_load(:action_view) { include NextGenImages::ViewHelpers }
+
         # Includes overrides
         ActionView::Helpers::AssetTagHelper.include(Decidim::Voca::Overrides::ImageTagOverrides)
         Decidim::ViewModel.include Decidim::Voca::Overrides::DecidimViewModel
@@ -130,6 +132,12 @@ module Decidim
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
+
+        # Overrides ResourcePresenter
+        Decidim::ResourcePresenter.include(Decidim::Voca::Overrides::ResourcePresenterOverrides)
+
+        # Overrides SanitizeHelper
+        Decidim::SanitizeHelper.include(Decidim::Voca::Overrides::SanitizeHelperOverrides)
       end
 
       # Trigger additional hooks on organization creation and update

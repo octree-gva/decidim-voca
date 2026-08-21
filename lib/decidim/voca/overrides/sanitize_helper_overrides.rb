@@ -17,8 +17,8 @@ module Decidim
 
           # Overrides it to include Decidim::ContentRenderers::BlobRenderer in the
           # renderer to properly render files and images in the Meetings show view.
-          def content_handle_locale(body, all_locales, extras, links, strip_tags)
-            body = original_content_handle_locale(body, all_locales, extras, links, strip_tags)
+          def content_handle_locale(body, all_locales, links, strip_tags)
+            body = original_content_handle_locale(body, all_locales, links, strip_tags)
             handle_locales(body, all_locales) do |content|
               Decidim::ContentRenderers::BlobRenderer.new(content).render.html_safe
             end

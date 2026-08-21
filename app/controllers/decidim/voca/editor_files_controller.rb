@@ -20,7 +20,7 @@ module Decidim
           end
 
           on(:invalid) do |_message|
-            render json: { message: I18n.t("editor_files.create.error", scope: "decidim.voca") }, status: :unprocessable_entity
+            render json: { message: I18n.t("editor_files.create.error", scope: "decidim.voca") }, status: :unprocessable_content
           end
         end
       end
@@ -32,7 +32,7 @@ module Decidim
       def ajax_user_has_no_permission
         return user_has_no_permission unless request.xhr?
 
-        render json: { message: I18n.t("actions.unauthorized", scope: "decidim.core") }, status: :unprocessable_entity
+        render json: { message: I18n.t("actions.unauthorized", scope: "decidim.core") }, status: :unprocessable_content
       end
 
       def form_values

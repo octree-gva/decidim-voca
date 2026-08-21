@@ -10,6 +10,7 @@ module Decidim
         let(:test_class) do
           Class.new do
             include OtelLogger
+
             public :message_to_string, :severity_to_number, :severity_to_text, :low_severity?,
                    :otel_severity_pair, :extract_attributes
           end

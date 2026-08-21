@@ -5,6 +5,7 @@ module Decidim
     module Overrides
       module ImageTagOverrides
         extend ActiveSupport::Concern
+
         included do
           alias_method :decidim_voca_image_tag, :image_tag
 

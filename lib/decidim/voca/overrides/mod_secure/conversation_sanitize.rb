@@ -8,6 +8,7 @@ module Decidim
 
         included do |_base|
           include ::Decidim::SanitizeHelper
+
           if respond_to?(:before_validation)
             # When included in a ActiveRecord
             before_validation :voca_sanitize_body

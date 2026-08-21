@@ -17,7 +17,7 @@ module Decidim
               }
               unless variants.has_key? :webp
                 variants.filter { |variant_name| variant_name != :default }.each do |variant_name, variant_options|
-                  attachable.variant "#{variant_name}_webp".to_sym, variant_options.merge(webp_options)
+                  attachable.variant :"#{variant_name}_webp", variant_options.merge(webp_options)
                 end
                 attachable.variant :webp, webp_options
               end

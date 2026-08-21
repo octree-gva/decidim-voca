@@ -5,6 +5,7 @@ module Decidim
     module Overrides
       module DecidimViewModel
         extend ActiveSupport::Concern
+
         included do
           include ::NextGenImages::ViewHelpers
         end

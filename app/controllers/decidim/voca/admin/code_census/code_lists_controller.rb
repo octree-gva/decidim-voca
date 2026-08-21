@@ -23,7 +23,7 @@ module Decidim
 
               on(:invalid) do
                 flash.now[:alert] = I18n.t("decidim.voca.admin.code_census.code_lists.update.error")
-                render :edit, status: :unprocessable_entity
+                render :edit, status: :unprocessable_content
               end
             end
           end

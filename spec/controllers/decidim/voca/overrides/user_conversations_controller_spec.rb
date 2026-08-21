@@ -170,7 +170,7 @@ module Decidim
         it "renders an error message" do
           put :update, format: :js, params: { nickname: profile.nickname, id: conversation.uuid, message: { body: "" } }
 
-          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response).to have_http_status(:unprocessable_content)
           expect(response).to render_template(:update)
         end
       end
