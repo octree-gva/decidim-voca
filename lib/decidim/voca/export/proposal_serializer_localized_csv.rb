@@ -7,7 +7,6 @@ module Decidim
     module Export
       # Prepended on ProposalSerializer: locale-first CSV columns and +locale+ from human slots.
       module ProposalSerializerLocalizedCsv
-        include Decidim::Voca::Overrides::ProposalSerializerOverrides
 
         def serialize
           data = super
