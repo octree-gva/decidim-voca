@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative "../overrides/proposal_serializer_overrides"
-
 module Decidim
   module Voca
     module Export
