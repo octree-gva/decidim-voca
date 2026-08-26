@@ -125,7 +125,7 @@ module Decidim
         Decidim::AttachmentUploader.set_variants { upload_variants }
 
         # System Organization Update Form
-        Decidim::System::UpdateOrganizationForm.include(Decidim::Voca::Overrides::System::SystemOrganizationUpdateForm)
+        #Decidim::System::UpdateOrganizationForm.include(Decidim::Voca::Overrides::System::SystemOrganizationUpdateForm)
 
         Decidim::SearchesController.prepend(Decidim::Voca::Overrides::SearchesControllerOverrides)
 
