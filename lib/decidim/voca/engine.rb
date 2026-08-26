@@ -124,9 +124,6 @@ module Decidim
         Decidim::Proposals::ProposalGCell.include(Decidim::Voca::Overrides::ProposalGCellOverride)
         Decidim::AttachmentUploader.set_variants { upload_variants }
 
-        # System Organization Update Form
-        #Decidim::System::UpdateOrganizationForm.include(Decidim::Voca::Overrides::System::SystemOrganizationUpdateForm)
-
         Decidim::SearchesController.prepend(Decidim::Voca::Overrides::SearchesControllerOverrides)
 
         # Set retry on Decidim::ApplicationJob
