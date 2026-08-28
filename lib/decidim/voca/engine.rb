@@ -153,6 +153,24 @@ module Decidim
         end
       end
 
+      # CSV serializers must load after Decidim Awesome's ProposalSerializer override, or Awesome's
+      # +alias_method :decidim_original_serialize, :serialize+ aliases voca's prepended +serialize+ and causes
+      # infinite recursion (see Overrides::CsvExportSerializers).
+      if Gem.loaded_specs.has_key?("decidim-decidim_awesome")
+        initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
+          config.to_prepare do
+            Decidim::Voca::Overrides::CsvExportSerializers.apply
+            ActiveSupport.on_load(:action_controller) do
+              Decidim::EditorImagesController = Decidim::DecidimAwesome::EditorImagesController
+            end
+          end
+        end
+      else
+        config.to_prepare do
+          Decidim::Voca::Overrides::CsvExportSerializers.apply
+        end
+      end
+
       # Cache namespace configuration
       # See https://guides.rubyonrails.org/caching_with_rails.html
       initializer "decidim.voca.cache_namespace", before: "decidim.voca.rack_attack" do
