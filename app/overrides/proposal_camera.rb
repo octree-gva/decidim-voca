@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-
 module ProposalCamera
   Deface::Override.new(
     virtual_path: "decidim/proposals/proposals/_edit_form_fields",

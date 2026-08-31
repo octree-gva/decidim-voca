@@ -23,7 +23,7 @@ module InsertWeglotScripts
       </div>
     ERB
   )
-  
+
   # layouts/decidim/header/_mobile_language_chooser
   Deface::Override.new(
     virtual_path: "layouts/decidim/header/_mobile_language_choose",

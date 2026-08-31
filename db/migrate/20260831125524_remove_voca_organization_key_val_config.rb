@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 class RemoveVocaOrganizationKeyValConfig < ActiveRecord::Migration[8.1]
   def change
     # Limpeza segura dos dados antes de remover a tabela.
