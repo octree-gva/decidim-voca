@@ -5,9 +5,9 @@ module Decidim
     module AdminBodyDataAttributes
       module_function
 
-      def deface_attributes
-        ParticipatorySpaces::BodyDataAttributes.deface_attributes.merge(
-          Components::BodyDataAttributes.deface_attributes
+      def deface_attributes(current_organization)
+        ParticipatorySpaces::BodyDataAttributes.deface_attributes(current_organization).merge(
+          Components::BodyDataAttributes.deface_attributes(current_organization)
         )
       end
     end

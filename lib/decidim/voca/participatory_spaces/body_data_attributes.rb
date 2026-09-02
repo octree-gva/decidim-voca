@@ -6,11 +6,11 @@ module Decidim
       module BodyDataAttributes
         module_function
 
-        def deface_attributes
+        def deface_attributes(current_organization)
           SPACES.each_key.to_h do |space|
             [
               "data-#{space.to_s.dasherize}-enabled",
-              "<%= Decidim::Voca::ParticipatorySpaces.space_enabled?(current_organization, :#{space}) %>"
+              Decidim::Voca::ParticipatorySpaces.space_enabled?(current_organization, space)
             ]
           end
         end
