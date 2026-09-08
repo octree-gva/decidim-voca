@@ -3,7 +3,6 @@
 require_relative "voca/deepl"
 
 require_relative "voca/engine"
-require_relative "voca/configuration"
 require_relative "voca/overrides/searches_controller_overrides"
 require_relative "voca/overrides/next_gen_images/decidim_viewmodel"
 require_relative "voca/overrides/next_gen_images/override_for_has_one_attached"
@@ -22,40 +21,15 @@ require_relative "voca/sync_locales"
 require_relative "voca/overrides/mod_secure/conversation_uuid"
 require_relative "voca/overrides/mod_secure/conversation_controller_overrides"
 require_relative "voca/overrides/mod_secure/conversation_sanitize"
+require_relative "voca/organization_voca_extensions"
 require "good_job/engine"
 
 module Decidim
   module Voca
     UUID_REGEXP = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/
-    autoload :RackAttackConfigurator, "decidim/voca/rack_attack_configurator"
-    autoload :UserFieldsConfigurator, "decidim/voca/user_fields_configurator"
-    def self.configuration
-      @configuration ||= Configuration.new
-    end
-
-    def self.configure
-      yield configuration
-    end
-
-    def self.next_gen_images?
-      configuration.enable_next_gen_images
-    end
 
     def self.decidim_awesome?
       Gem.loaded_specs.has_key?("decidim-decidim_awesome")
-    end
-
-    def self.weglot?
-      # Prefer deepl over weglot
-      configuration.enable_weglot && !Installation.deepl_enabled?
-    end
-
-    def self.weglot_cache?
-      configuration.enable_weglot_cache
-    end
-
-    def self.minimalistic_deepl?
-      configuration.enable_minimalistic_deepl
     end
 
     # Decidim::TranslatableResource.translatable_fields replaces the entire list.

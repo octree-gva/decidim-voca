@@ -2,6 +2,8 @@
 
 module Decidim
   module Voca
+    MODULE_NAME = "decidim_voca"
+
     def self.version
       "0.0.23" # DO NOT UPDATE MANUALLY
     end

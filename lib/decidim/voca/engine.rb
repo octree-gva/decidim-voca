@@ -6,6 +6,7 @@ require "decidim/core"
 require "deface"
 require "decidim/verifications"
 require "decidim/voca/code_census"
+require "decidim/toggle"
 require_relative "export/csv_with_locale_transformer"
 require_relative "export/proposal_serializer_localized_csv"
 require_relative "export/comment_serializer_localized_csv"
@@ -95,6 +96,10 @@ module Decidim
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
         # Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
         # Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
+      end
+
+      config.to_prepare do
+        Decidim::Organization.include(Decidim::Voca::OrganizationVocaExtensions)
       end
 
       config.to_prepare do
@@ -245,6 +250,16 @@ module Decidim
         end
       end
 
+      initializer "decidim_decidim-voca.organization_settings_tab", after: "decidim_toggle.organization_settings_tabs" do
+        Decidim::Toggle.settings_tabs :organization_settings do |tabs|
+          tabs.add_tab :my_module, "Voca",
+                       form: Decidim::Voca::Admin::OrganizationConfigForm,
+                       command: Decidim::Toggle::UpdateModuleConfigCommand,
+                       module_name: Decidim::Voca::MODULE_NAME,
+                       position: 4
+        end
+      end
+
       initializer "decidim.voca.csp", after: :load_config_initializers do
         Decidim.configure do |decidim_config|
           decidim_config.content_security_policies_extra["worker-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "worker-src"
@@ -254,19 +269,17 @@ module Decidim
 
       initializer "decidim.voca.weglot", after: :load_config_initializers do
         # configure additional CSP for weglot
-        if ::Decidim::Voca.weglot?
-          Decidim.configure do |decidim_config|
-            decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
-            decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
-            decidim_config.content_security_policies_extra["connect-src"].push("cdn-api-weglot.com")
+        Decidim.configure do |decidim_config|
+          decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
+          decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
+          decidim_config.content_security_policies_extra["connect-src"].push("cdn-api-weglot.com")
 
-            decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
-            decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
-            decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
+          decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
+          decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
+          decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
 
-            decidim_config.content_security_policies_extra["style-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "style-src"
-            decidim_config.content_security_policies_extra["style-src"].push("cdn.weglot.com")
-          end
+          decidim_config.content_security_policies_extra["style-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "style-src"
+          decidim_config.content_security_policies_extra["style-src"].push("cdn.weglot.com")
         end
       end
 

@@ -15,10 +15,10 @@ module InsertWeglotScripts
     surround: "erb[silent]:contains('available_locales.length > 1')",
     closing_selector: "erb[silent]:contains('end')",
     text: <<~ERB
-      <% if ::Decidim::Voca.weglot? %>
+      <% if current_organization.weglot? %>
         <%= render partial: "decidim/voca/weglot/locale_switcher", locals: { switcher_id: "desktop" } %>
       <% end %>
-      <div class="voca-js--original-language-chooser" data-weglot-active="<%= ::Decidim::Voca.weglot? %>">
+      <div class="voca-js--original-language-chooser" data-weglot-active="<%= current_organization.weglot? %>">
         <%= render_original %>
       </div>
     ERB
@@ -31,10 +31,10 @@ module InsertWeglotScripts
     surround: "erb[silent]:contains('available_locales.length > 1')",
     closing_selector: "erb[silent]:contains('end')",
     text: <<~ERB
-      <% if ::Decidim::Voca.weglot? %>
+      <% if current_organization.weglot? %>
         <%= render partial: "decidim/voca/weglot/locale_switcher_mobile", locals: { switcher_id: "mobile" } %>
       <% end %>
-      <div class="voca-js--original-language-chooser" data-weglot-active="<%= ::Decidim::Voca.weglot? %>">
+      <div class="voca-js--original-language-chooser" data-weglot-active="<%= current_organization.weglot? %>">
         <%= render_original %>
       </div>
     ERB

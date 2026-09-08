@@ -13,7 +13,7 @@ module Decidim
               uploader.variants.sort { |variant_a, _variant_b| variant_a.first.to_s.ends_with?("webp") ? 0 : 1 }.to_h
             end
             define_method :resource_image_url do
-              return decidim_voca_resource_image_url unless Decidim::Voca.next_gen_images?
+              return decidim_voca_resource_image_url unless current_organization.next_gen_images?
 
               uploader = model.attached_uploader(attachment_name.to_sym)
               variants_for(uploader).map do |variant, _variant_options|

@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
 
   s.require_paths = ["lib"]
   s.add_dependency "decidim-admin", Decidim::Voca.decidim_version
+  s.add_dependency "decidim-toggle"
 
   s.add_dependency "deepl-rb", "~> 3.2.0"
   s.add_dependency "deface", "~> 1.9"

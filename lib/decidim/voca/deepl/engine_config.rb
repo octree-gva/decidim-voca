@@ -57,7 +57,6 @@ module Decidim
             Rails.application.config.middleware.use ::Decidim::Voca::DeepL::Middleware
 
             ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeepL::ActiveJobContext }
-            Rails.logger.warn("DeepL is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
           end
 
           # Configure the DeepL SDK + Decidim machine translation config (+middleware, ActiveJob hook).
@@ -70,10 +69,8 @@ module Decidim
               Decidim::MachineTranslationResourceJob.prepend(Decidim::Voca::MachineTranslationResourceJobVoca)
             end
 
-            if Decidim::Voca.minimalistic_deepl?
-              ::Decidim::TranslationBarCell.include(Decidim::Voca::DeepL::TranslationBarOverrides)
-              ::Decidim::FormBuilder.include(Decidim::Voca::DeepL::DeepLFormBuilderOverrides)
-            end
+            ::Decidim::TranslationBarCell.include(Decidim::Voca::DeepL::TranslationBarOverrides)
+            ::Decidim::FormBuilder.include(Decidim::Voca::DeepL::DeepLFormBuilderOverrides)
           end
 
           def apply_mergeable_fields!

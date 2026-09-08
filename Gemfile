@@ -47,3 +47,5 @@ end
 gem "concurrent-ruby", "= 1.3.4"
 
 gem "decidim-telemetry", "~> 0.0.3", :git => "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry", :ref => "v0.0.3"
+
+gem "decidim-toggle", git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle.git"

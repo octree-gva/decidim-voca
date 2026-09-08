@@ -1,10 +1,10 @@
-<% if Decidim::Voca.weglot? %>
+<% if current_organization.weglot? %>
 <%
   weglot_js_config = {
-    enabled: Decidim::Voca.weglot?,
+    enabled: current_organization.weglot?,
     api_key: Decidim::Voca.configuration.weglot_api_key,
     default_language: current_organization.default_locale,
-    enable_cache: Decidim::Voca.weglot_cache?
+    enable_cache: current_organization.weglot_cache?
   }
 %>
 <script type="text/javascript" src="https://cdn.weglot.com/weglot.min.js"></script>

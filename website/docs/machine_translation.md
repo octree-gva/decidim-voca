@@ -30,17 +30,6 @@ Optional DeepL client settings (see also [Environment variables](#environment-va
 - `DECIDIM_DEEPL_HOST` — API host (default `https://api.deepl.com`; Pro includes `https://api-free.deepl.com` for Free API).
 - `DECIDIM_DEEPL_VERSION` — API version segment (default `v2`).
 
-### Minimalistic DeepL {#minimalistic-deepl}
-
-If the [minimalistic behaviour](#overview-what-decidim-voca-adds) fits your project:
-
-```rb
-# config/initializers/decidim_voca.rb (or similar)
-Decidim::Voca.configure do |config|
-  config.enable_minimalistic_deepl = true
-end
-```
-
 If it does **not** fit your usecase, set `enable_minimalistic_deepl` to `false` and restart.
 
 When DeepL is enabled, voca sets `Decidim::Voca::DeepL::MachineTranslator` as `config.machine_translation_service` and sets **`Decidim.config.machine_translation_delay` to 3 seconds min.** (see [FAQ — Developers](#faq--developers)).

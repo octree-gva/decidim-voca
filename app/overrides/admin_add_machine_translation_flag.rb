@@ -13,7 +13,7 @@ module AdminAddMachineTranslationFlag
     set_attributes: ".title-bar",
     attributes: {
       "data-machine-translated" => "<%= current_organization.enable_machine_translations? %>",
-      "data-minimalistic-deepl" => "<%= Decidim::Voca.minimalistic_deepl? %>"
+      "data-minimalistic-deepl" => "<%= current_organization.minimalistic_deepl? %>"
     },
     original: "9e9359026457bb1a289c94b183011e814d64893d"
   )
@@ -24,7 +24,7 @@ module AdminAddMachineTranslationFlag
     set_attributes: ".title-bar",
     attributes: {
       "data-machine-translated" => "<%= current_organization.enable_machine_translations? %>",
-      "data-minimalistic-deepl" => "<%= Decidim::Voca.minimalistic_deepl? %>"
+      "data-minimalistic-deepl" => "<%= current_organization.minimalistic_deepl? %>"
     },
     original: "978289390dedd19463db6ac36784ca94ae4a7d30"
   )
