@@ -1,5 +1,9 @@
 ---
 it:
+  decidim_toggle:
+    system:
+      custom_user_fields:
+        voca_defaults_enabled: Abilita i valori predefiniti Voca
   decidim:
     authorization_handlers:
       code:
@@ -12,6 +16,17 @@ it:
         explanation: Raccogli nome e data di nascita per la verifica (+13 anni)
         name: Nome e data di nascita
     custom_user_fields:
+      customizations:
+        voca_defaults: Valori predefiniti Voca
+      extended_data:
+        voca_defaults_code:
+          label: Codice
+        voca_defaults_firstname:
+          label: Nome
+        voca_defaults_lastname:
+          label: Cognome
+        voca_defaults_phone:
+          label: Telefono
       code:
         code:
           bad_format: Il codice deve essere un codice valido

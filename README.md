@@ -30,6 +30,28 @@ docker compose exec voca bash -lc 'cd /home/module && unset DATABASE_URL && expo
 
 There is no `bin/check` in this repository; use `bundle exec rspec` and `bundle exec rubocop` inside the container. See [CONTRIBUTING.md](CONTRIBUTING.md) for where features live.
 
+### GitLab CI locally
+
+`docker-compose.ci.yml` runs the same **lint** and **test** jobs as `.gitlab-ci.yml` (`ruby::rubocop`, `ruby::rspec`): image `ruby:3.2.2`, PostGIS `postgis/postgis:15-3.4`, Redis. It does **not** publish the gem.
+
+```bash
+docker compose -f docker-compose.ci.yml run --rm rubocop
+docker compose -f docker-compose.ci.yml run --rm rspec
+```
+
+| Variable | Default in this file | Notes |
+| --- | --- | --- |
+| `POSTGRES_DB` | `decidim_test` | Postgres service database name (same as CI). |
+| `POSTGRES_USER` / `DATABASE_USERNAME` | `decidim` | Required; matches CI. |
+| `POSTGRES_PASSWORD` / `DATABASE_PASSWORD` | `TEST-insecure_password` | Test-only; same as CI. |
+| `DATABASE_HOST` | `postgres` | Compose service name (same as CI alias). |
+| `DISABLED_DOCKER_COMPOSE` | `true` | Stops Rake `test_app` from starting `docker-compose.yml`. |
+| `TRAEFIK_REDIS_URL` | `redis://redis:6379/1` | Hostname `redis` (Compose). CI uses `localhost` on the job network. |
+| `DECIDIM_DEEPL_API_KEY` | `ci-test-deepl-key` | Placeholder; DeepL is stubbed in specs. |
+| `NODE_MAJOR` | `18` | NodeSource major for `test_app` (same as CI). |
+| `SIMPLECOV` | `1` | Coverage like CI. |
+| `CI` | `1` | Same as CI. |
+
 ### Features
 - `anonymize users`: Run`rails decidim:voca:anonymize` to anonymize all your database and avoid sending email or leaking nicknames/passwords.
 

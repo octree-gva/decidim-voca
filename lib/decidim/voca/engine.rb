@@ -314,7 +314,10 @@ module Decidim
       end
 
       initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
-        Decidim::Voca::UserFieldsConfigurator.call
+        # user_fields registers authorizations in to_prepare so VerificationForm is autoloaded.
+        config.to_prepare do
+          Decidim::Voca::UserFieldsConfigurator.call
+        end
       end
 
       initializer "decidim.voca.good_job", after: :load_config_initializers do

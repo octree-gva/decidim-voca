@@ -1,5 +1,9 @@
 ---
 cs:
+  decidim_toggle:
+    system:
+      custom_user_fields:
+        voca_defaults_enabled: Povolit výchozí hodnoty Voca
   decidim:
     authorization_handlers:
       code:
@@ -12,6 +16,17 @@ cs:
         explanation: Shromážděte jméno a datum narození pro ověření (+13 let)
         name: Jméno a datum narození
     custom_user_fields:
+      customizations:
+        voca_defaults: Výchozí hodnoty Voca
+      extended_data:
+        voca_defaults_code:
+          label: Kód
+        voca_defaults_firstname:
+          label: Křestní jméno
+        voca_defaults_lastname:
+          label: Příjmení
+        voca_defaults_phone:
+          label: Telefon
       code:
         code:
           bad_format: Kód musí být platný

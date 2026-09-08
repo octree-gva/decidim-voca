@@ -19,7 +19,14 @@ docker compose exec voca bash -lc 'cd /home/module && unset DATABASE_URL && expo
 docker compose exec voca bash -lc 'cd /home/module && bundle exec rubocop lib/decidim/voca'
 ```
 
-CI may run additional steps (see `.gitlab-ci.yml` or GitHub Actions if present).
+CI may run additional steps (see `.gitlab-ci.yml`). To run the GitLab **rubocop** and **rspec** jobs locally:
+
+```bash
+docker compose -f docker-compose.ci.yml run --rm rubocop
+docker compose -f docker-compose.ci.yml run --rm rspec
+```
+
+`rspec` matches CI paths only (`spec/models`, `spec/forms`, `spec/node_audit_spec.rb`, `spec/lib`, `spec/commands`). Gem publish is not included.
 
 ## Docs
 

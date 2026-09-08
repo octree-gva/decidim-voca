@@ -4,8 +4,8 @@ require "decidim/dev/common_rake"
 
 def install_module(path)
   Dir.chdir(path) do
-    system("bundle exec rails decidim_voca:install:migrations")
     system("bundle exec rails decidim_toggle:install:migrations")
+    system("bundle exec rails decidim_voca:install:migrations")
     system("bundle add deepl-rb") unless Gem.loaded_specs.has_key?("deepl-rb")
     system("bundle add activerecord-postgis-adapter") unless Gem.loaded_specs.has_key?("activerecord-postgis-adapter")
     system("bundle add good_job") unless Gem.loaded_specs.has_key?("good_job")
@@ -15,6 +15,8 @@ def install_module(path)
     unless Gem.loaded_specs.has_key?("decidim-telemetry")
       system("bundle add decidim-telemetry --git https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry --ref #{Decidim::Voca.compat_decidim_telemetry_version}")
     end
+    system("bundle exec rails db:create")
+    system("bundle exec rails db:migrate")
     system("bundle exec rails decidim:update")
     system("bundle exec rails decidim_voca:webpacker:install")
   end
