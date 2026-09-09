@@ -28,8 +28,6 @@ require "decidim/proposals/test/factories"
 require "decidim/decidim_awesome/test/factories"
 
 require_relative "support/decidim_voca/machine_translation_spec_helpers"
-require_relative "support/participatory_spaces_toggle_helpers"
-require_relative "support/components_toggle_helpers"
 
 RSpec.configure do |config|
   config.before do

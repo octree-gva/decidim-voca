@@ -2,101 +2,40 @@
 sidebar_position: 6
 slug: /feature-toggle
 title: Feature toggle
-description: Organization-level toggles for participatory spaces and components (decidim-toggle)
+description: Enable or disable participatory spaces and components per organization (decidim-skin)
 ---
 
 # Feature toggle
 
-Platform operators use **decidim-voca** together with **[decidim-toggle](https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle)** to turn participatory spaces and Decidim components on or off **per organization**, from the system admin UI (`/system`).
+This page is for **platform operators** who turn participatory space types and component types on or off for one organization.
 
-Toggles are stored as JSON module configuration on the organization. They do **not** uninstall gems or change the component registry — they control whether each space or component type is treated as enabled for that tenant, and hide related UI when disabled.
+**decidim-voca** does not register those settings anymore (no Toggle tabs, no ConfigForm, no hide CSS or search overrides). Use **[decidim-skin](https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-skin)** in the same Decidim image.
 
-**Prerequisite:** `decidim-toggle` in the host app `Gemfile` (already required by `decidim-voca`).
+## Infrastructure
+
+| Piece | Role |
+|-------|------|
+| `decidim-skin` | Skin tab: homepage plus per-tenant space and component flags |
+| `decidim-toggle` | Settings tab host used by Skin (not by voca for these flags) |
+| `decidim-voca` | Unrelated Voca tweaks only |
+
+Put `decidim-skin` (and its `decidim-toggle` dependency) in the host `Gemfile`. Run Toggle migrations as Skin’s README describes.
 
 ## Where to configure
 
 1. Sign in as system administrator.
 2. Open **Organizations** → edit an organization.
-3. Use the settings tabs registered by voca:
-   - **Participatory Spaces** — initiatives, conferences, processes, assemblies.
-   - **Component** — meetings, blogs, budgets, proposals, pages, debates, accountability, sortitions, forms, participatory documents, collaborative texts, elections.
+3. Open the **Skin** tab.
+4. Toggle participatory space types and component types, then save.
 
-Each checkbox is disabled in the form when the corresponding gem is not in the server bundle.
+You cannot disable a type while that organization still has instances of it. Unpublish or remove them first.
 
-## Participatory spaces
-
-Controls which **participatory space types** are enabled for the organization.
-
-| Toggle | Default | Gem required |
-|--------|---------|--------------|
-| Participatory processes | on | `decidim-participatory_processes` |
-| Assemblies | on | `decidim-assemblies` |
-| Initiatives | off | `decidim-initiatives` |
-| Conferences | off | `decidim-conferences` |
-
-When a space type is **off**:
-
-- **Admin:** space module entries, related homepage content blocks, and cross-space link fields are hidden (CSS on `body` data attributes).
-- **Public:** main menu links, footer links, and global search filters for that space type are hidden the same way.
-
-When a space type is **off**, you cannot save the toggle if the organization still has **published** spaces of that type. Unpublish them first.
-
-Implementation: `Decidim::Voca::ParticipatorySpaces` (`lib/decidim/voca/participatory_spaces.rb`), module config key `spaces`.
-
-## Components
-
-Controls which **component manifests** admins can add and which related admin surfaces are shown.
-
-| Toggle | Default | Gem required |
-|--------|---------|--------------|
-| Meetings | on | `decidim-meetings` |
-| Blogs | on | `decidim-blogs` |
-| Participatory budget | on | `decidim-budgets` |
-| Proposals | on | `decidim-proposals` |
-| Page | on | `decidim-pages` |
-| Debates | on | `decidim-debates` |
-| Accountability | on | `decidim-accountability` |
-| Sortition | on | `decidim-sortitions` |
-| Form | off | `decidim-only_forms` |
-| Participatory document | off | `decidim-participatory_documents` |
-| Collaborative text | off | `decidim-collaborative_texts` |
-| Election | off | `decidim-elections` |
-| Awesome Map | off | `decidim-decidim_awesome` |
-| Fullscreen Iframe | off | `decidim-decidim_awesome` |
-| Survey | on | `decidim-surveys` |
-
-When a component type is **off**:
-
-- **Admin only:** the “Add component” dropdown entry for that manifest is hidden, and dashboard metrics tied to that component are hidden where applicable.
-- **Not changed:** participant-facing pages, open-data exports, and existing published components (validation prevents disabling while published components of that type still exist).
-
-Implementation: `Decidim::Voca::Components` (`lib/decidim/voca/components.rb`), module config key `components`.
-
-## How hiding works
-
-Both features use the same pattern:
-
-1. **Deface** adds `data-<name>-enabled="true|false"` on `<body>` (admin layout for components; admin and public layouts for participatory spaces).
-2. **SCSS** in `app/packs/stylesheets/decidim/voca/` hides matching UI when the attribute is `false`.
-
-No Ruby overrides of `Decidim.component_registry` are involved.
-
-## Validation rules
-
-For both tabs:
-
-- A toggle cannot be turned **off** while the organization has **published** instances of that space or component type.
-- Optional gems: checkbox is disabled when the gem is not installed; defaults apply from the table above when no config exists yet.
+Details, defaults, and how the UI is hidden live in the Skin gem (`README` and Skin docs). Do not add parallel tabs or Deface/CSS in voca for the same flags.
 
 ## Reference
 
-| Module config key | Settings tab label | Ruby module |
-|-------------------|-------------------|-------------|
-| `spaces` | Participatory Spaces | `Decidim::Voca::ParticipatorySpaces` |
-| `components` | Component | `Decidim::Voca::Components` |
-
-**Locales:** field labels under `decidim_toggle.system.spaces.*` and `decidim_toggle.system.components.*` in `config/locales/en.yml`.
-
-**Specs:** `spec/lib/decidim/voca/participatory_spaces*_spec.rb`, `spec/lib/decidim/voca/components*_spec.rb`.
-
-**Related:** [decidim-toggle integration docs](https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle/-/blob/main/README.md) for the generic tab registration API (`Decidim::Toggle.settings_tabs`, `ModuleConfigForm`).
+| Need | Where |
+|------|--------|
+| Enable/disable a participatory space type | Skin tab (`Decidim::Skin::ParticipatorySpaces`) |
+| Enable/disable a component type | Skin tab (`Decidim::Skin::Components`) |
+| Legacy JSON keys `spaces` / `components` | Skin still reads them as fallback after a voca Toggle install |
