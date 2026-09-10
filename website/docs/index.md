@@ -13,7 +13,7 @@ Decidim Voca is a gem containing tweaks used at [voca.city](https://voca.city). 
 - General layout improvements
 - Performance improvement
 - Minimalistic deepl integration for machine translation
-- Per-organization feature toggles for participatory spaces and components ([details](./feature-toggle.md))
+- This gem does not add a system tab to enable or disable participatory spaces or components ([details](./feature-toggle.md))
 
 ## Improvement on geolocated proposals
 Inspired by decidim-reporting_proposals, we do add on our instance two buttons: 

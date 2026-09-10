@@ -194,8 +194,6 @@ module Decidim
         # Overrides CardMetadataCell
         Decidim::CardMetadataCell.include(Decidim::Voca::Overrides::CardMetadataCellOverrides)
 
-        Decidim::SearchesController.prepend(Decidim::Voca::Overrides::SearchesControllerOverrides)
-
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
@@ -431,12 +429,6 @@ module Decidim
 
       initializer "decidim_voca.icons" do
         Decidim.icons.register(name: "camera", icon: "camera-line", category: "system", description: "", engine: :core)
-      end
-
-      initializer "decidim_voca.organization_settings_tab",
-                  after: "decidim_toggle.organization_settings_tabs" do
-        Decidim::Voca::ParticipatorySpaces::SettingsTab.register!
-        Decidim::Voca::Components::SettingsTab.register!
       end
 
       initializer "decidim_voca.image_processing" do
