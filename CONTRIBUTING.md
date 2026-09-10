@@ -30,4 +30,4 @@ docker compose -f docker-compose.ci.yml run --rm rspec
 
 ## Docs
 
-Human-facing documentation is under `website/docs/` (Docusaurus). CSV export behaviour and how it ties to machine translation are described in `website/docs/machine_translation.md` (CSV exports section). Organization feature toggles are described in `website/docs/feature-toggle.md`.
+Human-facing documentation is under `website/docs/` (Docusaurus). CSV export behaviour and how it ties to machine translation are described in `website/docs/machine_translation.md` (CSV exports section). That this gem does not register a space/component settings tab is recorded in `website/docs/feature-toggle.md`.
