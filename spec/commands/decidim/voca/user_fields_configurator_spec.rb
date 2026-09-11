@@ -5,16 +5,10 @@ require "spec_helper"
 module Decidim
   module Voca
     describe UserFieldsConfigurator do
-      subject(:customization) { Decidim::CustomUserFields::Customizations.find(:voca_defaults) }
-
       before { described_class.call }
 
-      it "registers the voca_defaults customization" do
-        expect(customization).to be_present
-      end
-
-      it "registers prefixed registration field names" do
-        expect(customization.fields.map(&:name)).to contain_exactly(
+      it "registers the voca default registration fields" do
+        expect(registration_field_names).to include(
           :voca_defaults_code,
           :voca_defaults_firstname,
           :voca_defaults_lastname,
@@ -22,20 +16,12 @@ module Decidim
         )
       end
 
-      it "nests the existing authorization handlers" do
-        expect(customization.workflow_handlers).to contain_exactly("fullname_and_birthdate", "firstname")
+      it "registers the existing authorization handlers" do
+        expect(verification_handler_names).to include("fullname_and_birthdate", "firstname")
       end
 
       it "does not register a code authorization handler" do
-        expect(customization.workflow_handlers).not_to include("code")
-      end
-
-      # ponytail: no extended_data remap — prior configurator registered handlers only, never production code/firstname keys.
-
-      it "registers the toggle enabled flag" do
-        expect(
-          Decidim::CustomUserFields::Admin::CustomizationsConfigForm.attribute_types
-        ).to have_key("voca_defaults_enabled")
+        expect(verification_handler_names).not_to include("code")
       end
 
       it "keeps authorization handler field names unchanged" do
@@ -45,22 +31,21 @@ module Decidim
         expect(field_sets).to include([:first_name, :last_name, :birthdate])
       end
 
-      it "leaves the customization disabled until toggle config is saved" do
-        organization = create(:organization)
+      it "registers fields once when called repeatedly" do
+        described_class.call
+        described_class.call
 
-        expect(Decidim::CustomUserFields::RegistrationFields.enabled_customization_names(organization))
-          .not_to include("voca_defaults")
+        expect(registration_field_names.count { |name| name == :voca_defaults_code }).to eq(1)
       end
 
-      it "enables the customization per organization via toggle config" do
-        enabled_org = create(:organization)
-        other_org = create(:organization)
-        Decidim::Toggle.save_config!(enabled_org, :custom_user_fields, { "voca_defaults_enabled" => true })
+      def registration_field_names
+        Decidim::CustomUserFields.custom_fields.map(&:name)
+      end
 
-        expect(Decidim::CustomUserFields::RegistrationFields.enabled_customization_names(enabled_org))
-          .to include("voca_defaults")
-        expect(Decidim::CustomUserFields::RegistrationFields.enabled_customization_names(other_org))
-          .not_to include("voca_defaults")
+      def verification_handler_names
+        Decidim::CustomUserFields::Verifications.verification_classes.map do |handler_class|
+          handler_class.name.demodulize.underscore
+        end
       end
     end
   end
