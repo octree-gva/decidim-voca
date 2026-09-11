@@ -12,6 +12,8 @@ Upstream references for exports: `Decidim::Exporters::CSV`, `Decidim::Exporters:
 
 ## Checks
 
+After compose up, run `bundle install` in the `voca` container.
+
 From the repo root, with the `voca` container up:
 
 ```bash

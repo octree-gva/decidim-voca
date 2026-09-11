@@ -2,7 +2,7 @@ en:
   decidim_toggle:
     system:
       custom_user_fields:
-        voca_defaults_enabled: Enable Voca Defaults
+        voca_defaults_enabled: Voca Defaults
   decidim:
     custom_user_fields:
       customizations:

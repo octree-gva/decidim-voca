@@ -24,7 +24,7 @@ services:
       - BUNDLE_PATH=/home/decidim/app/vendor/bundle
       - DATABASE_USERNAME=decidim
       - DATABASE_PASSWORD=pleaseChangeMe
-      - DECIDIM_AVAILABLE_LOCALES=en,fr,uk
+      - DECIDIM_AVAILABLE_LOCALES=en,fr,it,de
       - DECIDIM_FORCE_SSL=false
       - DISABLE_SPRING=1
       - DEV_MODULE=decidim-voca
@@ -44,6 +44,7 @@ services:
         condition: service_healthy
     ports:
       - 3000:3000
+      - 3035:3035
     links:
       - voca-pg
       - traefik-db

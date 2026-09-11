@@ -1,5 +1,8 @@
 ---
 it:
+  time:
+    formats:
+      12h_24h: "%H:%M"
   decidim:
     core:
       actions:
@@ -17,6 +20,11 @@ it:
     events:
       proposals:
         proposal_state_changed_for_authors:
+          affected_user:
+            email_intro: 'La proposta "%{resource_title}" ha cambiato il suo stato in "%{state}". Puoi leggere la risposta in questa pagina:'
+            email_outro: Hai ricevuto questa notifica perché sei un autore di "%{resource_title}".
+            email_subject: La tua proposta ha cambiato stato (%{state})
+            notification_title: La tua proposta <a href="%{resource_path}">%{resource_title}</a> ha cambiato il suo stato in "%{state}".
           email_intro: 'La proposta "%{resource_title}" ha cambiato il suo stato in "%{state}". Puoi leggere la risposta in questa pagina:'
           email_outro: Hai ricevuto questa notifica perché sei un autore di "%{resource_title}".
           email_subject: La tua proposta ha cambiato stato (%{state})

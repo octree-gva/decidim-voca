@@ -52,11 +52,11 @@ gem "decidim-ephemeral_participation",
 
 gem "decidim-user_fields",
     git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields",
-    ref: "f75c5470ba7c31c1d6b0d93c23cb859ac479d463"
+    branch: "main"
 
 gem "decidim-toggle",
     git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle",
-    tag: "v0.1.3"
+    branch: "main"
 
 gem "opentelemetry-exporter-otlp"
 gem "opentelemetry-exporter-otlp-logs"

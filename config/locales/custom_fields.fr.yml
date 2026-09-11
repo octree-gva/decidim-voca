@@ -43,3 +43,15 @@ fr:
           label: Prénom
         last_name:
           label: Nom de famille
+    authorization_modals:
+      content:
+        missing:
+          authorize: Complétez le «%{authorization}»
+          explanation: Pour effectuer cette action, vous devez compléter le «%{authorization}»
+    verifications:
+      authorizations:
+        new:
+          authorize_with: Vérifiez votre identité avec le «%{authorizer}»
+        first_login:
+          actions:
+            code_census: Vérifiez votre identité avec le «%{authorizer}»

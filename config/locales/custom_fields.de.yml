@@ -1,0 +1,57 @@
+---
+de:
+  decidim_toggle:
+    system:
+      custom_user_fields:
+        voca_defaults_enabled: Voca-Standardwerte
+  decidim:
+    custom_user_fields:
+      customizations:
+        voca_defaults: Voca-Standardwerte
+      extended_data:
+        voca_defaults_code:
+          label: Code
+        voca_defaults_firstname:
+          label: Vorname
+        voca_defaults_lastname:
+          label: Nachname
+        voca_defaults_phone:
+          label: Telefon
+      fullname_and_birthdate:
+        first_name:
+          label: Vorname
+        last_name:
+          label: Nachname
+        birthdate:
+          label: Geburtsdatum
+          bad_not_after: Die Plattform ist für Nutzer*innen über 13 Jahren vorbehalten
+      firstname:
+        name:
+          label: Name
+          bad_format: Der Name muss ein gültiger Name sein
+      code:
+        code:
+          label: Code
+          bad_format: Der Code muss ein gültiger Code sein
+    authorization_handlers:
+      fullname_and_birthdate:
+        name: Name und Geburtsdatum
+        explanation: Name und Geburtsdatum zur Verifizierung erfassen (+13 Jahre)
+      firstname:
+        name: Name
+        explanation: Name zur Verifizierung erfassen
+      code:
+        name: Code
+        explanation: Code zur Verifizierung erfassen
+    authorization_modals:
+      content:
+        missing:
+          authorize: Schließen Sie «%{authorization}» ab
+          explanation: Um diese Aktion auszuführen, müssen Sie «%{authorization}» abschließen
+    verifications:
+      authorizations:
+        new:
+          authorize_with: Bestätigen Sie Ihre Identität mit «%{authorizer}»
+        first_login:
+          actions:
+            code_census: Bestätigen Sie Ihre Identität mit «%{authorizer}»

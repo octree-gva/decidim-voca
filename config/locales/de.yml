@@ -1,0 +1,99 @@
+de:
+  time:
+    formats:
+      12h_24h: "%H:%M"
+  layouts:
+    decidim:
+      footer:
+        decidim_title: "Ihre Plattform"
+        help_title: "Hilfe"
+  decidim:
+    core:
+      actions:
+        unauthorized: "Sie sind nicht berechtigt, diese Aktion auszuführen."
+    wizard_step_form:
+      wizard_aside:
+        back: "Zurück"
+    authorization_handlers:
+      code_census:
+        name: "Code-Zensus"
+        explanation: "Bestätigen Sie Ihre Identität mit einem Zugangscode aus dem Code-Zensus."
+    application:
+      geocoding:
+        unconfigured: "Die Geokodierung ist für diese Organisation nicht konfiguriert."
+    events:
+      proposals:
+        proposal_state_changed_for_authors:
+          affected_user:
+            email_intro: 'Der Vorschlag "%{resource_title}" hat den Status "%{state}" erhalten. Die Antwort finden Sie auf dieser Seite:'
+            email_outro: Sie erhalten diese Benachrichtigung, weil Sie Autor*in von "%{resource_title}" sind.
+            email_subject: Ihr Vorschlag hat den Status geändert (%{state})
+            notification_title: Ihr Vorschlag <a href="%{resource_path}">%{resource_title}</a> hat den Status "%{state}" erhalten.
+          email_intro: 'Der Vorschlag "%{resource_title}" hat den Status "%{state}" erhalten. Die Antwort finden Sie auf dieser Seite:'
+          email_outro: Sie erhalten diese Benachrichtigung, weil Sie Autor*in von "%{resource_title}" sind.
+          email_subject: Ihr Vorschlag hat den Status geändert (%{state})
+          notification_title: Ihr Vorschlag <a href="%{resource_path}">%{resource_title}</a> hat den Status "%{state}" erhalten.
+    proposals:
+      models:
+        proposal:
+          fields:
+            votes_on_going: Stimmen (laufend)
+    voca:
+      proposals:
+        find_my_location: "Meinen Standort verwenden"
+        take_photo: "Foto aufnehmen"
+      footer_text: Ein demokratischer Raum für Ihre Gemeinschaft
+      code_census:
+        create:
+          success: "Ihr Zugangscode wurde erstellt."
+        authorizations:
+          new:
+            title: Mit Code-Zensus verifizieren
+            code: Zugangscode
+            submit: Verifizieren
+          create:
+            success: Sie sind jetzt autorisiert.
+            error: Der angegebene Code ist ungültig.
+      admin:
+        machine_translation_alert:
+          title: |
+            Sprache wechseln
+          description_html: |
+            <p>Die Sprache "%{current_locale}" ist vollständig maschinell übersetzt, Sie müssen zu "%{default_locale}" wechseln.</p>
+          button: Sprache wechseln
+        code_census:
+          authorizations:
+            new:
+              title: Autorisierungscodes erzeugen
+              intro: Nutzen Sie diese Seite, um Autorisierungscodes für Ihre Nutzer*innen zu erstellen.
+              info: Geben Sie unten die Nutzerdaten ein. Das System erzeugt einen eindeutigen Zugangscode, der zur Verifizierung weitergegeben werden kann.
+              example: "Beispiel: E-Mail oder Kennung der Person eingeben"
+          code_lists:
+            edit:
+              title: Code-Zensus (%{count})
+            form:
+              label: Codes
+              help: Fügen Sie alle erlaubten Codes ein oder tippen Sie sie, einen pro Zeile.
+              submit: Codes speichern
+            update:
+              success: Codes gespeichert.
+              error: Codes konnten nicht gespeichert werden.
+      editor_files:
+        create:
+          success: "Datei erfolgreich hochgeladen."
+          error: "Die Datei konnte nicht hochgeladen werden."
+      rack_attack:
+        blocked:
+          title: "Zugang vorübergehend eingeschränkt"
+          subtitle: "Ratenlimit überschritten"
+          description: "Zu viele Anfragen erkannt. Bitte warten Sie einige Minuten und versuchen Sie es erneut. Kontaktieren Sie den Support, wenn Sie Hilfe brauchen."
+        machine_translation_alert:
+          title: |
+            Sprache wechseln
+          description_html: |
+            <p>Die Sprache "%{current_locale}" ist vollständig maschinell übersetzt, Sie müssen zu "%{default_locale}" wechseln.</p>
+          button: Sprache wechseln
+  devise:
+    mailer:
+      confirmation_instructions:
+        instruction_html: "Sie können Ihr E-Mail-Konto über den folgenden Link bestätigen:"

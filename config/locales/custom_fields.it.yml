@@ -43,3 +43,15 @@ it:
           label: Nome
         last_name:
           label: Cognome
+    authorization_modals:
+      content:
+        missing:
+          authorize: Completa il «%{authorization}»
+          explanation: Per eseguire questa azione, devi completare il «%{authorization}»
+    verifications:
+      authorizations:
+        new:
+          authorize_with: Verifica la tua identità con il «%{authorizer}»
+        first_login:
+          actions:
+            code_census: Verifica la tua identità con il «%{authorizer}»

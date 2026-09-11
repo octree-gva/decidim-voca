@@ -23,8 +23,8 @@ GIT
 
 GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle
-  revision: 246e6ddcc8c4dda80c47d2286f28927182fad657
-  tag: v0.1.3
+  revision: d571f645c298a189cdc312e4e2e55fc9240009cb
+  branch: main
   specs:
     decidim-toggle (0.1.3)
       decidim-core (>= 0.29, < 0.33)
@@ -33,8 +33,8 @@ GIT
 
 GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields
-  revision: f75c5470ba7c31c1d6b0d93c23cb859ac479d463
-  ref: f75c5470ba7c31c1d6b0d93c23cb859ac479d463
+  revision: e35543f77ebda053ed3f0068c482b22487a6f936
+  branch: main
   specs:
     decidim-user_fields (0.1.5)
       decidim-core (>= 0.29)
