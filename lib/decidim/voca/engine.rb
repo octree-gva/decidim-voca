@@ -194,6 +194,9 @@ module Decidim
         # Overrides CardMetadataCell
         Decidim::CardMetadataCell.include(Decidim::Voca::Overrides::CardMetadataCellOverrides)
 
+        # Overrides NewsletterHelper to fix url image
+        Decidim::NewslettersHelper.include(Decidim::Voca::Overrides::NewsletterHelperOverrides)
+
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
