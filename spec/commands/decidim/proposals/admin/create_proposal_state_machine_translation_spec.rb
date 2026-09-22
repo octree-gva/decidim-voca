@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Decidim::Proposals::Admin::CreateProposalState, "machine translations (announcement_title)" do
+RSpec.describe Decidim::Proposals::Admin::CreateProposalState do
   subject(:command) { described_class.new(form) }
 
   let(:organization) do

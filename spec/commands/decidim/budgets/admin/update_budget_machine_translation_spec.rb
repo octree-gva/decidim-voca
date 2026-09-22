@@ -4,7 +4,7 @@ require "spec_helper"
 require "decidim/budgets/test/factories"
 require_relative "../../../../support/shared_examples/machine_translation_update_shared_examples"
 
-RSpec.describe Decidim::Budgets::Admin::UpdateBudget, "machine translations" do
+RSpec.describe Decidim::Budgets::Admin::UpdateBudget do
   let(:organization) do
     create(
       :organization,

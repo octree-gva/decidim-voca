@@ -46,5 +46,16 @@ RSpec.describe Decidim::Voca::DeepL::EngineConfig do
     it "includes component settings machine translation on Component" do
       expect(Decidim::Component.included_modules).to include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
     end
+
+    it "includes content block settings machine translation on ContentBlock" do
+      expect(Decidim::ContentBlock.included_modules).to include(Decidim::Voca::ContentBlockTranslatedSettingsMachineTranslation)
+    end
+
+    it "includes awesome menu label machine translation when Awesome is installed" do
+      next unless Decidim::Voca::Installation.decidim_awesome_installed?
+      next unless defined?(Decidim::DecidimAwesome::AwesomeConfig)
+
+      expect(Decidim::DecidimAwesome::AwesomeConfig.included_modules).to include(Decidim::Voca::AwesomeMenuLabelMachineTranslation)
+    end
   end
 end

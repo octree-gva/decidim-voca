@@ -3,7 +3,7 @@
 require "spec_helper"
 require_relative "../../../support/shared_examples/machine_translation_update_shared_examples"
 
-RSpec.describe Decidim::Admin::UpdateStaticPageTopic, "machine translations" do
+RSpec.describe Decidim::Admin::UpdateStaticPageTopic do
   let(:organization) do
     create(
       :organization,

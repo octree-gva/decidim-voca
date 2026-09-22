@@ -3,7 +3,7 @@
 require "spec_helper"
 require "decidim/budgets/test/factories"
 
-RSpec.describe Decidim::Budgets::Admin::CreateBudget, "machine translations" do
+RSpec.describe Decidim::Budgets::Admin::CreateBudget do
   subject(:command) { described_class.new(form) }
 
   let(:organization) do
