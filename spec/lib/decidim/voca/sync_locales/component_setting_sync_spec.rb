@@ -25,9 +25,7 @@ RSpec.describe Decidim::Voca::SyncLocales::ComponentSettingSync do
   it "enqueues MachineTranslateComponentSettingJob for pending locales" do
     inner = component.read_attribute(:settings)["global"].deep_dup.deep_stringify_keys
     inner["dummy_global_translatable_text"] = { "en" => "Hello" }
-    # rubocop:disable Rails/SkipsModelValidations -- bypass validations to set nested settings fixture
-    component.update_column(:settings, { "global" => inner })
-    # rubocop:enable Rails/SkipsModelValidations
+    set_jsonb_column(component, :settings, { "global" => inner })
 
     expect do
       described_class.new(component).call

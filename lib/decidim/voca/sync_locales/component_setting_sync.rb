@@ -15,7 +15,7 @@ module Decidim
           keys = Decidim::Voca::ComponentSettingManifest.translated_global_keys(@record.manifest)
           return if keys.empty?
 
-          settings = @record.read_attribute(:settings).deep_dup.deep_stringify_keys
+          settings = (@record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
           global = settings["global"] ||= {}
           changed = false
           context = LocaleContext.for(@record)
@@ -35,9 +35,7 @@ module Decidim
 
           return unless changed
 
-          # rubocop:disable Rails/SkipsModelValidations
-          @record.update_column(:settings, settings)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call(@record, :settings, settings)
         end
 
         private

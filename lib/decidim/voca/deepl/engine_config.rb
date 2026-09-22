@@ -16,6 +16,17 @@ module Decidim
             fields: %w(name)
           },
           {
+            class_name: "Decidim::ContentBlock",
+            content_block_settings_mt: true,
+            fields: []
+          },
+          {
+            class_name: "Decidim::DecidimAwesome::AwesomeConfig",
+            awesome_menu_labels_mt: true,
+            fields: [],
+            if: -> { Decidim::Voca::Installation.decidim_awesome_installed? }
+          },
+          {
             class_name: "Decidim::Budgets::Budget",
             include_translatable_resource: true,
             fields: %w(title description)
@@ -94,6 +105,8 @@ module Decidim
             return unless klass
 
             maybe_include_component_settings_mt!(klass, row)
+            maybe_include_content_block_settings_mt!(klass, row)
+            maybe_include_awesome_menu_labels_mt!(klass, row)
             maybe_include_translatable_resource!(klass, row)
             merge_applicable_column_fields!(klass, row)
           end
@@ -103,6 +116,20 @@ module Decidim
             return if klass.included_modules.include?(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
 
             klass.include(Decidim::Voca::ComponentTranslatedSettingsMachineTranslation)
+          end
+
+          def maybe_include_content_block_settings_mt!(klass, row)
+            return unless row[:content_block_settings_mt]
+            return if klass.included_modules.include?(Decidim::Voca::ContentBlockTranslatedSettingsMachineTranslation)
+
+            klass.include(Decidim::Voca::ContentBlockTranslatedSettingsMachineTranslation)
+          end
+
+          def maybe_include_awesome_menu_labels_mt!(klass, row)
+            return unless row[:awesome_menu_labels_mt]
+            return if klass.included_modules.include?(Decidim::Voca::AwesomeMenuLabelMachineTranslation)
+
+            klass.include(Decidim::Voca::AwesomeMenuLabelMachineTranslation)
           end
 
           def maybe_include_translatable_resource!(klass, row)
