@@ -12,10 +12,10 @@ module Decidim
         end
 
         def call
-          return unless @record.is_a?(Decidim::ContentBlock)
+          return EnqueueStats.empty unless @record.is_a?(Decidim::ContentBlock)
 
           keys = Decidim::Voca::ContentBlockSettingManifest.translated_keys(@record.manifest)
-          return if keys.empty?
+          return EnqueueStats.empty if keys.empty?
 
           context = LocaleContext.for(@record)
           settings = (@record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
@@ -25,37 +25,42 @@ module Decidim
             context.allowed_locales
           )
 
+          stats = EnqueueStats.empty
           keys.each do |key|
             raw = settings[key]
             next unless raw.is_a?(Hash)
 
             normalized = FieldHashNormalizer.call(raw, context)
-            translate_pending_inline!(key, normalized, context)
+            stats.add!(translate_pending_inline!(key, normalized, context))
             settings[key] = normalized
           end
 
           Decidim::Voca::ContentBlockSettingManifest.expand_to_flat_keys!(settings, keys)
           original = FieldHashNormalizer.deep_stringify(@record.read_attribute(:settings) || {})
-          return if settings == original
-
-          UpdateColumnWithoutCallbacks.call(@record, :settings, settings)
+          UpdateColumnWithoutCallbacks.call(@record, :settings, settings) if settings != original
+          stats
         end
 
         private
 
         def translate_pending_inline!(key, normalized, context)
-          return unless Decidim.machine_translation_service_klass
-          return unless context.enable_machine_translations?
+          stats = EnqueueStats.empty
+          return stats unless Decidim.machine_translation_service_klass
+          return stats unless context.enable_machine_translations?
 
           default = context.default_locale
           source_text = normalized.stringify_keys[default]
-          return if source_text.blank?
+          return stats if source_text.blank?
 
           html = rich_text_content_block_setting?(key)
-          ComponentSettingPendingLocales.for(normalized, context.organization).each do |target_locale|
-            next if normalized.dig("machine_translations", target_locale).present?
+          org = context.organization
+          ComponentSettingPendingLocales.gaps(normalized, org).each do |target_locale|
+            if ComponentSettingPendingLocales.machine_translated?(normalized, target_locale)
+              stats.add!(EnqueueStats.new(skipped_existing: 1))
+              next
+            end
 
-            translated = Decidim::Voca::DeepL::Context.with_organization(context.organization) do
+            translated = Decidim::Voca::DeepL::Context.with_organization(org) do
               MachineTranslation::TranslateString.call(
                 text: source_text,
                 source_locale: default,
@@ -68,7 +73,9 @@ module Decidim
 
             normalized["machine_translations"] ||= {}
             normalized["machine_translations"][target_locale] = translated
+            stats.add!(EnqueueStats.new(enqueued: 1))
           end
+          stats
         end
 
         def rich_text_content_block_setting?(key)

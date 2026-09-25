@@ -12,16 +12,24 @@ module Decidim
         end
 
         def call
-          return unless syncable?
+          return EnqueueStats.empty unless syncable?
 
           context = LocaleContext.for(@record)
           value = FieldHashNormalizer.deep_stringify(@record.value).deep_dup
-          return unless value.is_a?(Array)
+          return EnqueueStats.empty unless value.is_a?(Array)
 
-          changed = sync_items!(value, context)
-          return unless changed
+          stats = EnqueueStats.empty
+          changed = false
+          value.each do |item|
+            next unless syncable_item?(item)
 
-          UpdateColumnWithoutCallbacks.call(@record, :value, value)
+            item_changed, item_stats = sync_item_label!(item, context)
+            changed = true if item_changed
+            stats.add!(item_stats)
+          end
+
+          UpdateColumnWithoutCallbacks.call(@record, :value, value) if changed
+          stats
         end
 
         private
@@ -32,16 +40,6 @@ module Decidim
             AwesomeMenuLabels.menu_config_value?(@record.value)
         end
 
-        def sync_items!(value, context)
-          changed = false
-          value.each do |item|
-            next unless syncable_item?(item)
-
-            changed = true if sync_item_label!(item, context)
-          end
-          changed
-        end
-
         def syncable_item?(item)
           item.is_a?(Hash) && item["label"].is_a?(Hash) && item["url"].present?
         end
@@ -50,25 +48,30 @@ module Decidim
           raw = item["label"]
           stringy = FieldHashNormalizer.deep_stringify(raw)
           normalized = FieldHashNormalizer.call(raw, context)
-          translate_pending_inline!(item["url"], normalized, context)
-          return false if normalized == stringy
+          stats = translate_pending_inline!(item["url"], normalized, context)
+          return [false, stats] if normalized == stringy
 
           item["label"] = normalized
-          true
+          [true, stats]
         end
 
         def translate_pending_inline!(item_url, normalized, context)
-          return unless Decidim.machine_translation_service_klass
-          return unless context.enable_machine_translations?
+          stats = EnqueueStats.empty
+          return stats unless Decidim.machine_translation_service_klass
+          return stats unless context.enable_machine_translations?
 
           default = context.default_locale
           source_text = normalized.stringify_keys[default]
-          return if source_text.blank?
+          return stats if source_text.blank?
 
-          ComponentSettingPendingLocales.for(normalized, context.organization).each do |target_locale|
-            next if normalized.dig("machine_translations", target_locale).present?
+          org = context.organization
+          ComponentSettingPendingLocales.gaps(normalized, org).each do |target_locale|
+            if ComponentSettingPendingLocales.machine_translated?(normalized, target_locale)
+              stats.add!(EnqueueStats.new(skipped_existing: 1))
+              next
+            end
 
-            translated = Decidim::Voca::DeepL::Context.with_organization(context.organization) do
+            translated = Decidim::Voca::DeepL::Context.with_organization(org) do
               MachineTranslation::TranslateString.call(
                 text: source_text,
                 source_locale: default,
@@ -81,7 +84,9 @@ module Decidim
 
             normalized["machine_translations"] ||= {}
             normalized["machine_translations"][target_locale] = translated
+            stats.add!(EnqueueStats.new(enqueued: 1))
           end
+          stats
         end
       end
     end

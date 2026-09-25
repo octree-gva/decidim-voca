@@ -38,6 +38,21 @@ RSpec.describe Decidim::Voca::SyncLocales::ComponentSettingSync do
     )
   end
 
+  it "skips locales that already have machine_translations" do
+    inner = component.read_attribute(:settings)["global"].deep_dup.deep_stringify_keys
+    inner["dummy_global_translatable_text"] = {
+      "en" => "Hello",
+      "machine_translations" => { "fr" => "Bonjour" }
+    }
+    set_jsonb_column(component, :settings, { "global" => inner })
+
+    expect do
+      stats = described_class.new(component).call
+      expect(stats.enqueued).to eq(0)
+      expect(stats.skipped_existing).to eq(1)
+    end.not_to have_enqueued_job(Decidim::Voca::MachineTranslateComponentSettingJob)
+  end
+
   it "is a no-op for non-components" do
     expect do
       described_class.new(organization).call

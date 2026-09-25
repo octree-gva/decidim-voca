@@ -2,6 +2,7 @@
 
 require_relative "sync_locales/locale_context"
 require_relative "sync_locales/field_hash_normalizer"
+require_relative "sync_locales/enqueue_stats"
 require_relative "sync_locales/machine_translation_enqueuer"
 require_relative "sync_locales/component_setting_sync"
 require_relative "sync_locales/content_block_setting_sync"

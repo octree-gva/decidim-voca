@@ -10,15 +10,16 @@ module Decidim
         end
 
         def call
-          return unless @record.is_a?(Decidim::Component)
+          return EnqueueStats.empty unless @record.is_a?(Decidim::Component)
 
           keys = Decidim::Voca::ComponentSettingManifest.translated_global_keys(@record.manifest)
-          return if keys.empty?
+          return EnqueueStats.empty if keys.empty?
 
           settings = (@record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
           global = settings["global"] ||= {}
           changed = false
           context = LocaleContext.for(@record)
+          stats = EnqueueStats.empty
 
           keys.each do |key|
             raw = global[key]
@@ -30,30 +31,38 @@ module Decidim
               global[key] = normalized
               changed = true
             end
-            enqueue_for_key(key, normalized, context)
+            stats.add!(enqueue_for_key(key, normalized, context))
           end
 
-          return unless changed
-
-          UpdateColumnWithoutCallbacks.call(@record, :settings, settings)
+          UpdateColumnWithoutCallbacks.call(@record, :settings, settings) if changed
+          stats
         end
 
         private
 
         def enqueue_for_key(key, normalized, context)
-          return unless Decidim.machine_translation_service_klass
-          return unless context.enable_machine_translations?
+          stats = EnqueueStats.empty
+          return stats unless Decidim.machine_translation_service_klass
+          return stats unless context.enable_machine_translations?
 
           default = context.default_locale
           source_text = normalized.stringify_keys[default]
-          return if source_text.blank?
+          return stats if source_text.blank?
 
-          ComponentSettingPendingLocales.for(normalized, context.organization).each do |target_locale|
+          org = context.organization
+          ComponentSettingPendingLocales.gaps(normalized, org).each do |target_locale|
+            if ComponentSettingPendingLocales.machine_translated?(normalized, target_locale)
+              stats.add!(EnqueueStats.new(skipped_existing: 1))
+              next
+            end
+
             html = rich_text_component_setting?(key)
             Decidim::Voca::MachineTranslateComponentSettingJob
               .set(wait: Decidim.config.machine_translation_delay)
               .perform_later(@record.id, key, target_locale, default, html:)
+            stats.add!(EnqueueStats.new(enqueued: 1))
           end
+          stats
         end
 
         def rich_text_component_setting?(key)

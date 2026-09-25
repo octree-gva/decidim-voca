@@ -3,7 +3,7 @@
 module Decidim
   module Voca
     module SyncLocales
-      # Rule 1: enqueue MachineTranslationFieldsJob for pending locales (same delay as TranslatableResource).
+      # Enqueue DeepL MachineTranslator for pending locales; skip locales that already have MT.
       class MachineTranslationEnqueuer
         attr_accessor :record, :field_name, :context, :normalized_field_hash
 
@@ -15,17 +15,24 @@ module Decidim
         end
 
         def call
-          return unless Decidim.machine_translation_service_klass == Decidim::Voca::DeepL::MachineTranslator
-          return unless context.enable_machine_translations?
+          return EnqueueStats.empty unless Decidim.machine_translation_service_klass == Decidim::Voca::DeepL::MachineTranslator
+          return EnqueueStats.empty unless context.enable_machine_translations?
 
           default = context.default_locale
           field_hash = normalized_field_hash.stringify_keys
           source_text = field_hash[default]
-          return if source_text.blank?
+          return EnqueueStats.empty if source_text.blank?
 
-          pending_locales.each do |target_locale|
-            translate_field(source_text, target_locale, default)
+          stats = EnqueueStats.empty
+          gap_locales.each do |target_locale|
+            if already_machine_translated?(target_locale)
+              stats.add!(EnqueueStats.new(skipped_existing: 1))
+            else
+              translate_field(source_text, target_locale, default)
+              stats.add!(EnqueueStats.new(enqueued: 1))
+            end
           end
+          stats
         end
 
         def translate_field(source_text, target_locale, source_locale)
@@ -50,9 +57,21 @@ module Decidim
           end
         end
 
-        # Locales that are not human-filled, and therefore need to be machine translated.
-        def pending_locales
+        # Locales without a human value (candidates for MT, including already-MT'd).
+        def gap_locales
           context.allowed_locales - translated_locales
+        end
+
+        # Locales that still need a DeepL call.
+        def pending_locales
+          gap_locales.reject { |locale| already_machine_translated?(locale) }
+        end
+
+        def already_machine_translated?(locale)
+          mt = normalized_field_hash.stringify_keys["machine_translations"]
+          return false unless mt.is_a?(Hash)
+
+          mt.stringify_keys[locale.to_s].present?
         end
       end
     end

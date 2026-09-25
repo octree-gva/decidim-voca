@@ -30,19 +30,30 @@ module Decidim
             fields_for(cls).present?
           end
         end
+
+        def translatable_model_names
+          translatable_models.map(&:name).uniq.sort
+        end
       end
 
       # Eager-loads models, discovers TranslatableResource classes, normalizes each field.
       class Runner
         include TranslatableModels
 
+        def initialize(model_name: nil)
+          @model_name = model_name.presence
+          @done = 0
+          @skipped = 0
+        end
+
         def call
           Rails.application.eager_load!
-          translatable_models.each do |model|
+          models_to_process.each do |model|
             process_model(model)
           end
-          process_content_blocks
-          process_awesome_menu_configs
+          process_content_blocks if process_extras?
+          process_awesome_menu_configs if process_extras?
+          $stdout.puts "done: #{@done}, skipped: #{@skipped}"
         end
 
         def process_model(model)
@@ -51,12 +62,13 @@ module Decidim
 
           $stdout.puts "Processing model: #{model.name}"
           model.unscoped.find_each do |record|
-            process_record(record, fields)
+            tally_record!(process_record(record, fields))
           end
           $stdout.puts "[DONE][#{model.unscoped.count} records]"
         end
 
         def process_record(record, fields)
+          stats = EnqueueStats.empty
           fields.each do |field|
             raw = record.read_attribute(field)
             next unless raw.is_a?(Hash)
@@ -65,10 +77,11 @@ module Decidim
             stringy = FieldHashNormalizer.deep_stringify(raw)
             normalized = FieldHashNormalizer.call(raw, context)
             UpdateColumnWithoutCallbacks.call(record, field, normalized) if normalized != stringy
-            MachineTranslationEnqueuer.new(record, field, context, normalized).call
+            stats.add!(MachineTranslationEnqueuer.new(record, field, context, normalized).call)
           end
 
-          ComponentSettingSync.new(record).call if record.is_a?(Decidim::Component)
+          stats.add!(ComponentSettingSync.new(record).call) if record.is_a?(Decidim::Component)
+          stats
         end
 
         def process_content_blocks
@@ -76,7 +89,7 @@ module Decidim
 
           $stdout.puts "Processing model: Decidim::ContentBlock (settings)"
           Decidim::ContentBlock.unscoped.find_each do |record|
-            ContentBlockSettingSync.new(record).call
+            tally_record!(ContentBlockSettingSync.new(record).call)
           rescue Decidim::Voca::SyncLocales::MissingOrganizationContextError => e
             warn e.message
           end
@@ -88,11 +101,37 @@ module Decidim
 
           $stdout.puts "Processing model: Decidim::DecidimAwesome::AwesomeConfig (menu labels)"
           Decidim::DecidimAwesome::AwesomeConfig.unscoped.find_each do |record|
-            AwesomeMenuLabelSync.new(record).call
+            tally_record!(AwesomeMenuLabelSync.new(record).call)
           rescue Decidim::Voca::SyncLocales::MissingOrganizationContextError => e
             warn e.message
           end
           $stdout.puts "[DONE][#{Decidim::DecidimAwesome::AwesomeConfig.unscoped.count} records]"
+        end
+
+        private
+
+        def models_to_process
+          return translatable_models if @model_name.blank?
+
+          match = translatable_models.find { |cls| cls.name == @model_name }
+          return [match] if match
+
+          raise ArgumentError,
+                "Unknown translatable model #{@model_name.inspect}. " \
+                "Run `rails decidim:voca:list_translatable_models` for the allowed list."
+        end
+
+        def process_extras?
+          @model_name.blank?
+        end
+
+        def tally_record!(stats)
+          stats ||= EnqueueStats.empty
+          if stats.enqueued.positive?
+            @done += 1
+          else
+            @skipped += 1
+          end
         end
       end
 

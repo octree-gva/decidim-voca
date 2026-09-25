@@ -21,6 +21,19 @@ module Decidim::Voca::SyncLocales
       allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Voca::DeepL::MachineTranslator)
     end
 
+    it "skips locales that already have machine_translations" do
+      expect(Decidim::Voca::DeepL::MachineTranslator).not_to receive(:new)
+
+      hash = {
+        "fr" => "Bonjour",
+        "en" => "",
+        "machine_translations" => { "en" => "Hello (MT)" }
+      }
+      stats = described_class.new(component, "name", context, hash).call
+      expect(stats.enqueued).to eq(0)
+      expect(stats.skipped_existing).to eq(1)
+    end
+
     it "translates pending locales via MachineTranslator with organization context" do
       translator = instance_double(Decidim::Voca::DeepL::MachineTranslator)
       allow(Decidim::Voca::DeepL::MachineTranslator).to receive(:new).with(
@@ -35,10 +48,11 @@ module Decidim::Voca::SyncLocales
 
       hash = {
         "fr" => "Bonjour",
-        "en" => "",
-        "machine_translations" => { "en" => "Hello (MT)" }
+        "en" => ""
       }
-      described_class.new(component, "name", context, hash).call
+      stats = described_class.new(component, "name", context, hash).call
+      expect(stats.enqueued).to eq(1)
+      expect(stats.skipped_existing).to eq(0)
     end
 
     it "does nothing when machine translation service is disabled" do

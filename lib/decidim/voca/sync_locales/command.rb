@@ -5,6 +5,14 @@ module Decidim
     module SyncLocales
       # Invokes decidim:locales:rebuild_search, runs locale normalization over all translatable rows, then rebuilds search again.
       class Command < Decidim::Command
+        def self.call(model_name: nil)
+          new(model_name:).call
+        end
+
+        def initialize(model_name: nil)
+          @model_name = model_name
+        end
+
         def call
           ensure_minimalistic_deepl!
           ensure_rake_tasks!
@@ -12,7 +20,7 @@ module Decidim
           rebuild_search_task.invoke
           Rails.logger.debug "=" * 80
           Rails.logger.debug "Starting sync locales"
-          Runner.new.call
+          Runner.new(model_name: @model_name).call
           Rails.logger.debug "Sync locales completed"
           Rails.logger.debug "=" * 80
           rebuild_search_task.reenable
@@ -42,8 +50,22 @@ module Decidim
         end
       end
 
-      def self.call
-        Command.call
+      def self.call(model_name: nil)
+        Command.call(model_name:)
+      end
+
+      def self.translatable_model_names
+        Rails.application.eager_load!
+        Lister.new.names
+      end
+
+      # Public listing helper for rake + validation.
+      class Lister
+        include TranslatableModels
+
+        def names
+          translatable_model_names
+        end
       end
     end
   end

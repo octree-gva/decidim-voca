@@ -91,15 +91,22 @@ Restart workers/web if you change DeepL or voca configuration.
 
 | Task | Purpose |
 |------|---------|
-| `decidim:voca:sync_locales` | Normalizes translatable JSON (including nested component settings), enqueues missing machine translation jobs, and **rebuilds the search index** before and after. **Requires [minimalistic DeepL](#minimalistic-deepl) to be enabled** (`Decidim::Voca.minimalistic_deepl?` must be true — default is `enable_minimalistic_deepl: true` when DeepL is enabled). |
+| `decidim:voca:sync_locales` | Normalizes translatable JSON (including nested component settings), enqueues machine translation only for locales that are still missing, and **rebuilds the search index** before and after. Locales that already have a present `machine_translations` entry are **skipped**. Ends with a summary line `done: N, skipped: M` (record counts). Optional model filter: `sync_locales[Decidim::Attachment]`. **Requires [minimalistic DeepL](#minimalistic-deepl)** (`Decidim::Voca.minimalistic_deepl?` must be true). |
+| `decidim:voca:list_translatable_models` | Prints sorted class names that `sync_locales` can process (`TranslatableResource` models with translatable fields). Use these names as the optional `sync_locales[Model]` argument. |
 | `decidim:voca:clean_machine_translations` | Walks `TranslatableResource` models and removes locale keys that are not the org default and not part of the intended Machine Translation flow; can touch nested component settings. In **minimalistic DeepL mode** for organizations with machine translation enabled, when the **default locale changes**, it promotes the previous machine-translated value for that new default locale into the human top-level slot before pruning. **Does not** enqueue `MachineTranslationFieldsJob`. Use `DRY_RUN=1` for a CSV preview to stdout. |
 
 Examples (run inside your app environment, e.g. Docker `voca` service: `docker compose exec voca bash -lc 'cd /home/module && bundle exec rake …'`):
 
 ```bash
+# List models allowed as sync_locales[Model]
+bundle exec rake decidim:voca:list_translatable_models
+
 # After changing default or available locales, or to re-normalize and enqueue Machine Translation jobs
 # (fails fast if minimalistic DeepL is disabled — turn it on or use other maintenance paths)
 bundle exec rake decidim:voca:sync_locales
+
+# Same sync, one model only (name must appear in list_translatable_models)
+bundle exec rake "decidim:voca:sync_locales[Decidim::Attachment]"
 
 # Preview cleanup without writes
 DRY_RUN=1 bundle exec rake decidim:voca:clean_machine_translations > tmp/clean_machine_translations_preview.csv

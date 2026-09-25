@@ -18,5 +18,20 @@ module Decidim::Voca
       expect(rake_task).to have_received(:invoke).twice
       expect(rake_task).to have_received(:reenable).twice
     end
+
+    it "passes model_name to the runner" do
+      allow(Decidim::Voca::SyncLocales::Runner).to receive(:new).with(model_name: "Decidim::Component").and_return(
+        instance_double(Decidim::Voca::SyncLocales::Runner, call: nil)
+      )
+      expect { SyncLocales::Command.call(model_name: "Decidim::Component") }.to broadcast(:ok)
+    end
+  end
+
+  describe ".translatable_model_names" do
+    it "returns sorted Decidim TranslatableResource class names" do
+      names = SyncLocales.translatable_model_names
+      expect(names).to include("Decidim::Component")
+      expect(names).to eq(names.sort)
+    end
   end
 end

@@ -7,6 +7,11 @@ module Decidim
       module_function
 
       def for(field_hash, organization)
+        gaps(field_hash, organization).reject { |locale| machine_translated?(field_hash, locale) }
+      end
+
+      # Locales that lack a human top-level value (or, in minimalistic mode, all non-default locales).
+      def gaps(field_hash, organization)
         return [] unless field_hash.is_a?(Hash)
 
         allowed = organization.available_locales.map(&:to_s)
@@ -23,6 +28,15 @@ module Decidim
           end
           allowed - human
         end
+      end
+
+      def machine_translated?(field_hash, locale)
+        return false unless field_hash.is_a?(Hash)
+
+        mt = field_hash.stringify_keys["machine_translations"]
+        return false unless mt.is_a?(Hash)
+
+        mt.stringify_keys[locale.to_s].present?
       end
 
       def minimalistic?(organization)

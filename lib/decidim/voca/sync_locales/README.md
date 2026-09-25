@@ -1,13 +1,16 @@
 # Sync Command
-This folder includes the script for the rake task `decidim:voca:sync_locales`. 
+This folder includes the script for the rake task `decidim:voca:sync_locales`.
 
 ```
 .
-├── command.rb # Execute the runner, wrapping rebuild search before and after execution
-└── runner.rb # Identifies all models that can be translated and run a normalization on translatable fields, and a new machine translation job if needed.
+├── command.rb # Execute the runner (optional model_name:), wrapping rebuild search before and after
+├── runner.rb # Discovers models, optional filter, normalizes fields, enqueues MT; prints done/skipped
+├── enqueue_stats.rb # Counts enqueued vs skipped-existing translations
 ├── field_hash_normalizer.rb # normalize the hash to be sure "root" key is only default locale, and all the rest is machine-translated. Clean locales that are not available anymore.
-├── machine_translation_enqueuer.rb # Enqueue a machine translation job for all the missing locales.
+├── machine_translation_enqueuer.rb # Enqueue DeepL for missing locales; skip present machine_translations
 ├── component_setting_sync.rb # For Decidim::Component only: normalize translated *global* settings JSON and enqueue Decidim::Voca::MachineTranslateComponentSettingJob (nested JSONB, not a DB column).
 ├── locale_context.rb # Find the organization linked to a resource
 ```
+
+List models: `rails decidim:voca:list_translatable_models`. Filter: `rails decidim:voca:sync_locales[Decidim::Attachment]`.
 
