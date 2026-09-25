@@ -48,11 +48,24 @@ module Decidim
 
         def call
           Rails.application.eager_load!
+          if term_customizer_only?
+            unless TermCustomizerSync.available?
+              raise ArgumentError,
+                    "#{TermCustomizerSync::MODEL_NAME} is not available " \
+                    "(install decidim-term_customizer and run migrations)."
+            end
+
+            process_term_customizer
+            $stdout.puts "done: #{@done}, skipped: #{@skipped}"
+            return
+          end
+
           models_to_process.each do |model|
             process_model(model)
           end
           process_content_blocks if process_extras?
           process_awesome_menu_configs if process_extras?
+          process_term_customizer if process_extras?
           $stdout.puts "done: #{@done}, skipped: #{@skipped}"
         end
 
@@ -108,6 +121,15 @@ module Decidim
           $stdout.puts "[DONE][#{Decidim::DecidimAwesome::AwesomeConfig.unscoped.count} records]"
         end
 
+        def process_term_customizer
+          return unless TermCustomizerSync.available?
+
+          $stdout.puts "Processing model: #{TermCustomizerSync::MODEL_NAME}"
+          TermCustomizerSync.new.each_key_stats do |stats|
+            tally_record!(stats)
+          end
+        end
+
         private
 
         def models_to_process
@@ -119,6 +141,10 @@ module Decidim
           raise ArgumentError,
                 "Unknown translatable model #{@model_name.inspect}. " \
                 "Run `rails decidim:voca:list_translatable_models` for the allowed list."
+        end
+
+        def term_customizer_only?
+          @model_name == TermCustomizerSync::MODEL_NAME
         end
 
         def process_extras?

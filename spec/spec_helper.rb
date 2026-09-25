@@ -28,6 +28,7 @@ require "decidim/proposals/test/factories"
 require "decidim/decidim_awesome/test/factories"
 
 require_relative "support/decidim_voca/machine_translation_spec_helpers"
+require_relative "support/decidim_voca/term_customizer_spec_support"
 
 RSpec.configure do |config|
   config.before do

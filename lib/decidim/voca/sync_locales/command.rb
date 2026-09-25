@@ -64,7 +64,9 @@ module Decidim
         include TranslatableModels
 
         def names
-          translatable_model_names
+          names = translatable_model_names
+          names << TermCustomizerSync::MODEL_NAME if TermCustomizerSync.available?
+          names.uniq.sort
         end
       end
     end

@@ -11,7 +11,7 @@ namespace :decidim do
       Decidim::Voca::SyncLocales.call(model_name: args[:model_name].presence)
     end
 
-    desc "List ActiveRecord models that sync_locales can process (TranslatableResource with fields)."
+    desc "List models sync_locales can process (TranslatableResource + TermCustomizer::Translation when available)."
     task list_translatable_models: :environment do
       Decidim::Voca::SyncLocales.translatable_model_names.each do |name|
         puts name

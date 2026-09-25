@@ -51,7 +51,7 @@ decidim-voca can integrate **Weglot** for client-side / edge translation (see [W
 
 ### i18n-tasks
 
-For translating **YAML locale files** (missing keys) with the same DeepL setup as runtime Machine Translation, download **[i18n-tasks.yml](/decidim-voca/i18n-tasks.yml)** and save it as **`config/i18n-tasks.yml`** in your Decidim app. It configures **i18n-tasks** to use the **deepl** backend via **`deepl-rb`**, reading **`DECIDIM_DEEPL_API_KEY`**, **`DECIDIM_DEEPL_HOST`**, and **`DECIDIM_DEEPL_VERSION`** — the same variables as decidim-voca (see [Environment variables](#environment-variables-reference)). Adjust `data.read` / `write` paths in that file if your locale layout differs.
+For translating **YAML locale files** (missing keys) with the same DeepL setup as runtime Machine Translation, download **[i18n-tasks.yml](/i18n-tasks.yml)** and save it as **`config/i18n-tasks.yml`** in your Decidim app. It configures **i18n-tasks** to use the **deepl** backend via **`deepl-rb`**, reading **`DECIDIM_DEEPL_API_KEY`**, **`DECIDIM_DEEPL_HOST`**, and **`DECIDIM_DEEPL_VERSION`** — the same variables as decidim-voca (see [Environment variables](#environment-variables-reference)). Adjust `data.read` / `write` paths in that file if your locale layout differs.
 
 Typical workflow in **your host application** if you want to support ukranian in your Decidim :
 
@@ -91,8 +91,9 @@ Restart workers/web if you change DeepL or voca configuration.
 
 | Task | Purpose |
 |------|---------|
-| `decidim:voca:sync_locales` | Normalizes translatable JSON (including nested component settings), enqueues machine translation only for locales that are still missing, and **rebuilds the search index** before and after. Locales that already have a present `machine_translations` entry are **skipped**. Ends with a summary line `done: N, skipped: M` (record counts). Optional model filter: `sync_locales[Decidim::Attachment]`. **Requires [minimalistic DeepL](#minimalistic-deepl)** (`Decidim::Voca.minimalistic_deepl?` must be true). |
-| `decidim:voca:list_translatable_models` | Prints sorted class names that `sync_locales` can process (`TranslatableResource` models with translatable fields). Use these names as the optional `sync_locales[Model]` argument. |
+| `decidim:voca:sync_locales` | Normalizes translatable JSON (including nested component settings), enqueues machine translation only for locales that are still missing, and **rebuilds the search index** before and after. Locales that already have a present `machine_translations` entry are **skipped**. Ends with a summary line `done: N, skipped: M` (record counts). Optional model filter: `sync_locales[Decidim::Attachment]`. When [Term Customizer](https://github.com/mainio/decidim-module-term_customizer) is installed, also fills blank term rows from the customized default locale (plain `value` columns, not `machine_translations` JSON). Filter: `sync_locales[Decidim::TermCustomizer::Translation]`. **Requires [minimalistic DeepL](#minimalistic-deepl)** (`Decidim::Voca.minimalistic_deepl?` must be true). |
+| `decidim:voca:list_translatable_models` | Prints sorted class names that `sync_locales` can process (`TranslatableResource` models with translatable fields), plus `Decidim::TermCustomizer::Translation` when that gem is available. |
+| `decidim:voca:sync_term_customizer_locales` | Term Customizer only: for each customized key, DeepL-translates the **default-locale customized value** into blank target locales (example: FR `"Processus"` → PT `"Processo"`, not the stock i18n string). Does **not** rebuild search. Requires term_customizer gem + minimalistic DeepL. |
 | `decidim:voca:clean_machine_translations` | Walks `TranslatableResource` models and removes locale keys that are not the org default and not part of the intended Machine Translation flow; can touch nested component settings. In **minimalistic DeepL mode** for organizations with machine translation enabled, when the **default locale changes**, it promotes the previous machine-translated value for that new default locale into the human top-level slot before pruning. **Does not** enqueue `MachineTranslationFieldsJob`. Use `DRY_RUN=1` for a CSV preview to stdout. |
 
 Examples (run inside your app environment, e.g. Docker `voca` service: `docker compose exec voca bash -lc 'cd /home/module && bundle exec rake …'`):
@@ -107,6 +108,9 @@ bundle exec rake decidim:voca:sync_locales
 
 # Same sync, one model only (name must appear in list_translatable_models)
 bundle exec rake "decidim:voca:sync_locales[Decidim::Attachment]"
+
+# Term Customizer only (after adding a locale to the organization)
+bundle exec rake decidim:voca:sync_term_customizer_locales
 
 # Preview cleanup without writes
 DRY_RUN=1 bundle exec rake decidim:voca:clean_machine_translations > tmp/clean_machine_translations_preview.csv
