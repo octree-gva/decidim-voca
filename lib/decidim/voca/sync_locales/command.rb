@@ -76,6 +76,7 @@ module Decidim
         def names
           names = translatable_model_names
           names << TermCustomizerSync::MODEL_NAME if TermCustomizerSync.available?
+          names << ContentBlockSettingSync::MODEL_NAME if defined?(Decidim::ContentBlock)
           names.uniq.sort
         end
       end

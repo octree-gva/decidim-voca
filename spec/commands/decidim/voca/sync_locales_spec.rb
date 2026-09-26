@@ -40,6 +40,7 @@ module Decidim::Voca
     it "returns sorted Decidim TranslatableResource class names" do
       names = SyncLocales.translatable_model_names
       expect(names).to include("Decidim::Component")
+      expect(names).to include("Decidim::ContentBlock")
       expect(names).to eq(names.sort)
     end
   end

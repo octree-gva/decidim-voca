@@ -13,6 +13,6 @@ This folder includes the script for the rake task `decidim:voca:sync_locales`.
 ├── locale_context.rb # Find the organization linked to a resource
 ```
 
-List models: `rails decidim:voca:list_translatable_models`. Filter: `rails decidim:voca:sync_locales[Decidim::Attachment]`.
+List models: `rails decidim:voca:list_translatable_models`. Filter: `rails decidim:voca:sync_locales[Decidim::Attachment]` or `rails decidim:voca:sync_locales[Decidim::ContentBlock]`.
 Term Customizer only: `rails decidim:voca:sync_term_customizer_locales`.
 

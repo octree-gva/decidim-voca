@@ -6,6 +6,8 @@ module Decidim
       # Normalizes + machine-translates translated keys under +ContentBlock#settings+.
       # Persists Decidim flat keys (+welcome_text_fr+ / +html_content_en+) for cells/admin.
       class ContentBlockSettingSync
+        MODEL_NAME = "Decidim::ContentBlock"
+
         def initialize(record)
           @record = record
         end

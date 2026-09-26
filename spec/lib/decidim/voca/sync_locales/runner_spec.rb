@@ -60,4 +60,17 @@ RSpec.describe Decidim::Voca::SyncLocales::Runner do
 
     expect(syncer).to have_received(:each_key_stats)
   end
+
+  it "routes Decidim::ContentBlock to content block settings only" do
+    create(:content_block, organization:, scope_name: :homepage, manifest_name: :hero)
+
+    expect do
+      described_class.new(model_name: "Decidim::ContentBlock").call
+    end.to output(
+      satisfy("ContentBlock-only output") do |text|
+        text.include?("Processing model: Decidim::ContentBlock (settings)") &&
+          text.exclude?("Processing model: Decidim::Component")
+      end
+    ).to_stdout
+  end
 end

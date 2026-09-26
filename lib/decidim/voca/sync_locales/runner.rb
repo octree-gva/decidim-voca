@@ -54,6 +54,11 @@ module Decidim
             return
           end
 
+          if content_block_only?
+            run_content_block_only!
+            return
+          end
+
           models_to_process.each do |model|
             process_model(model)
           end
@@ -137,9 +142,16 @@ module Decidim
           $stdout.puts "done: #{@done}, skipped: #{@skipped}"
         end
 
+        def run_content_block_only!
+          raise ArgumentError, "#{ContentBlockSettingSync::MODEL_NAME} is not available." unless defined?(Decidim::ContentBlock)
+
+          process_content_blocks
+          $stdout.puts "done: #{@done}, skipped: #{@skipped}"
+        end
+
         def models_to_process
           return translatable_models if @model_name.blank?
-          return [] if term_customizer_only?
+          return [] if term_customizer_only? || content_block_only?
 
           match = translatable_models.find { |cls| cls.name == @model_name }
           return [match] if match
@@ -151,6 +163,10 @@ module Decidim
 
         def term_customizer_only?
           @model_name.to_s == TermCustomizerSync::MODEL_NAME
+        end
+
+        def content_block_only?
+          @model_name.to_s == ContentBlockSettingSync::MODEL_NAME
         end
 
         def process_extras?
