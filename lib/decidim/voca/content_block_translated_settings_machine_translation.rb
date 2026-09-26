@@ -77,7 +77,8 @@ module Decidim
       def schedule_setting_jobs(key, field_hash, org)
         default = org.default_locale.to_s
         pending = ComponentSettingPendingLocales.for(field_hash, org)
-        html = rich_text_content_block_setting?(key)
+        source = field_hash.stringify_keys[default]
+        html = rich_text_content_block_setting?(key, source)
 
         pending.each do |target|
           MachineTranslateContentBlockSettingJob
@@ -86,10 +87,12 @@ module Decidim
         end
       end
 
-      def rich_text_content_block_setting?(key)
+      def rich_text_content_block_setting?(key, source = nil)
+        return true if key.to_s == "html_content"
+        return true if source.to_s.match?(/<[a-z][\s\S]*>/i)
+
         attr = manifest.settings.attributes[key.to_sym]
-        return false unless attr
-        return false unless attr.type == :text
+        return false unless attr&.type == :text
 
         attr.editor?({}) == true
       rescue StandardError

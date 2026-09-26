@@ -57,5 +57,29 @@ RSpec.describe Decidim::Voca::MachineTranslation::TranslateString do
         )
       end.not_to raise_error
     end
+
+    # Production html content-block: CSS background-image data URI alone exceeds DeepL byte gate.
+    it "strips oversized CSS data URIs before the byte gate and restores them" do
+      allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Voca::DeepL::MachineTranslator)
+      allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
+      hide_const("::DeepL")
+
+      blob = "A" * 140_000
+      html = %(<div class="banner" style="background-image: url('data:image/jpeg;base64,#{blob}');"><h2>Découvrez des expériences inspirantes</h2></div>)
+      expect(html.bytesize).to be >= 131_000
+      expect(described_class.translatable?(html)).to be(false)
+
+      result = described_class.call(
+        text: html,
+        source_locale: "fr",
+        target_locale: "en",
+        html: true,
+        context: nil
+      )
+
+      expect(result).not_to be_nil
+      expect(result).to include("data:image/jpeg;base64,#{blob}")
+      expect(result).to include("Découvrez des expériences inspirantes")
+    end
   end
 end

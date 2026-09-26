@@ -51,7 +51,7 @@ module Decidim
 
           org = context.organization
           ComponentSettingPendingLocales.gaps(normalized, org).each do |target_locale|
-            if ComponentSettingPendingLocales.machine_translated?(normalized, target_locale)
+            if ComponentSettingPendingLocales.machine_translated?(normalized, target_locale, default)
               stats.add!(EnqueueStats.new(skipped_existing: 1))
               next
             end

@@ -73,17 +73,29 @@ module Decidim
           mt_hash.delete(default_locale)
         end
 
-        # All non-default locales must be machine-translated
+        # All non-default locales must be machine-translated.
+        # Drop copies of the default source (not real translations) so sync DeepL's them.
         def move_non_default_roots_to_mt!(locale_hash, mt_hash, allowed_locales, default_locale)
+          source = locale_hash[default_locale]
           allowed_locales.each do |locale|
             next if locale == default_locale
 
-            val = locale_hash[locale]
-            next if val.blank?
-
-            mt_hash[locale] = val
-            locale_hash[locale] = ""
+            relocate_non_default_locale!(locale_hash, mt_hash, locale, source)
           end
+        end
+
+        def relocate_non_default_locale!(locale_hash, mt_hash, locale, source)
+          val = locale_hash[locale]
+          return if val.blank?
+
+          if source.present? && val == source
+            locale_hash.delete(locale)
+            mt_hash.delete(locale)
+            return
+          end
+
+          mt_hash[locale] = val
+          locale_hash[locale] = ""
         end
 
         # Remove top-level keys that are not in allowed locales

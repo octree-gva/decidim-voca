@@ -13,10 +13,10 @@ module Decidim::Voca
       allow(Decidim::Voca::SyncLocales::Runner).to receive(:new).and_return(runner)
     end
 
-    it "rebuilds search twice and broadcasts ok" do
+    it "rebuilds search after sync and broadcasts ok" do
       expect { SyncLocales::Command.call }.to broadcast(:ok)
-      expect(rake_task).to have_received(:invoke).twice
-      expect(rake_task).to have_received(:reenable).twice
+      expect(rake_task).to have_received(:invoke).once
+      expect(rake_task).to have_received(:reenable).once
     end
 
     it "passes model_name to the runner" do
@@ -24,6 +24,15 @@ module Decidim::Voca
         instance_double(Decidim::Voca::SyncLocales::Runner, call: nil)
       )
       expect { SyncLocales::Command.call(model_name: "Decidim::Component") }.to broadcast(:ok)
+    end
+
+    it "skips search rebuild for TermCustomizer::Translation filter" do
+      allow(Decidim::Voca::SyncLocales::Runner).to receive(:new).with(
+        model_name: "Decidim::TermCustomizer::Translation"
+      ).and_return(instance_double(Decidim::Voca::SyncLocales::Runner, call: nil))
+
+      expect { SyncLocales::Command.call(model_name: "Decidim::TermCustomizer::Translation") }.to broadcast(:ok)
+      expect(rake_task).not_to have_received(:invoke)
     end
   end
 

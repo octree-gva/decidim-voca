@@ -48,15 +48,9 @@ module Decidim
 
         def call
           Rails.application.eager_load!
-          if term_customizer_only?
-            unless TermCustomizerSync.available?
-              raise ArgumentError,
-                    "#{TermCustomizerSync::MODEL_NAME} is not available " \
-                    "(install decidim-term_customizer and run migrations)."
-            end
 
-            process_term_customizer
-            $stdout.puts "done: #{@done}, skipped: #{@skipped}"
+          if term_customizer_only?
+            run_term_customizer_only!
             return
           end
 
@@ -132,8 +126,20 @@ module Decidim
 
         private
 
+        def run_term_customizer_only!
+          unless TermCustomizerSync.available?
+            raise ArgumentError,
+                  "#{TermCustomizerSync::MODEL_NAME} is not available " \
+                  "(install decidim-term_customizer and run migrations)."
+          end
+
+          process_term_customizer
+          $stdout.puts "done: #{@done}, skipped: #{@skipped}"
+        end
+
         def models_to_process
           return translatable_models if @model_name.blank?
+          return [] if term_customizer_only?
 
           match = translatable_models.find { |cls| cls.name == @model_name }
           return [match] if match
@@ -144,7 +150,7 @@ module Decidim
         end
 
         def term_customizer_only?
-          @model_name == TermCustomizerSync::MODEL_NAME
+          @model_name.to_s == TermCustomizerSync::MODEL_NAME
         end
 
         def process_extras?

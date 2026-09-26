@@ -27,6 +27,16 @@ RSpec.describe Decidim::Voca::ComponentSettingPendingLocales do
     expect(described_class.gaps(hash, organization)).to match_array(%w(fr es))
   end
 
+  it "does not treat a copy of the default source as machine-translated" do
+    hash = {
+      "en" => "Hello",
+      "machine_translations" => { "fr" => "Hello" }
+    }
+
+    expect(described_class.for(hash, organization)).to match_array(%w(fr es))
+    expect(described_class.machine_translated?(hash, "fr", "en")).to be(false)
+  end
+
   it "returns empty when default locale source is blank" do
     hash = { "en" => "", "machine_translations" => { "fr" => "x" } }
     expect(described_class.for(hash, organization)).to eq([])

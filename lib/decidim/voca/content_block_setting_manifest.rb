@@ -21,17 +21,19 @@ module Decidim
       def coalesce_flat_keys!(settings, keys, locales)
         return settings unless settings.is_a?(Hash)
 
-        keys.each do |key|
-          nested = settings[key].is_a?(Hash) ? settings[key].deep_stringify_keys : {}
-          locales.each do |loc|
-            flat = "#{key}_#{loc}"
-            next unless settings.has_key?(flat)
-
-            nested[loc.to_s] = settings.delete(flat)
-          end
-          settings[key] = nested if nested.any?
-        end
+        keys.each { |key| coalesce_one_key!(settings, key, locales) }
         settings
+      end
+
+      def coalesce_one_key!(settings, key, locales)
+        nested = settings[key].is_a?(Hash) ? settings[key].deep_stringify_keys : {}
+        locales.each do |loc|
+          flat = "#{key}_#{loc}"
+          next unless settings.has_key?(flat)
+
+          nested[loc.to_s] = settings.delete(flat)
+        end
+        settings[key] = nested if nested.any?
       end
 
       # Decidim content-block JSONB is flat (+welcome_text_fr+). Expand nested (+machine_translations+)
@@ -49,15 +51,14 @@ module Decidim
 
         nested = nested.deep_stringify_keys
         mt = nested.delete("machine_translations")
-        nested.each do |loc, val|
+        write_flat_locale_values!(settings, key, nested, skip_blank: false)
+        write_flat_locale_values!(settings, key, mt, skip_blank: true) if mt.is_a?(Hash)
+      end
+
+      def write_flat_locale_values!(settings, key, locale_hash, skip_blank:)
+        locale_hash.deep_stringify_keys.each do |loc, val|
           next if loc.blank?
-
-          settings["#{key}_#{loc}"] = val
-        end
-        return unless mt.is_a?(Hash)
-
-        mt.deep_stringify_keys.each do |loc, val|
-          next if loc.blank? || val.blank?
+          next if skip_blank && val.blank?
 
           settings["#{key}_#{loc}"] = val
         end

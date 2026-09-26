@@ -41,4 +41,23 @@ RSpec.describe Decidim::Voca::SyncLocales::Runner do
       end
     ).to_stdout
   end
+
+  it "routes Decidim::TermCustomizer::Translation to TermCustomizerSync only" do
+    DecidimVocaTermCustomizerSpecSupport.ensure_models!
+    allow(Decidim::Voca::SyncLocales::TermCustomizerSync).to receive(:available?).and_return(true)
+    syncer = instance_double(Decidim::Voca::SyncLocales::TermCustomizerSync)
+    allow(Decidim::Voca::SyncLocales::TermCustomizerSync).to receive(:new).and_return(syncer)
+    allow(syncer).to receive(:each_key_stats)
+
+    expect do
+      described_class.new(model_name: "Decidim::TermCustomizer::Translation").call
+    end.to output(
+      satisfy("TermCustomizer-only output") do |text|
+        text.include?("Processing model: Decidim::TermCustomizer::Translation") &&
+          text.exclude?("Processing model: Decidim::Component")
+      end
+    ).to_stdout
+
+    expect(syncer).to have_received(:each_key_stats)
+  end
 end

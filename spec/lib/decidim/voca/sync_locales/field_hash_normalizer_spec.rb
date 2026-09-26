@@ -72,6 +72,17 @@ module Decidim::Voca::SyncLocales
           }
         )
       end
+
+      it "drops non-default roots that are copies of the default source" do
+        input = {
+          "fr" => "Lausanne participe, et vous?",
+          "en" => "Lausanne participe, et vous?"
+        }
+        context = ctx(allowed: %w(fr en), default: "fr")
+        out = described_class.call(input, context)
+
+        expect(out).to eq({ "fr" => "Lausanne participe, et vous?" })
+      end
     end
   end
 end

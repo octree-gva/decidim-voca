@@ -3,7 +3,7 @@
 module Decidim
   module Voca
     module SyncLocales
-      # Invokes decidim:locales:rebuild_search, runs locale normalization over all translatable rows, then rebuilds search again.
+      # Runs locale normalization over all translatable rows, then invokes decidim:locales:rebuild_search.
       class Command < Decidim::Command
         def self.call(model_name: nil)
           new(model_name:).call
@@ -15,9 +15,15 @@ module Decidim
 
         def call
           ensure_minimalistic_deepl!
+          if term_customizer_only?
+            Rails.logger.debug "Starting TermCustomizer sync locales (no search rebuild)"
+            Runner.new(model_name: @model_name).call
+            Rails.logger.debug "TermCustomizer sync locales completed"
+            broadcast(:ok)
+            return
+          end
+
           ensure_rake_tasks!
-          rebuild_search_task.reenable
-          rebuild_search_task.invoke
           Rails.logger.debug "=" * 80
           Rails.logger.debug "Starting sync locales"
           Runner.new(model_name: @model_name).call
@@ -32,6 +38,10 @@ module Decidim
         end
 
         private
+
+        def term_customizer_only?
+          @model_name.to_s == TermCustomizerSync::MODEL_NAME
+        end
 
         def ensure_minimalistic_deepl!
           return if Decidim::Voca.minimalistic_deepl?

@@ -7,7 +7,10 @@ module Decidim
       module_function
 
       def for(field_hash, organization)
-        gaps(field_hash, organization).reject { |locale| machine_translated?(field_hash, locale) }
+        default = organization.default_locale.to_s
+        gaps(field_hash, organization).reject do |locale|
+          machine_translated?(field_hash, locale, default)
+        end
       end
 
       # Locales that lack a human top-level value (or, in minimalistic mode, all non-default locales).
@@ -30,13 +33,27 @@ module Decidim
         end
       end
 
-      def machine_translated?(field_hash, locale)
+      # +default_locale+: when MT text equals the default source, treat as not translated
+      # (admin often pasted the default string into other locale slots).
+      def machine_translated?(field_hash, locale, default_locale = nil)
         return false unless field_hash.is_a?(Hash)
 
-        mt = field_hash.stringify_keys["machine_translations"]
+        fh = field_hash.stringify_keys
+        mt = fh["machine_translations"]
         return false unless mt.is_a?(Hash)
 
-        mt.stringify_keys[locale.to_s].present?
+        value = mt.stringify_keys[locale.to_s]
+        return false if value.blank?
+        return false if copy_of_default_source?(fh, value, default_locale)
+
+        true
+      end
+
+      def copy_of_default_source?(field_hash, value, default_locale)
+        return false if default_locale.blank?
+
+        source = field_hash[default_locale.to_s]
+        source.present? && value == source
       end
 
       def minimalistic?(organization)

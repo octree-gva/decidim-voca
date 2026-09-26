@@ -13,17 +13,21 @@ module Decidim
             return nil if klass.blank?
             return "" if text.blank?
 
-            work = text.dup
-            work.gsub!(Regexp.new(%q(<img\s+src="data:image/png;base64,[^"]*"\s*/?>), Regexp::IGNORECASE), "")
+            # ponytail: global data: URI strip; ceiling = false-positive on rare non-image data: blobs in text → tighten to image/* / known mime if seen
+            work, data_uris = extract_data_uris(text.dup)
 
-            return dummy_dev_translation(work, target_locale) if klass.to_s == "Decidim::Dev::DummyTranslator"
+            translated =
+              if klass.to_s == "Decidim::Dev::DummyTranslator"
+                dummy_dev_translation(work, target_locale)
+              elsif dummy_translate?
+                dummy_deepl_style_translation(work, target_locale, html)
+              elsif !translatable?(work) || !deepl_service?(klass)
+                nil
+              else
+                segmented_translate(work, source_locale.to_s, target_locale.to_s, html:, context:)
+              end
 
-            return dummy_deepl_style_translation(work, target_locale, html) if dummy_translate?
-
-            return nil unless translatable?(work)
-            return nil unless deepl_service?(klass)
-
-            segmented_translate(work, source_locale.to_s, target_locale.to_s, html:, context:)
+            restore_data_uris(translated, data_uris)
           end
 
           def dummy_translate?
@@ -36,6 +40,36 @@ module Decidim
 
           def translatable?(text)
             text.present? && text.bytesize < 131_000
+          end
+
+          # Replace embedded data: URIs with tokens so DeepL size limits stay on real copy.
+          def extract_data_uris(text)
+            map = {}
+            index = 0
+            work = text.dup
+
+            work.gsub!(/url\(\s*(['"]?)(data:[^)'"]+)\1\s*\)/i) do
+              token = "__VOCA_DATA_URI_#{index}__"
+              index += 1
+              map[token] = Regexp.last_match[2]
+              quote = Regexp.last_match[1]
+              "url(#{quote}#{token}#{quote})"
+            end
+
+            work.gsub!(/(<img\b[^>]*\bsrc\s*=\s*)(['"])(data:[^'"]+)(\2)/i) do
+              token = "__VOCA_DATA_URI_#{index}__"
+              index += 1
+              map[token] = Regexp.last_match[3]
+              "#{Regexp.last_match[1]}#{Regexp.last_match[2]}#{token}#{Regexp.last_match[2]}"
+            end
+
+            [work, map]
+          end
+
+          def restore_data_uris(text, map)
+            return text if text.nil? || map.empty?
+
+            map.reduce(text.dup) { |acc, (token, uri)| acc.gsub(token, uri) }
           end
 
           def mutex

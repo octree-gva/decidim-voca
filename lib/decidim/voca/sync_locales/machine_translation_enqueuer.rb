@@ -68,10 +68,11 @@ module Decidim
         end
 
         def already_machine_translated?(locale)
-          mt = normalized_field_hash.stringify_keys["machine_translations"]
-          return false unless mt.is_a?(Hash)
-
-          mt.stringify_keys[locale.to_s].present?
+          ComponentSettingPendingLocales.machine_translated?(
+            normalized_field_hash,
+            locale,
+            context.default_locale
+          )
         end
       end
     end
