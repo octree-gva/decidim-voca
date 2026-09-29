@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe Decidim::Admin::UpdateStaticPage, "machine translations" do
+RSpec.describe Decidim::Admin::UpdateStaticPage do
   let(:organization) do
     create(
       :organization,
