@@ -194,6 +194,9 @@ module Decidim
         # Overrides CardMetadataCell
         Decidim::CardMetadataCell.include(Decidim::Voca::Overrides::CardMetadataCellOverrides)
 
+        # Overrides DatesAndMapCell to remove static map image to avoid dependancy from HERE Maps
+        Decidim::Meetings::DatesAndMapCell.include(Decidim::Voca::Overrides::Meetings::DatesAndMapCellOverrides)
+
         # Overrides NewsletterHelper to fix url image
         Decidim::NewslettersHelper.include(Decidim::Voca::Overrides::NewsletterHelperOverrides)
 
