@@ -39,7 +39,10 @@ module Decidim
       end
 
       def registration_field_names
-        Decidim::CustomUserFields.custom_fields.map(&:name)
+        customization = Decidim::CustomUserFields::Customizations.find(:voca_defaults)
+        return [] unless customization
+
+        customization.fields.map(&:name)
       end
 
       def verification_handler_names

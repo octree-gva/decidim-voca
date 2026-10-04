@@ -33,12 +33,12 @@ GIT
 
 GIT
   remote: https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields
-  revision: e35543f77ebda053ed3f0068c482b22487a6f936
+  revision: 88a9d2af0209cc2fe9430235b52541d407b9801d
   branch: main
   specs:
-    decidim-user_fields (0.1.5)
+    decidim-user_fields (0.1.6)
       decidim-core (>= 0.29)
-      decidim-toggle (>= 0.1)
+      decidim-toggle (>= 0.1.3)
       decidim-verifications (>= 0.29)
       deface (>= 1.9)
 
@@ -60,7 +60,7 @@ PATH
       decidim-ephemeral_participation (~> 0.0.6)
       decidim-telemetry (~> 0.0.4)
       decidim-toggle (~> 0.1.3)
-      decidim-user_fields (~> 0.1.4)
+      decidim-user_fields (~> 0.1.6)
       deepl-rb (~> 3.2.0)
       deface (~> 1.9)
       faker (~> 3.5.1)
