@@ -10,10 +10,6 @@ module Decidim
           @voca_features_toggle ||= Decidim::Toggle.config_for(self, Decidim::Voca::MODULE_NAME)
         end
 
-        def next_gen_images?
-          voca_features_toggle["next_gen_images_enabled"]
-        end
-
         def deepl_enabled?
           voca_features_toggle["deepl_enabled"]
         end

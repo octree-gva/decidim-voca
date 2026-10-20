@@ -17,13 +17,15 @@ gem "decidim-voca", path: base_path
 gem "deepl-rb"
 gem "deface", ">= 1.9"
 gem "good_job", "~> 4.5.1"
-gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
 gem "puma", ">= 6.3.1"
 gem "uglifier", "~> 4.1"
 
+gem "html-pipeline", "~> 3.2.2"
+gem "selma", "~> 0.4.0"
+
 gem "decidim-initiatives"
 
-gem "decidim-decidim_awesome", git: "https://github.com/decidim-ice/decidim-module-decidim_awesome.git", branch: "upgrade-32"
+gem "decidim-decidim_awesome", git: "https://github.com/decidim-ice/decidim-module-decidim_awesome.git", branch: "main"
 
 group :development, :test do
   gem "brakeman", "~> 6.1"

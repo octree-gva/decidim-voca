@@ -94,8 +94,6 @@ module Decidim
         end
         Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        # Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        # Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
       end
 
       config.to_prepare do
@@ -112,23 +110,6 @@ module Decidim
 
       # Overrides
       config.to_prepare do
-        # Setup upload variants
-        upload_variants = {
-          thumbnail: { resize_to_fit: [nil, 237] },
-          big: { resize_to_limit: [nil, 1000] },
-          thumbnail_webp: { resize_to_fit: [nil, 237], convert: :webp, format: :webp, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 100 } },
-          big_webp: { resize_to_limit: [nil, 1000], convert: :webp, format: :webp, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 100 } }
-        }
-        ActiveSupport.on_load(:action_view) { include NextGenImages::ViewHelpers }
-
-        # Includes overrides
-        ActionView::Helpers::AssetTagHelper.include(Decidim::Voca::Overrides::ImageTagOverrides)
-        Decidim::ViewModel.include Decidim::Voca::Overrides::DecidimViewModel
-
-        # Proposals
-        Decidim::Proposals::ProposalGCell.include(Decidim::Voca::Overrides::ProposalGCellOverride)
-        Decidim::AttachmentUploader.set_variants { upload_variants }
-
         Decidim::SearchesController.prepend(Decidim::Voca::Overrides::SearchesControllerOverrides)
 
         # Set retry on Decidim::ApplicationJob

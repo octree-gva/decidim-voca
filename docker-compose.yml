@@ -3,6 +3,7 @@ services:
     command: bash -c "sleep infinity"
     image: octree/decidim-dev:0.32
     entrypoint: ""
+    container_name: decidim-voca
     volumes:
       - .:/home/module
       - bundle:/home/decidim/app/vendor
@@ -79,6 +80,7 @@ services:
 
   voca-pg:
     image: postgis/postgis:17-3.5-alpine
+    container_name: decidim-voca-pg
     restart: always
     volumes:
       - voca-pg-data:/var/lib/postgresql/data
