@@ -3,7 +3,6 @@
 require_relative "voca/deepl"
 
 require_relative "voca/engine"
-require_relative "voca/overrides/searches_controller_overrides"
 require_relative "voca/overrides/mod_secure/user_profile_verification_override"
 require_relative "voca/overrides/resource_presenter_overrides"
 require_relative "voca/overrides/sanitize_helper_overrides"

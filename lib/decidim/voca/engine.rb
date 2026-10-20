@@ -110,8 +110,6 @@ module Decidim
 
       # Overrides
       config.to_prepare do
-        Decidim::SearchesController.prepend(Decidim::Voca::Overrides::SearchesControllerOverrides)
-
         # Set retry on Decidim::ApplicationJob
         good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
         ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
