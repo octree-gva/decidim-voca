@@ -6,7 +6,7 @@ module Decidim
       class CodeForm < AuthorizationHandler
         attribute :code, String
 
-        validates :code, presence: true, length: { minimum: 3 }
+        validates :code, presence: true
         validate :code_exists
 
         def metadata
