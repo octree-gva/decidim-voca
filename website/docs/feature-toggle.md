@@ -2,26 +2,20 @@
 sidebar_position: 6
 slug: /feature-toggle
 title: Feature toggle
-description: Organization-level toggles for participatory spaces and components (decidim-toggle)
+description: decidim-voca does not register a system tab to enable or disable spaces or components
 ---
 
 # Feature toggle
 
-Platform operators use **decidim-voca** together with **[decidim-toggle](https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle)** to turn participatory spaces and Decidim components on or off **per organization**, from the system admin UI (`/system`).
+This page is for **platform operators** looking for a **decidim-voca** organization settings tab to turn participatory space types or component types on or off.
 
-Toggles are stored as JSON module configuration on the organization. They do **not** uninstall gems or change the component registry — they control whether each space or component type is treated as enabled for that tenant, and hide related UI when disabled.
+**decidim-voca** does not register that tab.
 
-**Prerequisite:** `decidim-toggle` in the host app `Gemfile` (already required by `decidim-voca`).
+## Infrastructure
 
-## Where to configure
+The gem still ships other Voca behaviour (routing, translation, telemetry, and so on). None of that is a system **Organizations** tab for space or component enable/disable.
 
-1. Sign in as system administrator.
-2. Open **Organizations** → edit an organization.
-3. Use the settings tabs registered by voca:
-   - **Participatory Spaces** — initiatives, conferences, processes, assemblies.
-   - **Component** — meetings, blogs, budgets, proposals, pages, debates, accountability, sortitions, forms, participatory documents, collaborative texts, elections.
-
-Each checkbox is disabled in the form when the corresponding gem is not in the server bundle.
+There is no `SettingsTab` / ConfigForm in this gem for those flags.
 
 ## Participatory spaces
 

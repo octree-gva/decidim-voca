@@ -41,6 +41,8 @@ module Decidim
           translatable_models.each do |model|
             process_model(model)
           end
+          process_content_blocks
+          process_awesome_menu_configs
         end
 
         def process_model(model)
@@ -62,14 +64,35 @@ module Decidim
             context = LocaleContext.for(record)
             stringy = FieldHashNormalizer.deep_stringify(raw)
             normalized = FieldHashNormalizer.call(raw, context)
-            # Bulk sync: bypass validations/callbacks (same intent as data migration tasks).
-            # rubocop:disable Rails/SkipsModelValidations
-            record.update_column(field, normalized) if normalized != stringy
-            # rubocop:enable Rails/SkipsModelValidations
+            UpdateColumnWithoutCallbacks.call(record, field, normalized) if normalized != stringy
             MachineTranslationEnqueuer.new(record, field, context, normalized).call
           end
 
           ComponentSettingSync.new(record).call if record.is_a?(Decidim::Component)
+        end
+
+        def process_content_blocks
+          return unless defined?(Decidim::ContentBlock)
+
+          $stdout.puts "Processing model: Decidim::ContentBlock (settings)"
+          Decidim::ContentBlock.unscoped.find_each do |record|
+            ContentBlockSettingSync.new(record).call
+          rescue Decidim::Voca::SyncLocales::MissingOrganizationContextError => e
+            warn e.message
+          end
+          $stdout.puts "[DONE][#{Decidim::ContentBlock.unscoped.count} records]"
+        end
+
+        def process_awesome_menu_configs
+          return unless defined?(Decidim::DecidimAwesome::AwesomeConfig)
+
+          $stdout.puts "Processing model: Decidim::DecidimAwesome::AwesomeConfig (menu labels)"
+          Decidim::DecidimAwesome::AwesomeConfig.unscoped.find_each do |record|
+            AwesomeMenuLabelSync.new(record).call
+          rescue Decidim::Voca::SyncLocales::MissingOrganizationContextError => e
+            warn e.message
+          end
+          $stdout.puts "[DONE][#{Decidim::DecidimAwesome::AwesomeConfig.unscoped.count} records]"
         end
       end
 
@@ -91,6 +114,8 @@ module Decidim
           end
 
           clean_component_settings
+          clean_content_block_settings
+          clean_awesome_menu_labels
         end
 
         private
@@ -112,11 +137,7 @@ module Decidim
           return if @dry_run
           return if updated_columns.empty?
 
-          # Maintenance task: avoid model validations/callbacks (especially important for
-          # complex JSONB translation fields).
-          # rubocop:disable Rails/SkipsModelValidations
-          record.update_columns(updated_columns)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call_many(record, updated_columns)
         end
 
         def clean_component_settings
@@ -132,17 +153,81 @@ module Decidim
           end
         end
 
+        def clean_content_block_settings
+          return unless defined?(Decidim::ContentBlock)
+
+          Decidim::ContentBlock.unscoped.find_each do |record|
+            keys = Decidim::Voca::ContentBlockSettingManifest.translated_keys(record.manifest)
+            next if keys.empty?
+
+            context = LocaleContext.for(record)
+            clean_content_block_settings_record(record, context, keys)
+          rescue Decidim::Voca::SyncLocales::MissingOrganizationContextError => e
+            warn e.message
+          end
+        end
+
+        def clean_awesome_menu_labels
+          return unless defined?(Decidim::DecidimAwesome::AwesomeConfig)
+
+          Decidim::DecidimAwesome::AwesomeConfig.unscoped.find_each do |record|
+            next unless AwesomeMenuLabels.menu_config_value?(record.value)
+
+            context = LocaleContext.for(record)
+            clean_awesome_menu_labels_record(record, context)
+          rescue Decidim::Voca::SyncLocales::MissingOrganizationContextError => e
+            warn e.message
+          end
+        end
+
+        def clean_content_block_settings_record(record, context, keys)
+          settings = (record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
+          Decidim::Voca::ContentBlockSettingManifest.coalesce_flat_keys!(
+            settings,
+            keys,
+            context.allowed_locales
+          )
+          touched = keys.any? do |key|
+            clean_translated_setting_hash!(settings, key, "settings[#{key}]", context)
+          end
+
+          return if @dry_run
+          return unless touched
+
+          UpdateColumnWithoutCallbacks.call(record, :settings, settings)
+        end
+
+        def clean_awesome_menu_labels_record(record, context)
+          items = AwesomeMenuLabels.menu_items(record.value)
+          touched = false
+
+          items.each do |item|
+            label = item["label"]
+            next unless label.is_a?(Hash)
+
+            original = label.deep_dup
+            clean_setting_value!(label, context)
+            next if label == original
+
+            preview_component_setting("value[#{item["url"]}][label]", original) if @dry_run
+            touched = true unless @dry_run
+          end
+
+          return if @dry_run
+          return unless touched
+
+          UpdateColumnWithoutCallbacks.call(record, :value, items)
+        end
+
         def clean_component_settings_record(record, context, global_keys, process_step_keys)
-          settings = record.read_attribute(:settings).deep_dup.deep_stringify_keys
+          settings = (record.read_attribute(:settings) || {}).deep_dup.deep_stringify_keys
           touched = clean_global_settings!(settings, context, global_keys)
           touched ||= clean_step_settings!(settings, context, process_step_keys)
 
           return if @dry_run
           return unless touched
 
-          # rubocop:disable Rails/SkipsModelValidations
-          record.update_column(:settings, settings)
-          # rubocop:enable Rails/SkipsModelValidations
+          UpdateColumnWithoutCallbacks.call(record, :settings, settings)
         end
 
         def clean_global_settings!(settings, context, global_keys)

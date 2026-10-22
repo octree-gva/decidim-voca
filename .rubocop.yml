@@ -20,6 +20,7 @@ RSpec/DescribeClass:
     # Integration/regression examples cover flows, not a single unit under test.
     - spec/regression/**/*_spec.rb
 
-RSpec/DescribeMethod:
+# Nested JSONB MT fixtures intentionally skip validations/callbacks.
+Rails/SkipsModelValidations:
   Exclude:
-    - spec/commands/**/*machine_translation*_spec.rb
+    - spec/**/*

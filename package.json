@@ -1,8 +1,8 @@
 {
   "name": "decidim-voca",
   "private": true,
-  "version": "0.0.23",
-  "description": "Dceicim Voca",
+  "description": "Decidim Voca",
+  "version": "0.0.24",
   "packageManager": "yarn@1.22.22",
   "directories": {
     "lib": "lib"

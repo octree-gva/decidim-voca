@@ -16,7 +16,7 @@ module Decidim
             work = text.dup
             work.gsub!(Regexp.new(%q(<img\s+src="data:image/png;base64,[^"]*"\s*/?>), Regexp::IGNORECASE), "")
 
-            return dummy_dev_translation(work, target_locale) if klass == Decidim::Dev::DummyTranslator
+            return dummy_dev_translation(work, target_locale) if klass.to_s == "Decidim::Dev::DummyTranslator"
 
             return dummy_deepl_style_translation(work, target_locale, html) if dummy_translate?
 

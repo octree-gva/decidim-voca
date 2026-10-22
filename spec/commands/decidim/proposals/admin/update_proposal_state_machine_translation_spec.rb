@@ -3,7 +3,7 @@
 require "spec_helper"
 require_relative "../../../../support/shared_examples/machine_translation_update_shared_examples"
 
-RSpec.describe Decidim::Proposals::Admin::UpdateProposalState, "machine translations" do
+RSpec.describe Decidim::Proposals::Admin::UpdateProposalState do
   let(:organization) do
     create(
       :organization,
