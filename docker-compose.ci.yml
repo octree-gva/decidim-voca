@@ -1,0 +1,87 @@
+# Reproduces GitLab CI ruby::rubocop and ruby::rspec (ruby:3.4.7-bookworm, postgis/postgis:15-3.4, redis).
+# Usage:
+#   docker compose -f docker-compose.ci.yml run --rm rubocop
+#   docker compose -f docker-compose.ci.yml run --rm rspec
+# Not for interactive development — use docker-compose.yml.
+
+name: decidim-voca-ci
+
+x-ruby: &ruby
+  image: ruby:3.4.7-bookworm
+  working_dir: /app
+  volumes:
+    - .:/app
+    - ci-vendor:/app/vendor
+  entrypoint: []
+  environment:
+    BUNDLE_PATH: vendor
+
+services:
+  postgres:
+    image: postgis/postgis:15-3.4
+    environment:
+      POSTGRES_DB: decidim_test
+      POSTGRES_USER: decidim
+      POSTGRES_PASSWORD: "TEST-insecure_password"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U decidim -d decidim_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:latest
+
+  rubocop:
+    <<: *ruby
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        git config --global --add safe.directory /app
+        bundle
+        bundle exec rubocop .
+
+  rspec:
+    <<: *ruby
+    shm_size: "2gb"
+    environment:
+      DATABASE_HOST: postgres
+      DATABASE_PASSWORD: "TEST-insecure_password"
+      DATABASE_USERNAME: decidim
+      DISABLED_DOCKER_COMPOSE: "true"
+      # GitLab sets localhost; that host is the job container, not the redis service.
+      TRAEFIK_REDIS_URL: "redis://redis:6379/1"
+      DECIDIM_DEEPL_API_KEY: "ci-test-deepl-key"
+      NODE_MAJOR: "22"
+      SIMPLECOV: "1"
+      CI: "1"
+      DISABLE_SPRING: "1"
+      BUNDLE_PATH: vendor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command:
+      - /bin/bash
+      - -lc
+      - |
+        set -euo pipefail
+        git config --global --add safe.directory /app
+        apt-get update -qq && apt-get install -y ca-certificates curl gnupg build-essential libjpeg62-turbo-dev libwebp-dev libwebp7 libvips42
+        mkdir -p /etc/apt/keyrings
+        curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+        echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$${NODE_MAJOR}.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+        apt-get update && apt-get install -y -qq nodejs
+        npm install -g yarn --force
+        gem install bundler
+        bundle config set path 'vendor'
+        RAILS_ENV=development bundle install -j "$$(nproc)"
+        bundle pristine webp-ffi
+        bundle exec rake test_app
+        RAILS_ENV=test bundle exec rspec spec/models spec/forms spec/node_audit_spec.rb spec/lib spec/commands
+
+volumes:
+  ci-vendor: {}
