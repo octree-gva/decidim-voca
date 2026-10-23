@@ -26,7 +26,7 @@ module Decidim
       end
 
       def minimalistic?(organization)
-        Decidim::Voca.minimalistic_deepl? && organization.enable_machine_translations?
+        organization.minimalistic_deepl? && organization.enable_machine_translations?
       end
     end
   end

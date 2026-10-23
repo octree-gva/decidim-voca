@@ -76,6 +76,7 @@
   &-form-editor &-priceGroup.input-group {
     display: flex !important;
     @apply flex-nowrap items-center gap-2;
+    border-width: 0 !important;
   }
   &-form-editor &-removeLine {
     @apply my-0 mx-2 py-1 px-4 font-bold;

@@ -13,6 +13,7 @@ module Decidim
           # translated by machine translation.
           #
           def translated(type, name, options = {})
+            return voca_original_translated(type, name, options) if organization_context.minimalistic_deepl?
             return translated_one_locale(type, name, locales.first, options.merge(label: (options[:label] || label_for(name)))) if locales.count == 1
 
             safe_join [
@@ -64,7 +65,7 @@ module Decidim
               :div,
               class: "label--tabs",
               "data-machine-translated": organization_context&.enable_machine_translations?,
-              "data-minimalistic-deepl": Decidim::Voca.minimalistic_deepl?
+              "data-minimalistic-deepl": organization_context&.minimalistic_deepl?
             ) do
               field_label = label_i18n(name, options[:label] || label_for(name), required: options[:required])
 

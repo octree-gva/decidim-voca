@@ -317,7 +317,7 @@ module Decidim
         end
 
         def minimalistic_cleanup?(context)
-          Decidim::Voca.minimalistic_deepl? && context.enable_machine_translations?
+          context.organization&.minimalistic_deepl? && context.enable_machine_translations?
         end
 
         def cleanup_hash!(current_value, locale, other_locales)

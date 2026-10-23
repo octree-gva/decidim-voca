@@ -34,8 +34,8 @@ module Decidim
         end
 
         # @param locales [Array<String>]
-        # @param fields [Hash<String, Hash>] field_name => translatable hash from the record
-        # @return [Hash<String, Hash>] locale => { field_name => string }
+        # @param fields [Hash{String => Hash}] field_name => translatable hash from the record
+        # @return [Hash{String => Hash}] locale => { field_name => string }
         def columns_for_locales(locales, fields)
           locales = Array(locales).map(&:to_s).uniq.compact_blank
           out = {}

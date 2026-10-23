@@ -1,6 +1,6 @@
-<% if ::Decidim::Voca.weglot? %>
+<% if current_organization.weglot? %>
   <% switcher_id ||= "topbar" %>
-  <div class="vocajs_weglot__locale_switcher" data-weglot-active="<%= ::Decidim::Voca.weglot? %>">
+  <div class="vocajs_weglot__locale_switcher" data-weglot-active="<%= current_organization.weglot? %>">
     <button id="dropdown-trigger-language-chooser-mobile" data-controller="dropdown" data-target="dropdown-menu-language-chooser-mobile-<%= switcher_id %>" class="mt-8 rounded-lg py-0 bg-gray-5 h-10 border border-gray outline outline-1 outline-transparent">
         <span class="ml-2 vocajs_weglot__locale_current"></span>
         <%= icon "arrow-down-s-line" %>

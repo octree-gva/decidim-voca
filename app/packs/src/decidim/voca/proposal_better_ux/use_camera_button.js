@@ -1,10 +1,11 @@
 import getProposalForm from "./utils/get_proposal_form";
-import initUploadField, {
-  registeredModals,
-  updateActiveUploads,
-} from "src/decidim/direct_uploads/upload_field";
+import {initializeUploadFields, registeredModals, updateActiveUploads } from "src/decidim/direct_uploads/upload_field";
+
 document.addEventListener("DOMContentLoaded", () => {
-  initUploadField();
+  const attachmentButtons = document.querySelectorAll("#proposal_attachments_button");
+
+  initializeUploadFields(attachmentButtons);
+  
   const $form = getProposalForm();
   if (!$form) {
     return;
@@ -15,8 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const $attachmentButton = $form.find("button[data-upload]").first();
+  const $attachmentButton = $form.find("#proposal_attachments_button")
+
   const modal = registeredModals[$attachmentButton[0].id];
+  
   if (!modal) {
     console.warn("No modal found for attachment button");
     return;

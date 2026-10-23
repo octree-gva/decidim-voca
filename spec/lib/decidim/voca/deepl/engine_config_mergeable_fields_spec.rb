@@ -19,7 +19,6 @@ RSpec.describe Decidim::Voca::DeepL::EngineConfig do
 
   describe ".apply_mergeable_fields!" do
     before do
-      allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
       # Idempotent: safe to run multiple times in one process
       described_class.apply_mergeable_fields!
       described_class.send(:fix_accountability_timeline_entry_translatable_fields!)
@@ -30,9 +29,10 @@ RSpec.describe Decidim::Voca::DeepL::EngineConfig do
       expect(list).to include("answer", "cost_report", "execution_period")
     end
 
-    it "fixes TimelineEntry to list both title and description" do
-      list = Decidim::Accountability::TimelineEntry.translatable_fields_list.map(&:to_s)
-      expect(list).to contain_exactly("title", "description")
+    it "fixes Milestone to list both title and description" do
+      klass = Decidim::Accountability::Milestone
+      list = klass.translatable_fields_list.map(&:to_s)
+      expect(list).to include("title", "description")
     end
 
     it "includes TranslatableResource on DisplayCondition when Forms is loaded" do

@@ -4,9 +4,9 @@ require "rails"
 require "socket"
 require "decidim/core"
 require "deface"
-require "next_gen_images"
 require "decidim/verifications"
 require "decidim/voca/code_census"
+require "decidim/toggle"
 require_relative "export/csv_with_locale_transformer"
 require_relative "export/proposal_serializer_localized_csv"
 require_relative "export/comment_serializer_localized_csv"
@@ -94,19 +94,10 @@ module Decidim
         end
         Decidim::Messaging::Conversation.include(Decidim::Voca::Overrides::ConversationUuid)
         Decidim::Messaging::ConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        Decidim::UserConversationsController.include(Decidim::Voca::Overrides::ConversationControllerOverrides)
-        Decidim::UserConversationsController.prepend(Decidim::Voca::Overrides::UserConversationsRedirectOverrides)
       end
 
-      # Fixes for geolocated proposals at creation
       config.to_prepare do
-        if Decidim::Voca.decidim_awesome?
-          Decidim::DecidimAwesome::Proposals::CreateProposalOverride.include(Decidim::Voca::Overrides::CreateProposalOverrides)
-        else
-          Decidim::Proposals::CreateProposal.include(Decidim::Voca::Overrides::CreateProposalOverrides)
-        end
-
-        Decidim::Map::Autocomplete::Builder.include(Decidim::Voca::Overrides::MapAutocompleteBuilderOverrides)
+        Decidim::Organization.include(Decidim::Voca::OrganizationVocaExtensions)
       end
 
       config.to_prepare do
@@ -117,102 +108,17 @@ module Decidim
         Decidim::Voca::DeepL::EngineConfig.initialize!
       end
 
-      # Setup upload variants
+      # Overrides
       config.to_prepare do
-        upload_variants = {
-          thumbnail: { resize_to_fit: [nil, 237] },
-          big: { resize_to_limit: [nil, 1000] },
-          thumbnail_webp: { resize_to_fit: [nil, 237], convert: :webp, format: :webp, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 100 } },
-          big_webp: { resize_to_limit: [nil, 1000], convert: :webp, format: :webp, saver: { subsample_mode: "on", strip: true, interlace: true, quality: 100 } }
-        }
-        ActiveSupport.on_load(:action_view) { include NextGenImages::ViewHelpers }
-        # Includes overrides
-        ActionView::Helpers::AssetTagHelper.include(Decidim::Voca::Overrides::ImageTagOverrides)
-        Decidim::ViewModel.include Decidim::Voca::Overrides::DecidimViewModel
-
-        # Participatory Process Banner Image
-        Decidim::ParticipatoryProcess.include(Decidim::Voca::Overrides.override_for_has_one_attached(:hero_image, Decidim::HeroImageUploader))
-        Decidim::ParticipatoryProcesses::ProcessGCell.include(Decidim::Voca::Overrides.override_cell_resource_image_url(:hero_image))
-
-        # Assemblies
-        Decidim::Assembly.include(Decidim::Voca::Overrides.override_for_has_one_attached(:hero_image, Decidim::HeroImageUploader))
-        Decidim::Assemblies::AssemblyGCell.include(Decidim::Voca::Overrides.override_cell_resource_image_url(:hero_image))
-
-        # Proposals
-        Decidim::Proposals::ProposalGCell.include(Decidim::Voca::Overrides::ProposalGCellOverride)
-        Decidim::AttachmentUploader.set_variants { upload_variants }
-
-        # Meetings
-        Decidim::Meetings::Admin::MeetingsController.include(Decidim::Voca::Overrides::MeetingsControllerOverrides)
-
-        # Etherpad
-        Decidim::Etherpad::Pad.include(Decidim::Voca::Overrides::EtherpadOverrides)
-
-        # User Group Form
-        Decidim::UserGroupForm.include(Decidim::Voca::Overrides::UserGroupFormOverrides)
-
-        # Footer topic "Help" hardcoded string
-        Decidim::FooterTopicsCell.include(Decidim::Voca::Overrides::Footer::FooterTopicCellOverrides)
-        Decidim::FooterMenuPresenter.include(Decidim::Voca::Overrides::Footer::FooterMenuPresenter)
-
-        # System Organization Update Form
-        Decidim::System::UpdateOrganizationForm.include(Decidim::Voca::Overrides::System::SystemOrganizationUpdateForm)
-
-        # Overrides Extra Data Cell
-        Decidim::ParticipatoryProcesses::ContentBlocks::ExtraDataCell.include(Decidim::Voca::Overrides::ExtraDataCellOverrides)
-
-        # Overrides CheckBoxesTreeHelper
-        Decidim::CheckBoxesTreeHelper.include(Decidim::Voca::Overrides::CheckBoxesTreeHelperOverrides)
-
-        # Overrides AttachmentForm
-        Decidim::Admin::AttachmentForm.include(Decidim::Voca::Overrides::AttachmentFormOverrides)
-
-        # Overrides Attachment
-        Decidim::Attachment.include(Decidim::Voca::Overrides::AttachmentOverrides)
-
-        # Overrides UpdateContentBlock
-        Decidim::Admin::ContentBlocks::UpdateContentBlock.include(Decidim::Voca::Overrides::UpdateContentBlockOverrides)
-
-        # Overrides CopyAssembly
-        Decidim::Assemblies::Admin::CopyAssembly.include(Decidim::Voca::Overrides::CopyAssemblyOverrides)
-
-        # Overrides NotifyProposalAnswer
-        Decidim::Proposals::Admin::NotifyProposalAnswer.include(Decidim::Voca::Overrides::NotifyProposalAnswerOverrides)
-
-        # Overrides ParticipatoryProcessGroupsController
-        Decidim::ParticipatoryProcesses::Admin::ParticipatoryProcessGroupsController.include(Decidim::Voca::Overrides::ParticipatoryProcessGroupsControllerOverrides)
+        # Set retry on Decidim::ApplicationJob
+        good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
+        ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
 
         # Overrides ResourcePresenter
         Decidim::ResourcePresenter.include(Decidim::Voca::Overrides::ResourcePresenterOverrides)
 
         # Overrides SanitizeHelper
         Decidim::SanitizeHelper.include(Decidim::Voca::Overrides::SanitizeHelperOverrides)
-
-        # Overrides AddressCell
-        Decidim::AddressCell.include(Decidim::Voca::Overrides::AddressCellOverrides)
-
-        # Overrides CardMetadataCell
-        Decidim::CardMetadataCell.include(Decidim::Voca::Overrides::CardMetadataCellOverrides)
-
-        # Overrides DatesAndMapCell to remove static map image to avoid dependancy from HERE Maps
-        Decidim::Meetings::DatesAndMapCell.include(Decidim::Voca::Overrides::Meetings::DatesAndMapCellOverrides)
-
-        # Overrides NewsletterHelper to fix url image
-        Decidim::NewslettersHelper.include(Decidim::Voca::Overrides::NewsletterHelperOverrides)
-
-        # Set retry on Decidim::ApplicationJob
-        good_job_retry = ENV.fetch("VOCA_GOOD_JOB_RETRY", "5").to_i
-        ::Decidim::ApplicationJob.retry_on StandardError, attempts: good_job_retry
-      end
-
-      # Key val configurations on Decidim::Organization
-      config.to_prepare do
-        Decidim::Organization.include(Decidim::Voca::Overrides::OrganizationModelOverrides)
-        # Listen on organizatin update.
-        ActiveSupport::Notifications.subscribe(/voca.*/) do |_name, _start, _finish, _id, payload|
-          organization = ::Decidim::Organization.find(payload[:resource_id])
-          Decidim::Voca::SyncRedisRouting.call(organization)
-        end
       end
 
       # Trigger additional hooks on organization creation and update
@@ -234,7 +140,7 @@ module Decidim
       # CSV serializers must load after Decidim Awesome's ProposalSerializer override, or Awesome's
       # +alias_method :decidim_original_serialize, :serialize+ aliases voca's prepended +serialize+ and causes
       # infinite recursion (see Overrides::CsvExportSerializers).
-      if Decidim::Voca::Installation.decidim_awesome_installed?
+      if Gem.loaded_specs.has_key?("decidim-decidim_awesome")
         initializer "decidim.voca.after_awesome", after: "decidim_decidim_awesome.overrides" do
           config.to_prepare do
             Decidim::Voca::Overrides::CsvExportSerializers.apply
@@ -285,40 +191,8 @@ module Decidim
         end
       end
 
-      # Rack::Attack configuration
-      initializer "decidim.voca.rack_attack", after: :load_config_initializers do
-        require "rack/attack"
-        if Rails.env.development?
-          Rails.application.configure do |config|
-            config.middleware.use Rack::Attack
-          end
-        end
-        ActiveSupport::Reloader.to_prepare do
-          Decidim::Voca::RackAttackConfigurator.call
-        end
-      end
-
-      # OpenTelemetry configuration
-      initializer "decidim.voca.open_telemetry", after: :load_config_initializers do
-        if Decidim::Voca.opentelemetry_enabled?
-          Rails.logger.info("[OpenTelemetry] Enabled - setting up initializer")
-
-          # Configure SDK synchronously to avoid middleware stack conflicts
-          result = Decidim::Voca::OpenTelemetryConfigurator.call
-          if result.has_key?(:ok)
-            Rails.logger.info("[OpenTelemetry] Configuration successful")
-            Rails.application.config.middleware.use ::Decidim::Voca::OpenTelemetry::OtelDecidimContext
-            Rails.logger.info("[OpenTelemetry] Middleware registered")
-          else
-            Rails.logger.error("[OpenTelemetry] Configuration failed: #{result.inspect}")
-          end
-        else
-          Rails.logger.debug("[OpenTelemetry] Disabled - skipping initialization")
-        end
-      end
-
       initializer "decidim.voca.custom_user_fields", after: :load_config_initializers do
-        Decidim::Voca::UserFieldsConfigurator.call
+        # Decidim::Voca::UserFieldsConfigurator.call
       end
 
       initializer "decidim.voca.good_job", after: :load_config_initializers do
@@ -355,6 +229,16 @@ module Decidim
         end
       end
 
+      initializer "decidim_decidim-voca.organization_settings_tab", after: "decidim_toggle.organization_settings_tabs" do
+        Decidim::Toggle.settings_tabs :organization_settings do |tabs|
+          tabs.add_tab :my_module, "Voca",
+                       form: Decidim::Voca::Admin::OrganizationConfigForm,
+                       command: Decidim::Toggle::UpdateModuleConfigCommand,
+                       module_name: Decidim::Voca::MODULE_NAME,
+                       position: 4
+        end
+      end
+
       initializer "decidim.voca.csp", after: :load_config_initializers do
         Decidim.configure do |decidim_config|
           decidim_config.content_security_policies_extra["worker-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "worker-src"
@@ -364,19 +248,17 @@ module Decidim
 
       initializer "decidim.voca.weglot", after: :load_config_initializers do
         # configure additional CSP for weglot
-        if ::Decidim::Voca.weglot?
-          Decidim.configure do |decidim_config|
-            decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
-            decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
-            decidim_config.content_security_policies_extra["connect-src"].push("cdn-api-weglot.com")
+        Decidim.configure do |decidim_config|
+          decidim_config.content_security_policies_extra["connect-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "connect-src"
+          decidim_config.content_security_policies_extra["connect-src"].push("*.weglot.com")
+          decidim_config.content_security_policies_extra["connect-src"].push("cdn-api-weglot.com")
 
-            decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
-            decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
-            decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
+          decidim_config.content_security_policies_extra["script-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "script-src"
+          decidim_config.content_security_policies_extra["script-src"].push("*.weglot.com")
+          decidim_config.content_security_policies_extra["script-src"].push("'unsafe-inline'")
 
-            decidim_config.content_security_policies_extra["style-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "style-src"
-            decidim_config.content_security_policies_extra["style-src"].push("cdn.weglot.com")
-          end
+          decidim_config.content_security_policies_extra["style-src"] = [] unless decidim_config.content_security_policies_extra.has_key? "style-src"
+          decidim_config.content_security_policies_extra["style-src"].push("cdn.weglot.com")
         end
       end
 

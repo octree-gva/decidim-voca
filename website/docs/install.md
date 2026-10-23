@@ -19,7 +19,6 @@ description: How to install the module
 **Add the gem to your Gemfile**  
 ```ruby
 gem "decidim-voca", "~> 0.0.1"
-gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
 gem "deface", "1.9.0", git: "https://github.com/froger/deface", branch: "fix/js-overrides"
 gem "good_job", "~> 4.5.1"
 ```
