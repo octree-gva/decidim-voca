@@ -49,11 +49,16 @@ module Decidim
       private
 
       def voca_minimalistic_pending_locales_mode?
-        return false unless Decidim::Voca.minimalistic_deepl?
+        return false unless org
+        return false unless org.minimalistic_deepl?
+
+        org.enable_machine_translations?
+      end
+
+      def org
         return false unless @resource.respond_to?(:organization)
 
-        org = @resource.organization
-        org && org.enable_machine_translations?
+        @org ||= @resource.organization
       end
     end
   end

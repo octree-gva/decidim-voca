@@ -3,9 +3,9 @@
 module Decidim
   module Voca
     module Export
-      # Prepended on UserAnswersSerializer: +locale/q_<id>+ columns.
+      # Prepended on UserResponsesSerializer: +locale/q_<id>+ columns.
       #
-      # Decidim does not persist the UI locale used when submitting +Decidim::Forms::Answer+
+      # Decidim does not persist the UI locale used when submitting +Decidim::Forms::Response+
       # (see +Decidim::Forms::AnswerQuestionnaire+). The export +locale+ column uses the
       # organization default as a neutral placeholder.
       module UserAnswersSerializerLocalizedCsv
@@ -17,7 +17,7 @@ module Decidim
         private
 
         def serialize_localized_data(data)
-          questionnaire = answers&.first&.questionnaire
+          questionnaire = responses&.first&.questionnaire
           return data unless questionnaire
 
           org = questionnaire.questionnaire_for.try(:organization)
@@ -26,7 +26,7 @@ module Decidim
           locales = Array(org.available_locales).map(&:to_s).uniq.compact_blank
           return data if locales.empty?
 
-          nested = build_answer_columns(questionnaire, answers, locales)
+          nested = build_answer_columns(questionnaire, responses, locales)
           question_keys = data.keys.select { |k| k.to_s.match?(/\A\d+\.\s/) }
           non_question_fields = data.except(*question_keys)
           locale_prefixed_columns = nested.deep_stringify_keys

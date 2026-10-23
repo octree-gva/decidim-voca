@@ -99,13 +99,13 @@ module Decidim::Voca::SyncLocales
         expect(context.organization).to eq(organization)
       end
 
-      it "resolves AnswerChoice via answer questionnaire" do
+      it "resolves ResponseChoice via response questionnaire" do
         process = create(:participatory_process, organization:)
         questionnaire = create(:questionnaire, questionnaire_for: process)
         question = create(:questionnaire_question, questionnaire:, question_type: "single_option")
-        answer_option = create(:answer_option, question:)
-        answer = create(:answer, questionnaire:, question:)
-        choice = create(:answer_choice, answer:, answer_option:)
+        response_option = create(:response_option, question:)
+        form_response = create(:response, questionnaire:, question:)
+        choice = create(:response_choice, response: form_response, response_option:)
 
         context = described_class.for(choice)
 
@@ -166,8 +166,8 @@ module Decidim::Voca::SyncLocales
         process = create(:participatory_process, organization:)
         questionnaire = create(:questionnaire, questionnaire_for: process)
         question = create(:questionnaire_question, questionnaire:, question_type: "single_option")
-        answer = create(:answer, questionnaire:, question:)
-        record = Struct.new(:response, :id).new(answer, 1)
+        form_response = create(:response, questionnaire:, question:)
+        record = Struct.new(:response, :id).new(form_response, 1)
 
         context = described_class.for(record)
 
@@ -286,7 +286,6 @@ module Decidim::Voca::SyncLocales
         let(:questionnaire) { create(:questionnaire, questionnaire_for: process) }
         let(:question) { create(:questionnaire_question, questionnaire:) }
         let(:proposal) { create(:proposal, component: proposal_component) }
-        let(:collaborative_draft) { create(:collaborative_draft, component: proposal_component) }
 
         context "when given Decidim::Accountability::Result" do
           let(:record) { create(:result, component: accountability_component) }
@@ -321,31 +320,14 @@ module Decidim::Voca::SyncLocales
           include_examples "resolves organization context"
         end
 
-        context "when given Decidim::Accountability::TimelineEntry" do
-          let(:record) { create(:timeline_entry, result: create(:result, component: accountability_component)) }
+        context "when given Decidim::Accountability::Milestone" do
+          let(:record) { create(:milestone, result: create(:result, component: accountability_component)) }
 
           include_examples "resolves organization context"
         end
 
         context "when given Decidim::Accountability::Status" do
           let(:record) { create(:status, component: accountability_component) }
-
-          include_examples "resolves organization context"
-        end
-
-        context "when given Decidim::Proposals::CollaborativeDraftCollaboratorRequest" do
-          let(:record) do
-            Decidim::Proposals::CollaborativeDraftCollaboratorRequest.create!(
-              collaborative_draft:,
-              user: create(:user, organization:)
-            )
-          end
-
-          include_examples "resolves organization context"
-        end
-
-        context "when given Decidim::Proposals::CollaborativeDraft" do
-          let(:record) { collaborative_draft }
 
           include_examples "resolves organization context"
         end
@@ -364,12 +346,6 @@ module Decidim::Voca::SyncLocales
 
         context "when given Decidim::Proposals::Proposal" do
           let(:record) { proposal }
-
-          include_examples "resolves organization context"
-        end
-
-        context "when given Decidim::Proposals::ValuationAssignment" do
-          let(:record) { create(:valuation_assignment, proposal:) }
 
           include_examples "resolves organization context"
         end

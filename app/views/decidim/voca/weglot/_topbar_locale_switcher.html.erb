@@ -1,6 +1,6 @@
-<% if ::Decidim::Voca.weglot? %>
+<% if current_organization.weglot? %>
   <% switcher_id ||= "topbar" %>
-  <div class="main-main-bar__links-desktop__item vocajs_weglot__locale_switcher" data-weglot-active="<%= ::Decidim::Voca.weglot? %>">
+  <div class="main-main-bar__links-desktop__item vocajs_weglot__locale_switcher" data-weglot-active="<%= current_organization.weglot? %>">
       <button id="trigger-dropdown-language-chooser-<%= switcher_id %>" data-controller="dropdown" data-target="dropdown-menu-language-chooser-<%= switcher_id %>" class="main-bar__links-desktop__item-trigger">
         <%= icon "global-line" %>
         <span class="vocajs_weglot__locale_current"></span>

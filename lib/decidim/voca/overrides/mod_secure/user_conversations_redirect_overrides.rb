@@ -13,7 +13,7 @@ module Decidim
           def new
             @form = form(Messaging::ConversationForm).from_params(params, sender: user)
 
-            return redirect_back(fallback_location: profile_path(user.nickname)) if @form.recipient.empty?
+            return redirect_back_or_to(profile_path(user.nickname)) if @form.recipient.empty?
 
             @conversation = new_conversation(@form.recipient)
 

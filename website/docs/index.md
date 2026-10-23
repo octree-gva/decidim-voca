@@ -31,14 +31,10 @@ On the footer
 On user groups  
 - Avoid creating user group with bad nicknames
 
-On etherpad
-- Stable integration of etherpad, with a better error handling
-
 On user profiles
 - Strong validation of nicknames
 
 On proposals  
-- Fix proposal serialization when decidim-awesome is installed
 - Add "on going" mention on vote column in the admin side
 
 ## Next gen images

@@ -7,6 +7,10 @@ module Decidim
       queue_as :translations
 
       # @param html [Boolean] rich text (+true+) vs plain (+false+)
+      # @param [Object] component_id
+      # @param [Object] setting_key
+      # @param [Object] target_locale
+      # @param [Object] source_locale
       def perform(component_id, setting_key, target_locale, source_locale, html: true)
         return unless Decidim.machine_translation_service_klass
 

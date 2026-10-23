@@ -17,6 +17,33 @@ The gem still ships other Voca behaviour (routing, translation, telemetry, and s
 
 There is no `SettingsTab` / ConfigForm in this gem for those flags.
 
-## Configuration
+## Participatory spaces
 
-You will not find **Participatory Spaces** or **Components** checkboxes under System → Organizations that come from **decidim-voca**.
+Controls which **participatory space types** are enabled for the organization.
+
+| Toggle | Default | Gem required |
+|--------|---------|--------------|
+| Participatory processes | on | `decidim-participatory_processes` |
+| Assemblies | on | `decidim-assemblies` |
+| Initiatives | off | `decidim-initiatives` |
+| Conferences | off | `decidim-conferences` |
+
+## How hiding works
+
+Both features use the same pattern:
+
+1. **Deface** adds `data-<name>-enabled="true|false"` on `<body>` (admin layout for components; admin and public layouts for participatory spaces).
+2. **SCSS** in `app/packs/stylesheets/decidim/voca/` hides matching UI when the attribute is `false`.
+
+No Ruby overrides of `Decidim.component_registry` are involved.
+
+## Validation rules
+
+For both tabs:
+
+- A toggle cannot be turned **off** while the organization has **published** instances of that space or component type.
+- Optional gems: checkbox is disabled when the gem is not installed; defaults apply from the table above when no config exists yet.
+
+## Reference
+
+**Related:** [decidim-toggle integration docs](https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle/-/blob/main/README.md) for the generic tab registration API (`Decidim::Toggle.settings_tabs`, `ModuleConfigForm`).

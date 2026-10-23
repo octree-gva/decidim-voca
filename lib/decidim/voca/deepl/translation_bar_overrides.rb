@@ -9,7 +9,7 @@ module Decidim
         included do
           alias_method :voca_original_show, :show
           def show
-            return if I18n.locale.to_s == current_organization.default_locale.to_s
+            return if current_organization.minimalistic_deepl? && I18n.locale.to_s == current_organization.default_locale.to_s
 
             voca_original_show
           end

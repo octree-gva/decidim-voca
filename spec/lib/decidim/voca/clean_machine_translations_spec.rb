@@ -72,7 +72,6 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
   end
 
   it "removes stale locale keys from component settings (global)" do
-    # rubocop:disable Rails/SkipsModelValidations
     component.update_column(
       :settings,
       {
@@ -90,8 +89,6 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
         "process_step" => {}
       }
     )
-    # rubocop:enable Rails/SkipsModelValidations
-
     organization.update!(available_locales: %w(en fr it))
     invoke_cleanup!
 
@@ -102,7 +99,6 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
   end
 
   it "removes stale locale keys from component settings (process step)" do
-    # rubocop:disable Rails/SkipsModelValidations
     component.update_column(
       :settings,
       {
@@ -122,8 +118,6 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
         }
       }
     )
-    # rubocop:enable Rails/SkipsModelValidations
-
     organization.update!(available_locales: %w(en fr it))
     invoke_cleanup!
 
@@ -158,7 +152,6 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
       }
     )
 
-    # rubocop:disable Rails/SkipsModelValidations
     static_page.update_column(
       :title,
       {
@@ -171,8 +164,6 @@ RSpec.describe "decidim:voca:clean_machine_translations" do
         }
       }
     )
-    # rubocop:enable Rails/SkipsModelValidations
-
     organization.update!(available_locales: %w(en fr it))
     invoke_cleanup!
 

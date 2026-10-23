@@ -55,7 +55,6 @@ module Decidim
           {
             class_name: "Decidim::Templates::Template",
             include_translatable_resource: true,
-            if: -> { Decidim::Voca::Installation.decidim_templates_installed? },
             fields: %w(name description)
           }
         ].freeze
@@ -64,21 +63,16 @@ module Decidim
           # Wire model hooks and overrides that must be loaded after the app is initialized.
           # @param config [Rails::Application] host app (+Rails.application+; first block arg of +initializer+)
           def initialize!
-            return unless Decidim::Voca::Installation.deepl_enabled?
-
             configure_deepl!
             configure_machine_translation!
             Rails.application.config.middleware.use ::Decidim::Voca::DeepL::Middleware
 
             ActiveSupport.on_load(:active_job) { include Decidim::Voca::DeepL::ActiveJobContext }
-            Rails.logger.warn("DeepL is enabled, preparing minimalistic machine translation") if Decidim::Voca.minimalistic_deepl?
           end
 
           # Configure the DeepL SDK + Decidim machine translation config (+middleware, ActiveJob hook).
           # Called from {Decidim::Voca::Engine}'s +decidim.voca.deepl+ initializer (middleware stack not frozen yet).
           def configure!
-            return unless Decidim::Voca::Installation.deepl_enabled?
-
             apply_mergeable_fields!
             fix_accountability_timeline_entry_translatable_fields!
 
@@ -86,10 +80,8 @@ module Decidim
               Decidim::MachineTranslationResourceJob.prepend(Decidim::Voca::MachineTranslationResourceJobVoca)
             end
 
-            if Decidim::Voca.minimalistic_deepl?
-              ::Decidim::TranslationBarCell.include(Decidim::Voca::DeepL::TranslationBarOverrides)
-              ::Decidim::FormBuilder.include(Decidim::Voca::DeepL::DeepLFormBuilderOverrides)
-            end
+            ::Decidim::TranslationBarCell.include(Decidim::Voca::DeepL::TranslationBarOverrides)
+            ::Decidim::FormBuilder.include(Decidim::Voca::DeepL::DeepLFormBuilderOverrides)
           end
 
           def apply_mergeable_fields!
@@ -153,9 +145,15 @@ module Decidim
           end
 
           def fix_accountability_timeline_entry_translatable_fields!
-            return unless defined?(Decidim::Accountability::TimelineEntry)
+            %w(Decidim::Accountability::TimelineEntry Decidim::Accountability::Milestone).each do |class_name|
+              klass = class_name.safe_constantize
+              next unless klass
 
-            Decidim::Accountability::TimelineEntry.translatable_fields(:title, :description)
+              list = klass.translatable_fields_list.map(&:to_s)
+              next if list.include?("title") && list.include?("description")
+
+              klass.translatable_fields(:title, :description)
+            end
           end
 
           def configure_deepl!

@@ -43,11 +43,6 @@ Distributed tracing is configured automatically when OpenTelemetry environment v
 
 ### Configuration
 
-Tracing configuration is handled in:
-- `lib/decidim/voca/engine.rb` - Initializer that sets up OpenTelemetry middleware
-- `app/commands/decidim/voca/open_telemetry_configurator.rb` - SDK configuration
-- `lib/decidim/voca/open_telemetry/otel_decidim_context.rb` - Decidim-specific span attributes
-
 The system automatically enriches traces with:
 - User ID (`enduser.id`)
 - Organization ID and slug (`decidim.organization.*`)
