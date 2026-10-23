@@ -56,7 +56,7 @@ RSpec.describe Decidim::Voca::MachineTranslationResourceJobVoca do
     end
 
     context "when minimalistic Deepl is off" do
-      before { allow(Decidim::Voca).to receive(:minimalistic_deepl?).and_return(false) }
+      before { allow(component.organization).to receive(:minimalistic_deepl?).and_return(false) }
 
       it "delegates to core and uses the passed source_locale for the hash lookup" do
         job.instance_variable_set(:@resource, component)
@@ -91,7 +91,7 @@ RSpec.describe Decidim::Voca::MachineTranslationResourceJobVoca do
     end
 
     context "when minimalistic Deepl is off" do
-      before { allow(Decidim::Voca).to receive(:minimalistic_deepl?).and_return(false) }
+      before { allow(component.organization).to receive(:minimalistic_deepl?).and_return(false) }
 
       it "delegates to core and lists every present locale" do
         expect(job.send(:translated_locales_list, "name")).to contain_exactly("en", "fr")
@@ -113,9 +113,7 @@ RSpec.describe Decidim::Voca::MachineTranslationResourceJobVoca do
       stub_dummy_machine_translator
       allow(Decidim::Voca).to receive(:minimalistic_deepl?).and_return(true)
       allow(Decidim.config).to receive(:machine_translation_delay).and_return(0.seconds)
-      # rubocop:disable Rails/SkipsModelValidations -- fixture state without callbacks
       component.update_column(:name, { "en" => "Hello", "fr" => "noise" })
-      # rubocop:enable Rails/SkipsModelValidations
       clear_enqueued_jobs
     end
 

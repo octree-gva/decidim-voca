@@ -145,9 +145,15 @@ module Decidim
           end
 
           def fix_accountability_timeline_entry_translatable_fields!
-            return unless defined?(Decidim::Accountability::TimelineEntry)
+            %w(Decidim::Accountability::TimelineEntry Decidim::Accountability::Milestone).each do |class_name|
+              klass = class_name.safe_constantize
+              next unless klass
 
-            Decidim::Accountability::TimelineEntry.translatable_fields(:title, :description)
+              list = klass.translatable_fields_list.map(&:to_s)
+              next if list.include?("title") && list.include?("description")
+
+              klass.translatable_fields(:title, :description)
+            end
           end
 
           def configure_deepl!

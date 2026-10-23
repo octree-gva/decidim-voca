@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative "voca/installation"
 require_relative "voca/deepl"
 
 require_relative "voca/engine"
