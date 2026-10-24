@@ -6,7 +6,11 @@ module Decidim::Voca
   describe "SyncLocales command" do
     let(:rake_task) { instance_double(Rake::Task, reenable: nil, invoke: nil) }
 
+    let!(:organization) { create(:organization, host: "#{SecureRandom.hex(8)}.example.org") }
+
     before do
+      allow(Decidim::Organization).to receive(:first).and_return(organization)
+      allow(organization).to receive(:minimalistic_deepl?).and_return(true)
       allow(Rake::Task).to receive(:task_defined?).with("decidim:locales:rebuild_search").and_return(true)
       allow(Rake::Task).to receive(:[]).with("decidim:locales:rebuild_search").and_return(rake_task)
       runner = instance_double(Decidim::Voca::SyncLocales::Runner, call: nil)

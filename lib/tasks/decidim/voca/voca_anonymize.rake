@@ -14,7 +14,6 @@ namespace :decidim do
       ) != "1"
 
       users = Decidim::User.where.not(admin: true)
-      groups = Decidim::UserGroup.all
       users.find_each do |user|
         new_password = Devise.friendly_token.first(16)
 
@@ -37,24 +36,6 @@ namespace :decidim do
       end
 
       puts "Anonymized #{users.count} users"
-
-      groups.find_each do |group|
-        new_nickname = loop do
-          nickname = Faker::Internet.username.gsub(/[^a-zA-Z0-9-]/, "-")[0..19]
-          break nickname unless Decidim::UserBaseEntity.exists?(nickname:)
-        end
-
-        group.name = Faker::Name.name
-        group.email = "#{new_nickname}@example.org"
-        group.nickname = new_nickname
-        group.skip_confirmation!
-        group.skip_reconfirmation!
-        raise "Error, group not valid, #{group.errors.full_messages}" unless group.valid?
-
-        group.save!(validate: false)
-      end
-
-      puts "Anonymized #{groups.count} groups"
     end
   end
 end

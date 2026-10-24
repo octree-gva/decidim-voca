@@ -7,7 +7,6 @@ require "decidim/proposals/test/factories"
 # Core parity after MERGEABLE_FIELD_REGISTRY: proposal import still works; ProposalSerializer CSV shape stable.
 RSpec.describe "VOCA Core import/export regression", :regression do
   before do
-    allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
     Decidim::Voca::DeepL::EngineConfig.apply_mergeable_fields!
     Decidim::Voca::DeepL::EngineConfig.send(:fix_accountability_timeline_entry_translatable_fields!)
   end

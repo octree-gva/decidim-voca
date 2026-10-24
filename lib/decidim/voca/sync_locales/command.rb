@@ -26,9 +26,9 @@ module Decidim
         private
 
         def ensure_minimalistic_deepl!
-          return if Decidim::Voca.minimalistic_deepl?
+          return if organization.minimalistic_deepl?
 
-          raise(StandardError, "Decidim::Voca.minimalistic_deepl? must be true to run #{self.class.name}")
+          raise(StandardError, "organization.minimalistic_deepl? must be true to run #{self.class.name}")
         end
 
         def ensure_rake_tasks!
@@ -39,6 +39,10 @@ module Decidim
 
         def rebuild_search_task
           @rebuild_search_task ||= Rake::Task["decidim:locales:rebuild_search"]
+        end
+
+        def organization
+          Decidim::Organization.first
         end
       end
 

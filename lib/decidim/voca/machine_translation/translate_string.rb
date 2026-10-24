@@ -16,7 +16,7 @@ module Decidim
             work = text.dup
             work.gsub!(Regexp.new(%q(<img\s+src="data:image/png;base64,[^"]*"\s*/?>), Regexp::IGNORECASE), "")
 
-            return dummy_dev_translation(work, target_locale) if klass == Decidim::Dev::DummyTranslator
+            return dummy_dev_translation(work, target_locale) if klass.to_s == "Decidim::Dev::DummyTranslator"
 
             return dummy_deepl_style_translation(work, target_locale, html) if dummy_translate?
 
@@ -31,7 +31,7 @@ module Decidim
           end
 
           def deepl_service?(klass)
-            klass.to_s == "Decidim::Voca::DeepL::MachineTranslator" && Decidim::Voca::Installation.deepl_enabled?
+            klass.to_s == "Decidim::Voca::DeepL::MachineTranslator"
           end
 
           def translatable?(text)
@@ -71,7 +71,7 @@ module Decidim
             return text unless translatable?(text)
             return dummy_deepl_style_translation(text, target_locale, html) if dummy_translate?
 
-            return text unless defined?(::DeepL) && Decidim::Voca::Installation.deepl_enabled?
+            return text unless defined?(::DeepL)
 
             mutex.synchronize do
               result = ::DeepL.translate(

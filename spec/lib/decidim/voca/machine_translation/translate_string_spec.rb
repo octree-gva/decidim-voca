@@ -29,7 +29,6 @@ RSpec.describe Decidim::Voca::MachineTranslation::TranslateString do
 
     it "does not treat Decidim::Voca::DeepL as the deepl-rb gem" do
       allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Voca::DeepL::MachineTranslator)
-      allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
       hide_const("::DeepL")
 
       expect(described_class.call(
@@ -39,6 +38,23 @@ RSpec.describe Decidim::Voca::MachineTranslation::TranslateString do
                html: false,
                context: nil
              )).to eq("Hello")
+    end
+
+    it "does not raise when Decidim::Dev is not loaded" do
+      allow(Decidim).to receive(:machine_translation_service_klass).and_return(Decidim::Voca::DeepL::MachineTranslator)
+      allow(Decidim::Voca::Installation).to receive(:deepl_enabled?).and_return(true)
+      hide_const("::DeepL")
+      hide_const("Decidim::Dev")
+
+      expect do
+        described_class.call(
+          text: "Hello",
+          source_locale: "en",
+          target_locale: "fr",
+          html: false,
+          context: nil
+        )
+      end.not_to raise_error
     end
   end
 end

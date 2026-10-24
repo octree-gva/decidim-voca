@@ -8,19 +8,24 @@ base_path = "../" if File.basename(__dir__) == "development_app"
 
 require_relative "#{base_path}lib/decidim/voca/version"
 
-DECIDIM_VERSION = "~> 0.29.6"
+DECIDIM_VERSION = "~> 0.32"
 
 gem "activerecord-postgis-adapter"
 gem "bootsnap", "~> 1.4"
 gem "decidim", DECIDIM_VERSION
-gem "decidim-decidim_awesome", "~> 0.12.3"
 gem "decidim-voca", path: base_path
 gem "deepl-rb"
-gem "deface", ">= 1.8.1"
+gem "deface", ">= 1.9"
 gem "good_job", "~> 4.5.1"
-gem "next_gen_images", git: "https://github.com/froger/next_gen_images", branch: "chore/rails-7.0"
 gem "puma", ">= 6.3.1"
 gem "uglifier", "~> 4.1"
+
+gem "html-pipeline", "~> 3.2.2"
+gem "selma", "~> 0.4.0"
+
+gem "decidim-initiatives"
+
+gem "decidim-decidim_awesome", git: "https://github.com/decidim-ice/decidim-module-decidim_awesome.git", branch: "main"
 
 group :development, :test do
   gem "brakeman", "~> 6.1"
@@ -42,24 +47,7 @@ group :development do
 end
 
 gem "concurrent-ruby", "= 1.3.4"
-gem "decidim-telemetry",
-    git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry",
-    tag: "v0.0.4"
 
-gem "decidim-ephemeral_participation",
-    git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-ephemeral_participation",
-    tag: "v0.0.6"
+gem "decidim-telemetry", "~> 0.0.3", :git => "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-telemetry", :ref => "v0.0.3"
 
-gem "decidim-user_fields",
-    git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-user_fields",
-    branch: "main"
-
-gem "decidim-toggle",
-    git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle",
-    branch: "main"
-
-gem "opentelemetry-exporter-otlp"
-gem "opentelemetry-exporter-otlp-logs"
-gem "opentelemetry-instrumentation-all"
-gem "opentelemetry-logs-sdk"
-gem "opentelemetry-sdk"
+gem "decidim-toggle", git: "https://git.octree.ch/decidim/vocacity/decidim-modules/decidim-toggle.git"

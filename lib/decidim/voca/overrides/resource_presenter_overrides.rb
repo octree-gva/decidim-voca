@@ -16,11 +16,11 @@ module Decidim
           # to identify the hashtags and mentions.
           # Overrides it to include Decidim::ContentRenderers::BlobRenderer in the
           # renderer array to properly render files and images in the Meetings editor.
-          def editor_locales(data, all_locales, extras: true)
-            data = original_editor_locales(data, all_locales, extras:)
+          def editor_locales(data, all_locales)
+            data = original_editor_locales(data, all_locales)
             handle_locales(data, all_locales) do |content|
               renderer = Decidim::ContentRenderers::BlobRenderer.new(content)
-              renderer.render(links: false, editor: true, extras:).html_safe
+              renderer.render(links: false, editor: true).html_safe
             end
           end
         end

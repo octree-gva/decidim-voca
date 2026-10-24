@@ -82,15 +82,15 @@ RSpec.describe Decidim::Voca::Export do
     end
   end
 
-  describe Decidim::Forms::UserAnswersSerializer do
+  describe Decidim::Forms::UserResponsesSerializer do
     let(:survey) { create(:survey, skip_injection: true) }
     let(:organization) { survey.component.organization }
     let(:questionnaire) { survey.questionnaire }
     let(:question) { questionnaire.questions.order(:position).first }
     let(:user) { create(:user, :admin, :confirmed, organization:, locale: "fr") }
-    let!(:answer) do
+    let!(:response) do
       create(
-        :answer,
+        :response,
         questionnaire:,
         question:,
         user:,
@@ -104,8 +104,8 @@ RSpec.describe Decidim::Voca::Export do
     end
 
     it "uses stable q_<id> keys per locale and a locale column" do
-      serializer = Decidim::Forms::UserAnswersSerializer
-      headers, row = csv_headers_and_first_row([[answer]], serializer)
+      serializer = Decidim::Forms::UserResponsesSerializer
+      headers, row = csv_headers_and_first_row([[response]], serializer)
 
       qkey = "q_#{question.id}"
       expect(headers).to include("en/#{qkey}", "fr/#{qkey}", "locale")
