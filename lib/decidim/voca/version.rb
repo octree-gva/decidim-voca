@@ -5,7 +5,7 @@ module Decidim
     MODULE_NAME = "decidim_voca"
 
     def self.version
-      "0.0.24" # DO NOT UPDATE MANUALLY
+      "0.1.0" # DO NOT UPDATE MANUALLY
     end
 
     def self.decidim_version
