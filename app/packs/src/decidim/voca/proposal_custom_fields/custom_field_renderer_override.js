@@ -1,4 +1,5 @@
 import renderBudget from "./render_budget_field";
+import { log, warn } from "../debug";
 
 /**
  * Override the custom fields renderer to add our own custom fields.
@@ -72,7 +73,7 @@ export default class CustomFieldRendererOverride {
     }
     const file = $input.prop("files")[0];
     if (!file) {
-      console.warn(`input[name="${inputName}"] has no file, skipping upload`);
+      warn(`input[name="${inputName}"] has no file, skipping upload`);
       return;
     }
     const formData = new FormData();
@@ -130,7 +131,7 @@ export default class CustomFieldRendererOverride {
       $body.val(await this.dataToXML(this.renderer.spec));
       this.renderer.$element.data("spec", this.renderer.spec);
     }
-    console.log(
+    log(
       "storeData spec",
       this.spec,
       "$body",

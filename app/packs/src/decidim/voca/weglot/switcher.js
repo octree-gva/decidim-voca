@@ -1,5 +1,7 @@
+import { log } from "../debug";
+
 function initializeCommentsDropdown(buttons) {
-  if(buttons.length === 0) {
+  if (buttons.length === 0) {
     return;
   }
   buttons.forEach((button) => {
@@ -9,7 +11,7 @@ function initializeCommentsDropdown(buttons) {
       const target = button.getAttribute("data-target");
       const dropdown = document.getElementById(target);
       const wasHidden = dropdown.getAttribute("aria-hidden") === "true";
-      console.log("WAS HIDDEN", wasHidden);
+      log("WAS HIDDEN", wasHidden);
       dropdown.setAttribute("aria-hidden", !wasHidden);
       // If not hidden and click outside, click on the button again
       if (wasHidden) {
@@ -36,7 +38,7 @@ export default async function switcher() {
   }
   const buttons = []
    searchContainers.forEach((searchContainer) => {
-    console.log("searchContainer", searchContainer);
+    log("searchContainer", searchContainer);
     const currentLang = WeglotInstance.getCurrentLang();
     const currentLanguageName = WeglotInstance.getLanguageName(currentLang);
       const buttonContent = searchContainer.querySelector(
@@ -57,7 +59,7 @@ export default async function switcher() {
       );
       const dataItemClasses = selectList.getAttribute("data-weglot-item-class");
       const dataTextItemClasses = selectList.getAttribute("data-weglot-textitem-class");
-      console.log("DATA ITEM CLASSES", dataItemClasses, dataTextItemClasses);
+      log("DATA ITEM CLASSES", dataItemClasses, dataTextItemClasses);
       const itemClasses = dataItemClasses ? dataItemClasses.split(" ") : [];
       const textItemClasses = dataTextItemClasses ? dataTextItemClasses.split(" ") : [];
       availableLanguages.forEach((lang) => {
@@ -75,7 +77,7 @@ export default async function switcher() {
         listItem.addEventListener("click", function (event) {
           event.preventDefault();
 
-          console.log("Voca Weglot clicked on", lang);
+          log("Voca Weglot clicked on", lang);
           WeglotInstance.switchTo(lang);
           buttonContent.textContent = WeglotInstance.getLanguageName(lang);
         });
@@ -86,7 +88,7 @@ export default async function switcher() {
   });
   initializeCommentsDropdown(buttons);
   WeglotInstance.on("languageChanged", function (lang) {
-    console.log("Voca Weglot language changed to", lang);
+    log("Voca Weglot language changed to", lang);
   });
   window.initFoundation(window.document);
 }

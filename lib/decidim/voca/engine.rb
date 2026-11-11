@@ -20,6 +20,14 @@ module Decidim
     class Engine < ::Rails::Engine
       isolate_namespace Decidim::Voca
 
+      # Deface 1.9 only ignores app/overrides when Rails.configuration.autoloader == :zeitwerk,
+      # which Rails 7.1+ no longer exposes — without this, Zeitwerk eager-loads every
+      # app/overrides/*.rb and Deface::Override warns when Deface is disabled.
+      initializer "decidim_voca.ignore_deface_overrides", before: :set_autoload_paths do
+        overrides = root.join("app/overrides")
+        Rails.autoloaders.main.ignore(overrides) if overrides.exist?
+      end
+
       routes do
         Decidim::Core::Engine.routes.draw do
           post :editor_files, to: "voca/editor_files#create"

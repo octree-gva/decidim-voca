@@ -1,4 +1,5 @@
 import waitForWeglot from "./wait_for_weglot";
+import { log } from "../debug";
 
 function config() {
   return window.VocaWeglotConfig;
@@ -10,14 +11,14 @@ export default async function startWeglot() {
   } catch (e) {
     return;
   }
-  
+
   const { enabled, api_key, default_language, enable_cache } = config();
   if (!enabled || !api_key) {
-    console.log("Voca Weglot: skipping");
+    log("Voca Weglot: skipping");
     return;
   }
-  if(api_key.length < 10) {
-    console.log("Voca Weglot: invalid api key, skipping");
+  if (api_key.length < 10) {
+    log("Voca Weglot: invalid api key, skipping");
     return;
   }
  

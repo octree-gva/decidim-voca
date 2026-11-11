@@ -1,5 +1,6 @@
 import getProposalForm from "./utils/get_proposal_form";
 import {initializeUploadFields, registeredModals, updateActiveUploads } from "src/decidim/direct_uploads/upload_field";
+import { warn } from "../debug";
 
 document.addEventListener("DOMContentLoaded", () => {
   const attachmentButtons = document.querySelectorAll("#proposal_attachments_button");
@@ -21,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const modal = registeredModals[$attachmentButton[0].id];
   
   if (!modal) {
-    console.warn("No modal found for attachment button");
+    warn("No modal found for attachment button");
     return;
   }
   // Listen on emptyItems classList change to update the dropzone

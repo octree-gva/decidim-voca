@@ -1,13 +1,14 @@
 import startWeglot from "./start_weglot";
 import switcher from "./switcher";
+import { error, log } from "../debug";
 
 document.addEventListener("DOMContentLoaded", () => {
   startWeglot()
     .then(switcher)
     .then(() => {
-      console.log("Voca Weglot: loaded");
+      log("Voca Weglot: loaded");
     })
-    .catch((error) => {
-      console.error("Voca Weglot: error", error);
+    .catch((err) => {
+      error("Voca Weglot: error", err);
     });
 });
