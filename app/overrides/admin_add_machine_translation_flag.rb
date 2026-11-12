@@ -13,7 +13,7 @@ Deface::Override.new(
     "data-machine-translated" => "<%= current_organization.enable_machine_translations? %>",
     "data-minimalistic-deepl" => "<%= Decidim::Voca.minimalistic_deepl? %>"
   },
-  original: "9e9359026457bb1a289c94b183011e814d64893d"
+  original: "bd6f98a84ee0899f4f7d9f40f16ee42879597f67"
 )
 Deface::Override.new(
   virtual_path: "layouts/decidim/admin/_title_bar",
@@ -23,7 +23,7 @@ Deface::Override.new(
     "data-machine-translated" => "<%= current_organization.enable_machine_translations? %>",
     "data-minimalistic-deepl" => "<%= Decidim::Voca.minimalistic_deepl? %>"
   },
-  original: "978289390dedd19463db6ac36784ca94ae4a7d30"
+  original: "4d5d6b9e6f09a2185e5ae94b27463f560cb232fb"
 )
 
 # Force admin to manage only default locale, and let machine translation do the rest.
@@ -32,5 +32,5 @@ Deface::Override.new(
   name: "admin_voca_force_only_default_locale",
   insert_after: "script",
   partial: "decidim/voca/deepl/overrides/admin_machine_translation_alert",
-  original: "387d0b7c5fc52d2ee5e5c6d4b276791d69b4432e"
+  original: "2b2692cefad093ec81e7099648a44d139ad6553f"
 )
